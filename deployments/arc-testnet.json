@@ -1,0 +1,14 @@
+{
+  "chainId": 5042002,
+  "contracts": {
+    "PlanRegistry": "0x276Ad3A0c2A96d2C135736c6Bde315Ff7d9F6648",
+    "StreamManager": "0xfbcBF749819e48ECE94C21BeED24d7877C062263"
+  },
+  "usdc": "0x3600000000000000000000000000000000000000",
+  "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+  "deployer": "0xd92a78d42379d1516bB794050FC31e44Dcc070F2",
+  "txHashes": {
+    "PlanRegistry": "0xe868340ba1222f9ff2734db251f45272c8d25939ab0cf84e5ae377419906ea98",
+    "StreamManager": "0x9090f6c66f016cf362727c4d9231b9828d2f06246d5f25fc169e11ef3cdea4a4"
+  }
+}
