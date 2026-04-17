@@ -3,8 +3,6 @@ description: TrustFlow streaming subscription protocol indexer on Arc Testnet
 
 networks:
   - id: 5042002
-    rpc_config:
-      url: https://rpc.testnet.arc.network
     start_block: 0
     contracts:
       - name: PlanRegistry
