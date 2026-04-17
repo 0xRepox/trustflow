@@ -1,0 +1,36 @@
+name: trustflow-indexer
+description: TrustFlow streaming subscription protocol indexer on Arc Testnet
+
+networks:
+  - id: 5042002
+    start_block: 0
+    contracts:
+      - name: PlanRegistry
+        address: "0x276Ad3A0c2A96d2C135736c6Bde315Ff7d9F6648"
+        abi_file_path: ./abis/PlanRegistry.json
+        handler: ./src/EventHandlers.ts
+        events:
+          - event: PlanCreated(uint256 indexed planId, address indexed owner, uint128 ratePerSecond)
+          - event: PlanUpdated(uint256 indexed planId, uint128 ratePerSecond, uint32 gracePeriod, uint8 disputePolicy)
+          - event: PlanDeactivated(uint256 indexed planId)
+
+      - name: StreamManager
+        address: "0xb4cC364d19eb4473852316Ec7B8bcc6D87EF3954"
+        abi_file_path: ./abis/StreamManager.json
+        handler: ./src/EventHandlers.ts
+        events:
+          - event: StreamCreated(uint256 indexed streamId, uint256 indexed planId, address indexed payer, uint128 deposit)
+          - event: StreamCancelled(uint256 indexed streamId, uint128 refund, uint128 consumed)
+          - event: StreamToppedUp(uint256 indexed streamId, uint128 amount)
+          - event: StreamPaused(uint256 indexed streamId)
+          - event: StreamResumed(uint256 indexed streamId)
+          - event: Claimed(uint256 indexed streamId, address indexed merchant, uint128 amount)
+
+      - name: DisputeResolver
+        address: "0xc2fd9616d9d8Af35a6D89290bed4838Da3F5083d"
+        abi_file_path: ./abis/DisputeResolver.json
+        handler: ./src/EventHandlers.ts
+        events:
+          - event: DisputeOpened(uint256 indexed disputeId, uint256 indexed streamId, address indexed subscriber, uint128 frozenAmount)
+          - event: DisputeResponded(uint256 indexed disputeId, bytes32 evidenceHash)
+          - event: DisputeSettled(uint256 indexed disputeId, uint8 verdict, uint128 toSubscriber, uint128 toMerchant)

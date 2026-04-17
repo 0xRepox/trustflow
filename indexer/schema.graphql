@@ -1,0 +1,45 @@
+type Plan {
+  id: ID!
+  owner: String!
+  ratePerSecond: String!
+  gracePeriod: Int!
+  disputePolicy: Int!
+  active: Boolean!
+  createdAt: Int!
+  streams: [Stream!]! @derivedFrom(field: "plan")
+}
+
+type Stream {
+  id: ID!
+  plan: Plan!
+  payer: String!
+  deposited: String!
+  claimed: String!
+  consumed: String!
+  status: String!
+  createdAt: Int!
+  cancelledAt: Int
+  claims: [ClaimEvent!]! @derivedFrom(field: "stream")
+  disputes: [Dispute!]! @derivedFrom(field: "stream")
+}
+
+type ClaimEvent {
+  id: ID!
+  stream: Stream!
+  merchant: String!
+  amount: String!
+  timestamp: Int!
+  blockNumber: Int!
+}
+
+type Dispute {
+  id: ID!
+  stream: Stream!
+  subscriber: String!
+  frozenAmount: String!
+  status: String!
+  verdict: String
+  evidenceHash: String
+  openedAt: Int!
+  settledAt: Int
+}

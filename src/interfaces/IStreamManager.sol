@@ -14,6 +14,7 @@ interface IStreamManager {
         uint128 deposited;
         uint128 consumed;
         uint128 claimed;
+        uint128 frozen;
         uint64 startTimestamp;
         uint64 lastClaimTimestamp;
         uint64 cancelledAt;

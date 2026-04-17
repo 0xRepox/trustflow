@@ -14,4 +14,18 @@ library Errors {
     error NotPlanMerchant();
     error DepositTooSmall();
     error InvalidStream();
+    // Dispute errors
+    error NotDisputeSubscriber();
+    error NotDisputeMerchant();
+    error NotArbitrator();
+    error DisputeAlreadyExists();
+    error DisputeNotOpen();
+    error DisputeAlreadyResponded();
+    error DisputeAlreadySettled();
+    error RespondWindowExpired();
+    error RespondWindowActive();
+    error DisputeAmountTooLarge();
+    error ZeroDisputeAmount();
+    error DisputeResolverNotSet();
+    error NotDisputeResolver();
 }

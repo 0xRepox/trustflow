@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IStreamManager} from "./interfaces/IStreamManager.sol";
@@ -10,12 +11,13 @@ import {StreamMath} from "./libraries/StreamMath.sol";
 import {Errors} from "./libraries/Errors.sol";
 import {ISignatureTransfer} from "permit2/interfaces/ISignatureTransfer.sol";
 
-contract StreamManager is IStreamManager, ReentrancyGuard {
+contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable usdc;
     IPlanRegistry public immutable registry;
     address public immutable permit2;
+    address public disputeResolver;
 
     uint256 public constant DAILY_CAP_MULTIPLIER = 2;
 
@@ -27,10 +29,19 @@ contract StreamManager is IStreamManager, ReentrancyGuard {
     mapping(uint256 => uint256) private _lastClaimWindowStart;
     mapping(uint256 => uint128) private _claimedInWindow;
 
-    constructor(address _usdc, address _registry, address _permit2) {
+    modifier onlyDisputeResolver() {
+        if (msg.sender != disputeResolver) revert Errors.NotDisputeResolver();
+        _;
+    }
+
+    constructor(address _usdc, address _registry, address _permit2) Ownable(msg.sender) {
         usdc = IERC20(_usdc);
         registry = IPlanRegistry(_registry);
         permit2 = _permit2;
+    }
+
+    function setDisputeResolver(address _disputeResolver) external onlyOwner {
+        disputeResolver = _disputeResolver;
     }
 
     function createStream(uint256 planId, uint128 depositAmount) external nonReentrant returns (uint256 streamId) {
@@ -48,6 +59,7 @@ contract StreamManager is IStreamManager, ReentrancyGuard {
             deposited: depositAmount,
             consumed: 0,
             claimed: 0,
+            frozen: 0,
             startTimestamp: uint64(block.timestamp),
             lastClaimTimestamp: uint64(block.timestamp),
             cancelledAt: 0,
@@ -80,6 +92,7 @@ contract StreamManager is IStreamManager, ReentrancyGuard {
             deposited: depositAmount,
             consumed: 0,
             claimed: 0,
+            frozen: 0,
             startTimestamp: uint64(block.timestamp),
             lastClaimTimestamp: uint64(block.timestamp),
             cancelledAt: 0,
@@ -122,7 +135,7 @@ contract StreamManager is IStreamManager, ReentrancyGuard {
 
         (uint256 consumed,) = _computeConsumed(streamId);
         uint128 consumed128 = uint128(consumed);
-        uint128 claimable = consumed128 - stream.claimed;
+        uint128 claimable = consumed128 - stream.claimed - stream.frozen;
 
         if (claimable == 0) return;
 
@@ -185,6 +198,31 @@ contract StreamManager is IStreamManager, ReentrancyGuard {
             if (ok) {
                 emit Claimed(streamId, msg.sender, claimable);
             }
+        }
+    }
+
+    function freezeForDispute(uint256 streamId, uint128 amount) external onlyDisputeResolver {
+        Stream storage stream = _streams[streamId];
+        if (stream.payer == address(0)) revert Errors.InvalidStream();
+        (uint256 consumed,) = _computeConsumed(streamId);
+        uint128 available = uint128(consumed) - stream.claimed - stream.frozen;
+        if (amount > available) revert Errors.DisputeAmountTooLarge();
+        stream.frozen += amount;
+    }
+
+    function resolveDispute(uint256 streamId, uint128 amount, uint128 toSubscriber, uint128 toMerchant)
+        external
+        onlyDisputeResolver
+    {
+        Stream storage stream = _streams[streamId];
+        if (stream.payer == address(0)) revert Errors.InvalidStream();
+        stream.frozen -= amount;
+        if (toSubscriber > 0) {
+            _safeTransferOrSkip(stream.payer, toSubscriber);
+        }
+        if (toMerchant > 0) {
+            address merchantAddr = registry.getPlan(stream.planId).owner;
+            _safeTransferOrSkip(merchantAddr, toMerchant);
         }
     }
 
