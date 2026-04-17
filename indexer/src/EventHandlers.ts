@@ -1,16 +1,18 @@
 import {
-  PlanRegistry_PlanCreated,
-  PlanRegistry_PlanUpdated,
-  PlanRegistry_PlanDeactivated,
-  StreamManager_StreamCreated,
-  StreamManager_StreamCancelled,
-  StreamManager_StreamToppedUp,
-  StreamManager_StreamPaused,
-  StreamManager_StreamResumed,
-  StreamManager_Claimed,
-  DisputeResolver_DisputeOpened,
-  DisputeResolver_DisputeResponded,
-  DisputeResolver_DisputeSettled,
+  PlanRegistry_PlanCreated_handler,
+  PlanRegistry_PlanUpdated_handler,
+  PlanRegistry_PlanDeactivated_handler,
+  StreamManager_StreamCreated_handler,
+  StreamManager_StreamCancelled_handler,
+  StreamManager_StreamToppedUp_handler,
+  StreamManager_StreamPaused_handler,
+  StreamManager_StreamResumed_handler,
+  StreamManager_Claimed_handler,
+  DisputeResolver_DisputeOpened_handler,
+  DisputeResolver_DisputeResponded_handler,
+  DisputeResolver_DisputeSettled_handler,
+} from "../generated/src/Handlers.gen";
+import type {
   Plan,
   Stream,
   ClaimEvent,
@@ -19,7 +21,7 @@ import {
 
 // ─── PlanRegistry ─────────────────────────────────────────────────────────
 
-PlanRegistry_PlanCreated.handler(async ({ event, context }) => {
+PlanRegistry_PlanCreated_handler(async ({ event, context }) => {
   const plan: Plan = {
     id: event.params.planId.toString(),
     owner: event.params.owner,
@@ -32,18 +34,18 @@ PlanRegistry_PlanCreated.handler(async ({ event, context }) => {
   context.Plan.set(plan);
 });
 
-PlanRegistry_PlanUpdated.handler(async ({ event, context }) => {
+PlanRegistry_PlanUpdated_handler(async ({ event, context }) => {
   const existing = await context.Plan.get(event.params.planId.toString());
   if (!existing) return;
   context.Plan.set({
     ...existing,
     ratePerSecond: event.params.ratePerSecond.toString(),
-    gracePeriod: event.params.gracePeriod,
-    disputePolicy: event.params.disputePolicy,
+    gracePeriod: Number(event.params.gracePeriod),
+    disputePolicy: Number(event.params.disputePolicy),
   });
 });
 
-PlanRegistry_PlanDeactivated.handler(async ({ event, context }) => {
+PlanRegistry_PlanDeactivated_handler(async ({ event, context }) => {
   const existing = await context.Plan.get(event.params.planId.toString());
   if (!existing) return;
   context.Plan.set({ ...existing, active: false });
@@ -51,7 +53,7 @@ PlanRegistry_PlanDeactivated.handler(async ({ event, context }) => {
 
 // ─── StreamManager ────────────────────────────────────────────────────────
 
-StreamManager_StreamCreated.handler(async ({ event, context }) => {
+StreamManager_StreamCreated_handler(async ({ event, context }) => {
   const stream: Stream = {
     id: event.params.streamId.toString(),
     plan_id: event.params.planId.toString(),
@@ -66,7 +68,7 @@ StreamManager_StreamCreated.handler(async ({ event, context }) => {
   context.Stream.set(stream);
 });
 
-StreamManager_StreamCancelled.handler(async ({ event, context }) => {
+StreamManager_StreamCancelled_handler(async ({ event, context }) => {
   const existing = await context.Stream.get(event.params.streamId.toString());
   if (!existing) return;
   context.Stream.set({
@@ -77,33 +79,33 @@ StreamManager_StreamCancelled.handler(async ({ event, context }) => {
   });
 });
 
-StreamManager_StreamToppedUp.handler(async ({ event, context }) => {
+StreamManager_StreamToppedUp_handler(async ({ event, context }) => {
   const existing = await context.Stream.get(event.params.streamId.toString());
   if (!existing) return;
   const newDeposited = (BigInt(existing.deposited) + event.params.amount).toString();
   context.Stream.set({ ...existing, deposited: newDeposited });
 });
 
-StreamManager_StreamPaused.handler(async ({ event, context }) => {
+StreamManager_StreamPaused_handler(async ({ event, context }) => {
   const existing = await context.Stream.get(event.params.streamId.toString());
   if (!existing) return;
   context.Stream.set({ ...existing, status: "Paused" });
 });
 
-StreamManager_StreamResumed.handler(async ({ event, context }) => {
+StreamManager_StreamResumed_handler(async ({ event, context }) => {
   const existing = await context.Stream.get(event.params.streamId.toString());
   if (!existing) return;
   context.Stream.set({ ...existing, status: "Active" });
 });
 
-StreamManager_Claimed.handler(async ({ event, context }) => {
+StreamManager_Claimed_handler(async ({ event, context }) => {
   const existing = await context.Stream.get(event.params.streamId.toString());
   if (existing) {
     const newClaimed = (BigInt(existing.claimed) + event.params.amount).toString();
     context.Stream.set({ ...existing, claimed: newClaimed });
   }
 
-  const claimId = `${event.params.streamId}-${event.transaction.hash}-${event.logIndex}`;
+  const claimId = `${event.params.streamId}-${event.block.hash}-${event.logIndex}`;
   const claim: ClaimEvent = {
     id: claimId,
     stream_id: event.params.streamId.toString(),
@@ -117,7 +119,7 @@ StreamManager_Claimed.handler(async ({ event, context }) => {
 
 // ─── DisputeResolver ──────────────────────────────────────────────────────
 
-DisputeResolver_DisputeOpened.handler(async ({ event, context }) => {
+DisputeResolver_DisputeOpened_handler(async ({ event, context }) => {
   const dispute: Dispute = {
     id: event.params.disputeId.toString(),
     stream_id: event.params.streamId.toString(),
@@ -132,7 +134,7 @@ DisputeResolver_DisputeOpened.handler(async ({ event, context }) => {
   context.Dispute.set(dispute);
 });
 
-DisputeResolver_DisputeResponded.handler(async ({ event, context }) => {
+DisputeResolver_DisputeResponded_handler(async ({ event, context }) => {
   const existing = await context.Dispute.get(event.params.disputeId.toString());
   if (!existing) return;
   context.Dispute.set({
@@ -142,14 +144,14 @@ DisputeResolver_DisputeResponded.handler(async ({ event, context }) => {
   });
 });
 
-DisputeResolver_DisputeSettled.handler(async ({ event, context }) => {
+DisputeResolver_DisputeSettled_handler(async ({ event, context }) => {
   const existing = await context.Dispute.get(event.params.disputeId.toString());
   if (!existing) return;
   const verdictMap: Record<number, string> = { 0: "Pending", 1: "Subscriber", 2: "Merchant", 3: "Split" };
   context.Dispute.set({
     ...existing,
     status: "Settled",
-    verdict: verdictMap[event.params.verdict] ?? "Unknown",
+    verdict: verdictMap[Number(event.params.verdict)] ?? "Unknown",
     settledAt: event.block.timestamp,
   });
 });

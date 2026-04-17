@@ -1,0 +1,13 @@
+{
+  "name": "trustflow-indexer",
+  "version": "1.0.0",
+  "description": "TrustFlow Envio HyperIndex indexer",
+  "scripts": {
+    "dev": "envio dev",
+    "codegen": "envio codegen",
+    "start": "envio start"
+  },
+  "dependencies": {
+    "envio": "2.32.12"
+  }
+}
