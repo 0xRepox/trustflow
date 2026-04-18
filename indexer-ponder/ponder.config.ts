@@ -17,19 +17,19 @@ export default createConfig({
       chain: "arcTestnet",
       abi: PlanRegistryAbi,
       address: "0x276Ad3A0c2A96d2C135736c6Bde315Ff7d9F6648",
-      startBlock: 0,
+      startBlock: 37600000,
     },
     StreamManager: {
       chain: "arcTestnet",
       abi: StreamManagerAbi,
       address: "0xb4cC364d19eb4473852316Ec7B8bcc6D87EF3954",
-      startBlock: 0,
+      startBlock: 37600000,
     },
     DisputeResolver: {
       chain: "arcTestnet",
       abi: DisputeResolverAbi,
       address: "0xc2fd9616d9d8Af35a6D89290bed4838Da3F5083d",
-      startBlock: 0,
+      startBlock: 37600000,
     },
   },
 });
