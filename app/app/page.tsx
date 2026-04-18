@@ -30,9 +30,9 @@ export default function OverviewPage() {
   });
 
   const { data: disputes } = useQuery({
-    queryKey: ["disputes", address],
-    queryFn: () => getDisputesByMerchant(address!),
-    enabled: !!address,
+    queryKey: ["disputes", streams?.map((s) => s.id)],
+    queryFn: () => getDisputesByMerchant(streams!.map((s) => s.id)),
+    enabled: !!streams?.length,
   });
 
   if (!isConnected) {

@@ -1,12 +1,12 @@
-const ENVIO_URL =
-  process.env.NEXT_PUBLIC_ENVIO_URL ?? "http://localhost:8080/v1/graphql";
+const INDEXER_URL =
+  process.env.NEXT_PUBLIC_ENVIO_URL ?? "http://localhost:42069/graphql";
 
 async function gql<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const res = await fetch(ENVIO_URL, {
+  const res = await fetch(INDEXER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, variables }),
-    next: { revalidate: 10 },
+    cache: "no-store",
   });
   const json = await res.json();
   if (json.errors) throw new Error(json.errors[0].message);
@@ -25,7 +25,7 @@ export interface Plan {
 
 export interface Stream {
   id: string;
-  plan: { id: string };
+  planId: string;
   payer: string;
   deposited: string;
   claimed: string;
@@ -37,7 +37,7 @@ export interface Stream {
 
 export interface Dispute {
   id: string;
-  stream: { id: string };
+  streamId: string;
   subscriber: string;
   frozenAmount: string;
   status: string;
@@ -49,41 +49,54 @@ export interface Dispute {
 
 export interface ClaimEvent {
   id: string;
-  stream: { id: string };
+  streamId: string;
   merchant: string;
   amount: string;
   timestamp: number;
 }
 
 export async function getPlansByOwner(owner: string): Promise<Plan[]> {
-  const data = await gql<{ Plan: Plan[] }>(
-    `query($owner: String!) { Plan(where: { owner: { _eq: $owner } }) {
-      id owner ratePerSecond gracePeriod disputePolicy active createdAt
-    }}`,
+  const data = await gql<{ plans: { items: Plan[] } }>(
+    `query($owner: String!) {
+      plans(where: { owner: $owner }, limit: 100) {
+        items { id owner ratePerSecond gracePeriod disputePolicy active createdAt }
+      }
+    }`,
     { owner: owner.toLowerCase() }
   );
-  return data.Plan;
+  return data.plans.items;
 }
 
 export async function getStreamsByPlanIds(planIds: string[]): Promise<Stream[]> {
   if (planIds.length === 0) return [];
-  const data = await gql<{ Stream: Stream[] }>(
-    `query($ids: [String!]!) { Stream(where: { plan_id: { _in: $ids } }) {
-      id plan { id } payer deposited claimed consumed status createdAt cancelledAt
-    }}`,
-    { ids: planIds }
+  const results = await Promise.all(
+    planIds.map((planId) =>
+      gql<{ streams: { items: Stream[] } }>(
+        `query($planId: String!) {
+          streams(where: { planId: $planId }, limit: 100) {
+            items { id planId payer deposited claimed consumed status createdAt cancelledAt }
+          }
+        }`,
+        { planId }
+      )
+    )
   );
-  return data.Stream;
+  return results.flatMap((r) => r.streams.items);
 }
 
-export async function getDisputesByMerchant(merchant: string): Promise<Dispute[]> {
-  const data = await gql<{ Dispute: Dispute[] }>(
-    `query($merchant: String!) {
-      Dispute(where: { stream: { plan: { owner: { _eq: $merchant } } } }) {
-        id stream { id } subscriber frozenAmount status verdict evidenceHash openedAt settledAt
-      }
-    }`,
-    { merchant: merchant.toLowerCase() }
+export async function getDisputesByMerchant(streamIds: string[]): Promise<Dispute[]> {
+  if (streamIds.length === 0) return [];
+  const results = await Promise.all(
+    streamIds.map((streamId) =>
+      gql<{ disputes: { items: Dispute[] } }>(
+        `query($streamId: String!) {
+          disputes(where: { streamId: $streamId }, limit: 100) {
+            items { id streamId subscriber frozenAmount status verdict evidenceHash openedAt settledAt }
+          }
+        }`,
+        { streamId }
+      )
+    )
   );
-  return data.Dispute;
+  return results.flatMap((r) => r.disputes.items);
 }

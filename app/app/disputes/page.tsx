@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { getDisputesByMerchant } from "@/lib/envio";
+import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/envio";
 import { ADDRESSES, DISPUTE_RESOLVER_ABI } from "@/lib/contracts";
-import { toHex, keccak256, toBytes } from "viem";
+import { keccak256, toBytes } from "viem";
 
 export default function DisputesPage() {
   const { address, isConnected } = useAccount();
@@ -14,10 +14,22 @@ export default function DisputesPage() {
   const [txStatus, setTxStatus] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const { data: disputes, refetch } = useQuery({
-    queryKey: ["disputes", address],
-    queryFn: () => getDisputesByMerchant(address!),
+  const { data: plans } = useQuery({
+    queryKey: ["plans", address],
+    queryFn: () => getPlansByOwner(address!),
     enabled: !!address,
+  });
+
+  const { data: streams } = useQuery({
+    queryKey: ["streams", plans?.map((p) => p.id)],
+    queryFn: () => getStreamsByPlanIds(plans!.map((p) => p.id)),
+    enabled: !!plans?.length,
+  });
+
+  const { data: disputes, refetch } = useQuery({
+    queryKey: ["disputes", streams?.map((s) => s.id)],
+    queryFn: () => getDisputesByMerchant(streams!.map((s) => s.id)),
+    enabled: !!streams?.length,
   });
 
   async function handleRespond(disputeId: string) {
@@ -80,7 +92,7 @@ export default function DisputesPage() {
           {open.map((d) => (
             <div key={d.id} className="bg-gray-900 border border-yellow-800/40 rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-mono">Dispute #{d.id} · Stream #{d.stream.id}</p>
+                <p className="text-sm font-mono">Dispute #{d.id} · Stream #{d.streamId}</p>
                 <span className="text-xs text-yellow-400 bg-yellow-900/30 px-2 py-0.5 rounded-full">Open</span>
               </div>
               <p className="text-xs text-gray-400">Subscriber: {d.subscriber.slice(0, 10)}… · Frozen: {(Number(d.frozenAmount) / 1e6).toFixed(2)} USDC</p>
@@ -117,7 +129,7 @@ export default function DisputesPage() {
           {responded.map((d) => (
             <div key={d.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-mono">Dispute #{d.id} · Stream #{d.stream.id}</p>
+                <p className="text-sm font-mono">Dispute #{d.id} · Stream #{d.streamId}</p>
                 <span className="text-xs text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded-full">Awaiting Arbitration</span>
               </div>
               <p className="text-xs text-gray-400 mt-1">Frozen: {(Number(d.frozenAmount) / 1e6).toFixed(2)} USDC</p>
@@ -132,7 +144,7 @@ export default function DisputesPage() {
           {settled.map((d) => (
             <div key={d.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 opacity-60">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-mono">Dispute #{d.id} · Stream #{d.stream.id}</p>
+                <p className="text-sm font-mono">Dispute #{d.id} · Stream #{d.streamId}</p>
                 <span className="text-xs text-gray-400">Verdict: {d.verdict ?? "—"}</span>
               </div>
             </div>
