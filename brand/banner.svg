@@ -1,0 +1,59 @@
+<svg viewBox="0 0 1500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0A1628"/>
+      <stop offset="60%" stop-color="#0D1B2A"/>
+      <stop offset="100%" stop-color="#162F4A"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3898EC" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#ACC6E9" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1500" height="500" fill="url(#bg)"/>
+
+  <!-- Arc-style large decorative curves (right side) -->
+  <circle cx="1350" cy="-80" r="480" stroke="#ACC6E9" stroke-width="1" stroke-opacity="0.12" fill="none"/>
+  <circle cx="1350" cy="-80" r="620" stroke="#ACC6E9" stroke-width="0.75" stroke-opacity="0.08" fill="none"/>
+  <circle cx="1350" cy="-80" r="760" stroke="#3898EC" stroke-width="0.5" stroke-opacity="0.06" fill="none"/>
+
+  <!-- Left glow blob -->
+  <ellipse cx="200" cy="400" rx="300" ry="200" fill="url(#glow)"/>
+
+  <!-- Category tag -->
+  <text x="80" y="160"
+        font-family="'Space Mono', 'Courier New', monospace"
+        font-size="12" letter-spacing="3" fill="#C9893A">{SUBSCRIPTION INFRASTRUCTURE · ARC NETWORK}</text>
+
+  <!-- Main headline -->
+  <text x="80" y="270"
+        font-family="'Space Grotesk', 'Arial', sans-serif"
+        font-size="96" letter-spacing="-3">
+    <tspan font-weight="300" fill="#FFFFFF">Trust</tspan><tspan font-weight="700" fill="#ACC6E9">Flow</tspan>
+  </text>
+
+  <!-- Tagline -->
+  <text x="80" y="330"
+        font-family="'DM Sans', 'Arial', sans-serif"
+        font-size="20" font-weight="400"
+        fill="#7A9FC4">Real-time USDC streaming subscriptions, onchain.</text>
+
+  <!-- CTA pill (non-interactive, decorative) -->
+  <rect x="80" y="370" width="200" height="44" rx="8"
+        fill="none" stroke="#ACC6E9" stroke-width="1.5" stroke-opacity="0.6"/>
+  <text x="180" y="398" text-anchor="middle"
+        font-family="'Space Grotesk', 'Arial', sans-serif"
+        font-size="14" font-weight="500"
+        fill="#ACC6E9">Start building →</text>
+
+  <!-- Right side: large icon -->
+  <g transform="translate(920, 140) scale(4.6)">
+    <circle cx="5" cy="24" r="3.5" fill="#ACC6E9"/>
+    <path d="M8.5 24 C13 24 13 15 19.5 15 C26 15 26 33 32.5 33 C37 33 38.5 27 39.5 24"
+          stroke="#ACC6E9" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M37 19.5 L43 24 L37 28.5" stroke="#3898EC" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="43" cy="24" r="1.5" fill="#3898EC"/>
+  </g>
+</svg>
