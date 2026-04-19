@@ -168,21 +168,36 @@ export default function PlansPage() {
 
       <div className="space-y-3">
         {plans?.map((plan) => (
-          <div key={plan.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Plan #{plan.id}</p>
-              <p className="text-xs text-gray-400">
-                ${rateToMonthly(plan.ratePerSecond)}/mo
-                &nbsp;·&nbsp;{plan.active ? "Active" : "Inactive"}
-              </p>
+          <div key={plan.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Plan #{plan.id}</p>
+                <p className="text-xs text-gray-400">
+                  ${rateToMonthly(plan.ratePerSecond)}/mo
+                  &nbsp;·&nbsp;{plan.active ? "Active" : "Inactive"}
+                </p>
+              </div>
+              {plan.active && (
+                <button
+                  onClick={() => handleDeactivate(plan.id)}
+                  className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                >
+                  Deactivate
+                </button>
+              )}
             </div>
             {plan.active && (
-              <button
-                onClick={() => handleDeactivate(plan.id)}
-                className="text-xs text-red-400 hover:text-red-300 transition-colors"
-              >
-                Deactivate
-              </button>
+              <div className="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2">
+                <p className="text-xs text-gray-400 truncate flex-1">
+                  {typeof window !== "undefined" ? window.location.origin : ""}/subscribe/{plan.id}
+                </p>
+                <button
+                  onClick={() => navigator.clipboard.writeText(`${window.location.origin}/subscribe/${plan.id}`)}
+                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors shrink-0"
+                >
+                  Copy link
+                </button>
+              </div>
             )}
           </div>
         ))}

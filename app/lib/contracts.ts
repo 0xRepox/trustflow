@@ -48,6 +48,36 @@ export const STREAM_MANAGER_ABI = [
     outputs: [],
     stateMutability: "nonpayable",
   },
+  {
+    type: "function",
+    name: "createStream",
+    inputs: [
+      { name: "planId", type: "uint256" },
+      { name: "deposit", type: "uint128" },
+    ],
+    outputs: [{ name: "streamId", type: "uint256" }],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
+export const USDC_ABI = [
+  {
+    type: "function",
+    name: "approve",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "balanceOf",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
 ] as const;
 
 export const DISPUTE_RESOLVER_ABI = [

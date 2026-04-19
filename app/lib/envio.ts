@@ -55,6 +55,14 @@ export interface ClaimEvent {
   timestamp: number;
 }
 
+export async function getPlanById(id: string): Promise<Plan | null> {
+  const data = await gql<{ plan: Plan | null }>(
+    `query($id: String!) { plan(id: $id) { id owner ratePerSecond gracePeriod disputePolicy active createdAt } }`,
+    { id }
+  );
+  return data.plan;
+}
+
 export async function getPlansByOwner(owner: string): Promise<Plan[]> {
   const data = await gql<{ plans: { items: Plan[] } }>(
     `query($owner: String!) {
