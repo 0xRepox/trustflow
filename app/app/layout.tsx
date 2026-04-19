@@ -8,8 +8,20 @@ import Link from "next/link";
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TrustFlow Merchant Dashboard",
-  description: "Manage subscriptions, revenue, and disputes on Arc Network",
+  title: "TrustFlow",
+  description: "Per-second USDC streaming subscriptions on Arc Network. Stream, trust, verify.",
+  openGraph: {
+    title: "TrustFlow",
+    description: "Per-second USDC streaming subscriptions on Arc Network.",
+    images: [{ url: "/og-image.svg", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TrustFlow",
+    description: "Per-second USDC streaming subscriptions on Arc Network.",
+    images: ["/og-image.svg"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
