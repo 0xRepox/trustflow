@@ -58,6 +58,33 @@ export const STREAM_MANAGER_ABI = [
     outputs: [{ name: "streamId", type: "uint256" }],
     stateMutability: "nonpayable",
   },
+  {
+    type: "function",
+    name: "cancel",
+    inputs: [{ name: "streamId", type: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "topUp",
+    inputs: [
+      { name: "streamId", type: "uint256" },
+      { name: "amount", type: "uint128" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getBalance",
+    inputs: [{ name: "streamId", type: "uint256" }],
+    outputs: [
+      { name: "usable", type: "uint256" },
+      { name: "consumed", type: "uint256" },
+    ],
+    stateMutability: "view",
+  },
 ] as const;
 
 export const USDC_ABI = [

@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getPlanById } from "@/lib/envio";
 import { ADDRESSES, STREAM_MANAGER_ABI, USDC_ABI } from "@/lib/contracts";
 import { WalletButton } from "@/components/WalletButton";
+import Link from "next/link";
 
 const SECONDS_PER_MONTH = 86400 * 30;
 const USDC_DECIMALS = 1_000_000;
@@ -104,6 +105,12 @@ export default function SubscribePage({ params }: { params: Promise<{ planId: st
           {streamId && (
             <p className="text-xs text-gray-500 font-mono">Stream ID: {streamId}</p>
           )}
+          <Link
+            href="/account"
+            className="inline-block w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+          >
+            Manage subscription →
+          </Link>
         </div>
       </div>
     );
