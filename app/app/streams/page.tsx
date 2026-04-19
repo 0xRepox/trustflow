@@ -6,6 +6,23 @@ import { getPlansByOwner, getStreamsByPlanIds } from "@/lib/envio";
 import { ADDRESSES, STREAM_MANAGER_ABI } from "@/lib/contracts";
 import { useState } from "react";
 
+const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
+  Active:    { bg: "rgba(76,175,125,0.15)",   color: "#4CAF7D" },
+  Paused:    { bg: "rgba(201,137,58,0.15)",    color: "#C9893A" },
+  Cancelled: { bg: "rgba(74,111,140,0.15)",    color: "#7A9FC4" },
+};
+
+function StatusBadge({ status }: { status: string }) {
+  const s = STATUS_STYLE[status] ?? STATUS_STYLE.Cancelled;
+  return (
+    <span style={{
+      background: s.bg, color: s.color,
+      borderRadius: 9999, padding: "3px 10px",
+      fontFamily: "var(--font-heading)", fontSize: 11, fontWeight: 500,
+    }}>{status}</span>
+  );
+}
+
 export default function StreamsPage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
@@ -44,62 +61,83 @@ export default function StreamsPage() {
   }
 
   if (!isConnected) {
-    return <p className="text-gray-400">Connect your wallet to view streams.</p>;
+    return <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>Connect your wallet to view streams.</p>;
   }
 
+  const thStyle: React.CSSProperties = {
+    fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", fontWeight: 500,
+    padding: "0 12px 12px 0", textAlign: "left",
+    borderBottom: "1px solid rgba(172,198,233,0.1)",
+  };
+  const tdStyle: React.CSSProperties = {
+    fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg2)",
+    padding: "12px 12px 12px 0",
+    borderBottom: "1px solid rgba(172,198,233,0.06)",
+  };
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Streams</h1>
-      {txStatus && <p className="text-xs text-gray-400">{txStatus}</p>}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-gray-400 border-b border-gray-800">
-              <th className="pb-3 font-medium">Stream ID</th>
-              <th className="pb-3 font-medium">Payer</th>
-              <th className="pb-3 font-medium">Status</th>
-              <th className="pb-3 font-medium">Deposited</th>
-              <th className="pb-3 font-medium">Claimed</th>
-              <th className="pb-3 font-medium">Claimable</th>
-              <th className="pb-3 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {streams?.map((stream) => {
-              const claimable = BigInt(stream.consumed) - BigInt(stream.claimed);
-              return (
-                <tr key={stream.id} className="border-b border-gray-800/50 py-3">
-                  <td className="py-3 font-mono">#{stream.id}</td>
-                  <td className="py-3 font-mono text-gray-400">{stream.payer.slice(0, 8)}…</td>
-                  <td className="py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${
-                      stream.status === "Active" ? "bg-green-900 text-green-300" :
-                      stream.status === "Paused" ? "bg-yellow-900 text-yellow-300" :
-                      "bg-gray-800 text-gray-400"
-                    }`}>{stream.status}</span>
-                  </td>
-                  <td className="py-3">{(Number(stream.deposited) / 1e6).toFixed(2)}</td>
-                  <td className="py-3">{(Number(stream.claimed) / 1e6).toFixed(2)}</td>
-                  <td className="py-3 text-green-400">{(Number(claimable) / 1e6).toFixed(2)}</td>
-                  <td className="py-3">
-                    {claimable > 0n && stream.status !== "Cancelled" && (
-                      <button
-                        onClick={() => handleClaim(stream.id)}
-                        disabled={isPending && claimingId === stream.id}
-                        className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1 rounded transition-colors"
-                      >
-                        Claim
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {(!streams || streams.length === 0) && (
-          <p className="text-sm text-gray-400 py-6">No streams found for your plans.</p>
-        )}
+    <div style={{ maxWidth: 960, margin: "0 auto" }}>
+      <h1 style={{ fontFamily: "var(--font-heading)", fontSize: 26, fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.02em" }}>Streams</h1>
+
+      {txStatus && (
+        <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: txStatus.startsWith("Error") ? "var(--error)" : "var(--fg-muted)", marginBottom: 16 }}>
+          {txStatus}
+        </p>
+      )}
+
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ overflowX: "auto", padding: "0 22px" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                {["Stream ID", "Payer", "Status", "Deposited", "Claimed", "Claimable", ""].map((h) => (
+                  <th key={h} style={thStyle}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {streams?.map((s) => {
+                const claimable = BigInt(s.consumed) - BigInt(s.claimed);
+                const claimableNum = Number(claimable) / 1e6;
+                return (
+                  <tr key={s.id}>
+                    <td style={{ ...tdStyle, fontFamily: "var(--font-mono)", color: "var(--fg2)" }}>#{s.id}</td>
+                    <td style={{ ...tdStyle, fontFamily: "var(--font-mono)", color: "var(--fg-muted)" }}>
+                      {s.payer.slice(0, 10)}…
+                    </td>
+                    <td style={tdStyle}><StatusBadge status={s.status} /></td>
+                    <td style={tdStyle}>{(Number(s.deposited) / 1e6).toFixed(2)}</td>
+                    <td style={tdStyle}>{(Number(s.claimed) / 1e6).toFixed(2)}</td>
+                    <td style={{ ...tdStyle, color: claimableNum > 0 ? "var(--success)" : "var(--fg-subtle)" }}>
+                      {claimableNum.toFixed(2)}
+                    </td>
+                    <td style={tdStyle}>
+                      {claimable > 0n && s.status !== "Cancelled" && (
+                        <button
+                          onClick={() => handleClaim(s.id)}
+                          disabled={isPending && claimingId === s.id}
+                          style={{
+                            background: "var(--cta)", border: "none", borderRadius: 6,
+                            padding: "5px 12px", fontFamily: "var(--font-heading)",
+                            fontSize: 11, fontWeight: 500, color: "#fff", cursor: "pointer",
+                            opacity: isPending && claimingId === s.id ? 0.5 : 1,
+                          }}
+                        >
+                          {isPending && claimingId === s.id ? "…" : "Claim"}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {(!streams || streams.length === 0) && (
+            <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", padding: "24px 0" }}>
+              No streams found for your plans.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

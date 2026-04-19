@@ -1,11 +1,29 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Space_Grotesk, DM_Sans, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
-import { WalletButton } from "@/components/WalletButton";
-import Link from "next/link";
+import { Nav } from "@/components/Nav";
 
-const geist = Geist({ subsets: ["latin"] });
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-heading",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const spaceMono = Space_Mono({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "TrustFlow",
@@ -26,21 +44,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${geist.className} bg-gray-950 text-gray-100 min-h-screen`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable} ${spaceMono.variable}`}>
+      <body style={{ background: "var(--bg)", color: "var(--fg1)", fontFamily: "var(--font-body)" }}>
         <Providers>
-          <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <span className="font-semibold text-lg">TrustFlow</span>
-              <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">Overview</Link>
-              <Link href="/plans" className="text-sm text-gray-400 hover:text-white transition-colors">Plans</Link>
-              <Link href="/streams" className="text-sm text-gray-400 hover:text-white transition-colors">Streams</Link>
-              <Link href="/disputes" className="text-sm text-gray-400 hover:text-white transition-colors">Disputes</Link>
-              <Link href="/docs" className="text-sm text-gray-400 hover:text-white transition-colors">Docs</Link>
-            </div>
-            <WalletButton />
-          </nav>
-          <main className="px-6 py-8 max-w-6xl mx-auto">{children}</main>
+          <Nav />
+          <main style={{ padding: "32px 24px", maxWidth: 1024, margin: "0 auto" }}>
+            {children}
+          </main>
         </Providers>
       </body>
     </html>
