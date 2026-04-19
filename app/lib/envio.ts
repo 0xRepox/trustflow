@@ -92,6 +92,18 @@ export async function getStreamsByPlanIds(planIds: string[]): Promise<Stream[]> 
   return results.flatMap((r) => r.streams.items);
 }
 
+export async function getActiveStream(planId: string, payerAddress: string): Promise<Stream | null> {
+  const data = await gql<{ streams: { items: Stream[] } }>(
+    `query($planId: String!, $payer: String!) {
+      streams(where: { planId: $planId, payer: $payer, status: "Active" }, limit: 1) {
+        items { id planId payer deposited claimed consumed status createdAt cancelledAt }
+      }
+    }`,
+    { planId, payer: payerAddress.toLowerCase() }
+  );
+  return data.streams.items[0] ?? null;
+}
+
 export async function getDisputesByMerchant(streamIds: string[]): Promise<Dispute[]> {
   if (streamIds.length === 0) return [];
   const results = await Promise.all(
