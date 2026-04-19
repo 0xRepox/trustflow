@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useAccount, useWriteContract, useReadContracts } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { getStreamsByPayer, getPlanById, type Stream, type Plan } from "@/lib/envio";
-import { ADDRESSES, STREAM_MANAGER_ABI, USDC_ABI } from "@/lib/contracts";
+import { getStreamsByPayer, getPlanById, getDisputesBySubscriber, type Stream, type Plan, type Dispute } from "@/lib/envio";
+import { ADDRESSES, STREAM_MANAGER_ABI, USDC_ABI, DISPUTE_RESOLVER_ABI } from "@/lib/contracts";
 import { WalletButton } from "@/components/WalletButton";
 
 const USDC_DECIMALS = 1_000_000;
@@ -14,23 +14,33 @@ function rateToMonthly(ratePerSecond: string) {
   return (Number(ratePerSecond) / USDC_DECIMALS) * SECONDS_PER_MONTH;
 }
 
-function StreamCard({ stream, plan, onCancel, onTopUp, isActing }: {
+function StreamCard({ stream, plan, dispute, onCancel, onTopUp, onDispute, isActing }: {
   stream: Stream;
   plan: Plan | null;
+  dispute: Dispute | null;
   onCancel: (id: string) => void;
   onTopUp: (id: string, amount: number) => void;
+  onDispute: (id: string, amount: number) => void;
   isActing: boolean;
 }) {
   const [topUpMonths, setTopUpMonths] = useState(1);
   const [showTopUp, setShowTopUp] = useState(false);
+  const [showDispute, setShowDispute] = useState(false);
+  const [disputeAmountUsdc, setDisputeAmountUsdc] = useState("");
 
   const deposited = Number(stream.deposited) / USDC_DECIMALS;
   const consumed = Number(stream.consumed) / USDC_DECIMALS;
+  const claimed = Number(stream.claimed) / USDC_DECIMALS;
   const remaining = deposited - consumed;
+  const disputable = consumed - claimed; // max disputeable amount
   const pct = deposited > 0 ? Math.min((consumed / deposited) * 100, 100) : 0;
   const monthlyPrice = plan ? rateToMonthly(plan.ratePerSecond) : 0;
   const topUpAmount = monthlyPrice * topUpMonths;
   const isActive = stream.status === "Active";
+  // Bond = 1 day of stream rate
+  const bondUsdc = plan ? (Number(plan.ratePerSecond) / USDC_DECIMALS) * 86400 : 0;
+  const parsedDisputeAmount = parseFloat(disputeAmountUsdc) || 0;
+  const disputeValid = parsedDisputeAmount > 0 && parsedDisputeAmount <= disputable;
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
@@ -115,21 +125,93 @@ function StreamCard({ stream, plan, onCancel, onTopUp, isActing }: {
               </div>
             </div>
           ) : (
-            <div className="flex gap-2">
+            <>
+            {dispute && (
+            <div className={`rounded-lg px-3 py-2 text-xs border ${
+              dispute.status === "Open" ? "bg-yellow-900/20 border-yellow-800/50 text-yellow-300" :
+              dispute.status === "Settled" ? "bg-gray-800 border-gray-700 text-gray-400" :
+              "bg-blue-900/20 border-blue-800/50 text-blue-300"
+            }`}>
+              Dispute #{dispute.id} · {dispute.status}
+              {dispute.verdict && dispute.verdict !== "Pending" && ` · Verdict: ${dispute.verdict}`}
+            </div>
+          )}
+
+          <div className="flex gap-2">
               <button
                 onClick={() => setShowTopUp(true)}
                 className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-xs font-medium py-2 rounded-lg transition-colors"
               >
                 Top up
               </button>
+              {!dispute && disputable > 0 && (
+                <button
+                  onClick={() => setShowDispute(true)}
+                  className="flex-1 bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-800/50 text-yellow-400 hover:text-yellow-300 text-xs font-medium py-2 rounded-lg transition-colors"
+                >
+                  Dispute
+                </button>
+              )}
               <button
                 onClick={() => onCancel(stream.id)}
                 disabled={isActing}
                 className="flex-1 bg-red-900/30 hover:bg-red-900/50 border border-red-800/50 disabled:opacity-50 text-red-400 hover:text-red-300 text-xs font-medium py-2 rounded-lg transition-colors"
               >
-                {isActing ? "Cancelling…" : "Cancel stream"}
+                {isActing ? "Cancelling…" : "Cancel"}
               </button>
             </div>
+
+          {/* Dispute form */}
+          {showDispute && !dispute && (
+            <div className="bg-gray-800 rounded-lg p-3 space-y-3 border border-yellow-800/30">
+              <div>
+                <p className="text-xs text-yellow-300 font-medium">Open Dispute</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Freeze funds you believe weren't delivered. You pay a bond of{" "}
+                  <span className="text-white">${bondUsdc.toFixed(4)} USDC</span> (1 day rate),
+                  returned if your dispute is upheld.
+                </p>
+              </div>
+              <div>
+                <label className="text-xs text-gray-400">Amount to dispute (USDC)</label>
+                <div className="mt-1 relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max={disputable}
+                    step="0.01"
+                    value={disputeAmountUsdc}
+                    onChange={(e) => setDisputeAmountUsdc(e.target.value)}
+                    placeholder={`up to $${disputable.toFixed(2)}`}
+                    className="w-full bg-gray-700 border border-gray-600 rounded pl-6 pr-3 py-1.5 text-xs text-white"
+                  />
+                </div>
+                {parsedDisputeAmount > disputable && (
+                  <p className="text-xs text-red-400 mt-1">Max disputable: ${disputable.toFixed(2)}</p>
+                )}
+              </div>
+              <p className="text-xs text-gray-500">
+                Total USDC needed: bond (${bondUsdc.toFixed(4)}) — approved before opening dispute.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onDispute(stream.id, parsedDisputeAmount)}
+                  disabled={isActing || !disputeValid}
+                  className="flex-1 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-white text-xs font-medium py-2 rounded transition-colors"
+                >
+                  {isActing ? "Confirming…" : "Open dispute"}
+                </button>
+                <button
+                  onClick={() => { setShowDispute(false); setDisputeAmountUsdc(""); }}
+                  className="px-3 text-xs text-gray-400 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+            </>
           )}
         </div>
       )}
@@ -155,7 +237,6 @@ export default function AccountPage() {
     enabled: !!address,
   });
 
-  // Load plan details for each unique planId
   const planIds = [...new Set(streams?.map((s) => s.planId) ?? [])];
   const { data: plans } = useQuery({
     queryKey: ["plans-for-streams", planIds],
@@ -165,6 +246,49 @@ export default function AccountPage() {
   const planMap = Object.fromEntries(
     (plans ?? []).filter(Boolean).map((p) => [p!.id, p!])
   );
+
+  const { data: disputes, refetch: refetchDisputes } = useQuery({
+    queryKey: ["my-disputes", address],
+    queryFn: () => getDisputesBySubscriber(address!),
+    enabled: !!address,
+  });
+  // Map by streamId (latest dispute per stream)
+  const disputeMap = Object.fromEntries(
+    (disputes ?? []).map((d) => [d.streamId, d])
+  );
+
+  async function handleDispute(streamId: string, amountUsdc: number) {
+    const amountWei = BigInt(Math.floor(amountUsdc * USDC_DECIMALS));
+    // Bond = approve for bond; contract pulls it automatically on openDispute
+    // We approve a large enough amount to cover bond + frozen amount
+    const plan = streams && planMap[streams.find((s) => s.id === streamId)?.planId ?? ""];
+    const bondWei = plan ? BigInt(Math.floor((Number(plan.ratePerSecond) / USDC_DECIMALS) * 86400 * USDC_DECIMALS)) : BigInt(0);
+    const totalApprove = amountWei + bondWei;
+    try {
+      setActingId(streamId);
+      setTxStatus("Step 1/2: Approving USDC for bond…");
+      await writeContractAsync({
+        address: ADDRESSES.USDC,
+        abi: USDC_ABI,
+        functionName: "approve",
+        args: [ADDRESSES.DisputeResolver, totalApprove],
+      });
+      setTxStatus("Step 2/2: Opening dispute…");
+      await writeContractAsync({
+        address: ADDRESSES.DisputeResolver,
+        abi: DISPUTE_RESOLVER_ABI,
+        functionName: "openDispute",
+        args: [BigInt(streamId), amountWei],
+      });
+      setTxStatus("Dispute opened. The merchant has 7 days to respond.");
+      refetch();
+      refetchDisputes();
+    } catch (e) {
+      setTxStatus(`Error: ${e instanceof Error ? e.message : "unknown"}`);
+    } finally {
+      setActingId(null);
+    }
+  }
 
   async function handleCancel(streamId: string) {
     try {
@@ -178,6 +302,7 @@ export default function AccountPage() {
       });
       setTxStatus("Stream cancelled. Unspent USDC returned to your wallet.");
       refetch();
+      refetchDisputes();
     } catch (e) {
       setTxStatus(`Error: ${e instanceof Error ? e.message : "unknown"}`);
     } finally {
@@ -248,8 +373,10 @@ export default function AccountPage() {
               key={s.id}
               stream={s}
               plan={planMap[s.planId] ?? null}
+              dispute={disputeMap[s.id] ?? null}
               onCancel={handleCancel}
               onTopUp={handleTopUp}
+              onDispute={handleDispute}
               isActing={actingId === s.id}
             />
           ))}
@@ -264,8 +391,10 @@ export default function AccountPage() {
               key={s.id}
               stream={s}
               plan={planMap[s.planId] ?? null}
+              dispute={disputeMap[s.id] ?? null}
               onCancel={handleCancel}
               onTopUp={handleTopUp}
+              onDispute={handleDispute}
               isActing={actingId === s.id}
             />
           ))}

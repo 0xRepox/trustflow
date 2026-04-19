@@ -116,6 +116,18 @@ export async function getActiveStream(planId: string, payerAddress: string): Pro
   return data.streams.items[0] ?? null;
 }
 
+export async function getDisputesBySubscriber(subscriberAddress: string): Promise<Dispute[]> {
+  const data = await gql<{ disputes: { items: Dispute[] } }>(
+    `query($subscriber: String!) {
+      disputes(where: { subscriber: $subscriber }, limit: 100) {
+        items { id streamId subscriber frozenAmount status verdict evidenceHash openedAt settledAt }
+      }
+    }`,
+    { subscriber: subscriberAddress.toLowerCase() }
+  );
+  return data.disputes.items;
+}
+
 export async function getDisputesByMerchant(streamIds: string[]): Promise<Dispute[]> {
   if (streamIds.length === 0) return [];
   const results = await Promise.all(

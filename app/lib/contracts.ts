@@ -110,6 +110,16 @@ export const USDC_ABI = [
 export const DISPUTE_RESOLVER_ABI = [
   {
     type: "function",
+    name: "openDispute",
+    inputs: [
+      { name: "streamId", type: "uint256" },
+      { name: "amount", type: "uint128" },
+    ],
+    outputs: [{ name: "disputeId", type: "uint256" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "respondToDispute",
     inputs: [
       { name: "disputeId", type: "uint256" },
