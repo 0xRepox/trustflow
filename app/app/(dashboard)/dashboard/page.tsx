@@ -18,6 +18,15 @@ function fmt(n: number) {
   return `$${n.toFixed(2)}`;
 }
 
+function timeAgo(ts: number): string {
+  if (!ts) return "";
+  const secs = Math.floor(Date.now() / 1000) - ts;
+  if (secs < 60) return `${secs}s ago`;
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+  return `${Math.floor(secs / 86400)}d ago`;
+}
+
 function MonoBadge({ children }: { children: React.ReactNode }) {
   return (
     <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--label)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
@@ -53,7 +62,7 @@ const CARD_ACCENT: React.CSSProperties = {
 export default function OverviewPage() {
   const { address, isConnected } = useAccount();
   const [liveRate, setLiveRate] = useState(0);
-  const [tick, setTick] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
 
   const { data: plans } = useQuery({
     queryKey: ["plans", address],
@@ -81,7 +90,8 @@ export default function OverviewPage() {
       .filter((s) => s.status === "Active")
       .reduce((acc, s) => acc + Number(planMap[s.planId]?.ratePerSecond ?? 0) / 1e6, 0);
     setLiveRate(rate);
-    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    setElapsed(0);
+    const id = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(id);
   }, [streams, plans]);
 
@@ -301,7 +311,7 @@ export default function OverviewPage() {
             <p style={{ fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 600, color: "#fff", margin: "5px 0 12px" }}>Streaming Rate</p>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--fg-subtle)", margin: "0 0 4px", letterSpacing: "0.06em" }}>LIVE RATE</p>
             <p style={{ fontFamily: "var(--font-heading)", fontSize: 20, fontWeight: 700, color: "#3898EC", margin: 0, letterSpacing: "-0.02em" }}>
-              ${(liveRate + tick * liveRate * 0.000001).toFixed(6)}
+              ${(liveRate * elapsed).toFixed(6)}
               <span style={{ fontSize: 12, fontWeight: 400, color: "var(--fg-muted)" }}>/s</span>
             </p>
           </div>
@@ -337,7 +347,10 @@ export default function OverviewPage() {
                     <span style={{ width: 7, height: 7, borderRadius: "50%", background: item.color }}/>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "#fff", margin: 0, fontWeight: 500 }}>{item.label}</p>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                      <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "#fff", margin: 0, fontWeight: 500 }}>{item.label}</p>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--fg-subtle)", flexShrink: 0, marginLeft: 6 }}>{timeAgo(item.time)}</span>
+                    </div>
                     <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.sub}</p>
                   </div>
                 </div>

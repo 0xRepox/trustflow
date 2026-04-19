@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Space_Grotesk, DM_Sans, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
-import { Sidebar } from "@/components/Sidebar";
-import { TopBar } from "@/components/TopBar";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -48,15 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable} ${spaceMono.variable}`}>
       <body style={{ background: "var(--bg)", color: "var(--fg1)", fontFamily: "var(--font-body)", margin: 0 }}>
         <Providers>
-          <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
-            <TopBar />
-            <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-              <Sidebar />
-              <main style={{ flex: 1, overflowY: "auto", padding: "28px 28px" }}>
-                {children}
-              </main>
-            </div>
-          </div>
+          {children}
         </Providers>
       </body>
     </html>

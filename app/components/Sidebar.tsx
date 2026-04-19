@@ -9,7 +9,7 @@ import { WalletButton } from "@/components/WalletButton";
 
 const NAV = [
   {
-    href: "/", label: "Overview",
+    href: "/dashboard", label: "Overview",
     icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
         <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8"/>
