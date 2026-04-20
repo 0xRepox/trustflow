@@ -1,7 +1,6 @@
 "use client";
 
 import { useBlock } from "wagmi";
-import Link from "next/link";
 
 export function TopBar() {
   const { data: block } = useBlock({ watch: true });
@@ -24,13 +23,6 @@ export function TopBar() {
           </span>
         ))}
       </div>
-      <Link href="/plans" style={{
-        fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.08em",
-        color: "var(--cta)", textDecoration: "none", border: "1px solid rgba(56,152,236,0.3)",
-        borderRadius: 4, padding: "3px 10px",
-      }}>
-        PREVIEW CHECKOUT &rsaquo;
-      </Link>
     </div>
   );
 }
