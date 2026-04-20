@@ -1,196 +1,336 @@
 "use client";
 
 import Link from "next/link";
-import { WalletButton } from "@/components/WalletButton";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { WalletButton } from "@/components/WalletButton";
+import s from "./landing.module.css";
 
-const FEATURES = [
-  {
-    tag: "BILLING",
-    title: "Per-second pricing",
-    body: "Subscribers pay only for time consumed. No monthly lumps, no overpayment. Revenue streams into your wallet every second.",
-  },
-  {
-    tag: "TRUST",
-    title: "No chargebacks",
-    body: "Funds are locked onchain before a stream starts. Merchants receive USDC directly — no payment processor, no reversal risk.",
-  },
-  {
-    tag: "DISPUTES",
-    title: "Onchain evidence",
-    body: "Disputes are resolved via committed evidence hashes and a 7-day respond window. No intermediaries.",
-  },
-  {
-    tag: "INTEGRATION",
-    title: "One API call",
-    body: "Gate any endpoint with a single GET request. Active stream → access granted. No SDK, no webhook setup.",
-  },
-];
+const MONTHLY_RATE = 9.0;
+const PER_SECOND = MONTHLY_RATE / (30 * 24 * 60 * 60);
 
-const STEPS = [
-  { n: "01", label: "Create a plan", sub: "Set a billing rate (hourly, daily, monthly) and a grace period." },
-  { n: "02", label: "Share the link", sub: "Copy your subscribe link and send it to customers." },
-  { n: "03", label: "Subscriber pays", sub: "They approve USDC and open a stream in two transactions." },
-  { n: "04", label: "Claim revenue", sub: "Claim accumulated USDC anytime from your dashboard." },
+function fmtElapsed(sec: number) {
+  const m = Math.floor(sec / 60).toString().padStart(2, "0");
+  const ss = Math.floor(sec % 60).toString().padStart(2, "0");
+  return `${m}:${ss}`;
+}
+
+interface LedgerEntry { label: string; amt: string; warn?: boolean }
+
+const COMPARE_ROWS = [
+  { criterion: "Transaction fee", hint: "per charge", legacy: "2.9% + $0.30", modern: "~$0.01 gas" },
+  { criterion: "Refund on cancel", hint: "for unused time", legacy: "5–10 business days", modern: "< 1 second" },
+  { criterion: "Chargeback risk", hint: "merchant exposure", legacy: "$20 fee + reversal", modern: "Impossible by design" },
+  { criterion: "Viable monthly price", hint: "fees eat margin", legacy: "~$5.00 minimum", modern: "$0.01 minimum" },
+  { criterion: "Billing granularity", hint: "resolution", legacy: "Monthly cycle", modern: "Per-second" },
 ];
 
 export default function LandingPage() {
   const { isConnected } = useAccount();
   const router = useRouter();
 
+  const [streamed, setStreamed] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const [statTotal, setStatTotal] = useState(48932.17);
+  const [ledger, setLedger] = useState<LedgerEntry[]>([
+    { label: "00:00 · init", amt: "+ allowance" },
+    { label: "00:00 · deposit", amt: "+ 2.10" },
+  ]);
+  const elapsedRef = useRef(0);
+  const streamedRef = useRef(0);
+  const statRef = useRef(48932.17);
+
   useEffect(() => {
     if (isConnected) router.replace("/dashboard");
   }, [isConnected, router]);
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      elapsedRef.current += 0.1;
+      streamedRef.current += PER_SECOND * 0.1;
+      statRef.current += PER_SECOND * 0.1 * 7;
+
+      setElapsed(elapsedRef.current);
+      setStreamed(streamedRef.current);
+      setStatTotal(statRef.current);
+
+      const sec = Math.floor(elapsedRef.current);
+      if (sec > 0 && sec % 30 === 0) {
+        const label = `${fmtElapsed(elapsedRef.current)} · tick`;
+        const amt = `+ ${(PER_SECOND * 30).toFixed(6)}`;
+        setLedger((prev) => [{ label, amt }, ...prev].slice(0, 5));
+      }
+    }, 100);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const els = document.querySelectorAll(`.${s.reveal}`);
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add(s.revealed); }),
+      { threshold: 0.12 }
+    );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+
+  function handleChangeRate() {
+    const label = `${fmtElapsed(elapsedRef.current)} · rate ↑`;
+    setLedger((prev) => [{ label, amt: "$12 / mo" }, ...prev].slice(0, 5));
+  }
+
+  function handleCancel() {
+    const label = `${fmtElapsed(elapsedRef.current)} · cancel`;
+    const refund = (2.10 - streamedRef.current).toFixed(6);
+    setLedger((prev) => [{ label, amt: `refund ${refund}`, warn: true }, ...prev].slice(0, 5));
+    elapsedRef.current = 0;
+    streamedRef.current = 0;
+    setElapsed(0);
+    setStreamed(0);
+    setTimeout(() => {
+      setLedger([
+        { label: "00:00 · init", amt: "+ allowance" },
+        { label: "00:00 · deposit", amt: "+ 2.10" },
+      ]);
+    }, 800);
+  }
+
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", overflowX: "hidden" }}>
+    <div className={s.bg}>
+      <div className={s.wrap}>
 
-      {/* Nav */}
-      <nav style={{
-        position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(8,17,28,0.9)", backdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(172,198,233,0.08)",
-        padding: "0 32px", height: 56,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
-            <circle cx="5" cy="24" r="3.5" fill="#ACC6E9"/>
-            <path d="M8.5 24 C13 24 13 15 19.5 15 C26 15 26 33 32.5 33 C37 33 38.5 27 39.5 24" stroke="#ACC6E9" strokeWidth="2.5" strokeLinecap="round"/>
-            <path d="M37 19.5 L43 24 L37 28.5" stroke="#3898EC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="43" cy="24" r="1.5" fill="#3898EC"/>
-          </svg>
-          <span style={{ fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: 15, color: "#fff", letterSpacing: "-0.01em" }}>TrustFlow</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <Link href="/docs" style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", textDecoration: "none" }}>Docs</Link>
-          <Link href="/dashboard" style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", textDecoration: "none" }}>Dashboard</Link>
-          <WalletButton />
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section style={{ position: "relative", padding: "100px 32px 80px", textAlign: "center", overflow: "hidden" }}>
-        {/* Arc curve decoration */}
-        <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: 0.07 }} viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice">
-          <path d="M-100 250 C200 250 200 80 500 80 C800 80 800 420 1100 420 C1250 420 1300 300 1350 250" stroke="#3898EC" strokeWidth="2" fill="none"/>
-          <path d="M-100 300 C200 300 200 130 500 130 C800 130 800 470 1100 470 C1250 470 1300 350 1350 300" stroke="#ACC6E9" strokeWidth="1.5" fill="none" strokeDasharray="8 4"/>
-        </svg>
-
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--label)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 20px" }}>{"{BUILT ON ARC NETWORK}"}</p>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(36px, 6vw, 64px)", fontWeight: 700, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1.1, maxWidth: 800, margin: "0 auto 18px" }}>
-          Subscriptions that stream{" "}
-          <span style={{ color: "#3898EC" }}>per second</span>
-        </h1>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 16, color: "var(--fg-muted)", margin: "0 auto 36px", maxWidth: 520, lineHeight: 1.6 }}>
-          Replace monthly billing with real-time USDC streams on Arc Network. Subscribers pay only for time used. Merchants receive revenue every second.
-        </p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <Link href="/dashboard" style={{
-            background: "var(--cta)", border: "none", borderRadius: 10,
-            padding: "12px 28px", fontFamily: "var(--font-heading)",
-            fontSize: 14, fontWeight: 500, color: "#fff", textDecoration: "none",
-            transition: "background 0.15s",
-          }}>
-            Launch app →
+        {/* Nav */}
+        <nav className={s.nav}>
+          <Link href="/" className={s.brand}>
+            <span className={s.dot} />
+            TrustFlow
           </Link>
-          <Link href="/docs" style={{
-            background: "transparent", border: "1px solid rgba(172,198,233,0.2)", borderRadius: 10,
-            padding: "12px 28px", fontFamily: "var(--font-heading)",
-            fontSize: 14, fontWeight: 500, color: "var(--fg2)", textDecoration: "none",
-          }}>
-            Read the docs
-          </Link>
-        </div>
+          <ul className={s.navLinks}>
+            <li><a href="#how" className={s.navLink}>How it works</a></li>
+            <li><a href="#compare" className={s.navLink}>Why Arc</a></li>
+            <li><a href="#integrate" className={s.navLink}>Integrate</a></li>
+            <li><Link href="/docs" className={s.navLink}>Docs</Link></li>
+            <li><Link href="/dashboard" className={s.navCta}>Launch app →</Link></li>
+          </ul>
+        </nav>
 
-        {/* Live stat strip */}
-        <div style={{ display: "flex", gap: 32, justifyContent: "center", marginTop: 56, flexWrap: "wrap" }}>
-          {[
-            ["Arc Testnet", "Chain 5042002"],
-            ["USDC", "Native token"],
-            ["Per-second", "Billing precision"],
-            ["Onchain", "Dispute resolution"],
-          ].map(([label, sub]) => (
-            <div key={label} style={{ textAlign: "center" }}>
-              <p style={{ fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 600, color: "#fff", margin: 0 }}>{label}</p>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-subtle)", margin: "2px 0 0" }}>{sub}</p>
+        {/* Hero */}
+        <section className={s.hero}>
+          <span className={s.tag}>Live on Arc Testnet · Chain 5042002</span>
+
+          <h1 className={s.heroTitle}>
+            <span className={s.strike}>Stripe</span> bills per month.<br />
+            <span className={s.heroAccent}>TrustFlow</span> bills per second.
+          </h1>
+
+          <p className={s.heroSub}>
+            A subscription protocol on <strong>Arc Network</strong> that replaces 30-day billing cycles with
+            continuous USDC streams. Subscribers pay only for time consumed. Merchants receive revenue every second.
+            Cancel at 13 seconds? You get refunded for the other 2,591,987.
+          </p>
+
+          <div className={s.heroCtas}>
+            <Link href="/dashboard" className={`${s.btn} ${s.btnPrimary}`}>
+              Start streaming <span className={s.arr}>→</span>
+            </Link>
+            <a href="#how" className={`${s.btn} ${s.btnGhost}`}>See how it works</a>
+          </div>
+
+          {/* Live counter stage */}
+          <div className={s.counterStage}>
+            <div className={s.termHeader}>
+              <div className={s.dots}>
+                <span /><span /><span />
+              </div>
+              <div>stream · 0x7A3f…9E2c → 0xC8B1…44aA</div>
+              <div className={s.liveLabel}>LIVE</div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features */}
-      <section style={{ padding: "64px 32px", maxWidth: 960, margin: "0 auto" }}>
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--label)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 32px", textAlign: "center" }}>{"{PROTOCOL FEATURES}"}</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-          {FEATURES.map(({ tag, title, body }) => (
-            <div key={tag} style={{
-              background: "#0C1A2C", border: "1px solid rgba(172,198,233,0.09)",
-              borderRadius: 14, padding: "22px 20px",
-              transition: "border-color 0.15s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(56,152,236,0.3)")}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(172,198,233,0.09)")}
-            >
-              <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--label)", letterSpacing: "0.1em", margin: "0 0 10px" }}>{`{${tag}}`}</p>
-              <p style={{ fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 600, color: "#fff", margin: "0 0 8px" }}>{title}</p>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", margin: 0, lineHeight: 1.6 }}>{body}</p>
+            <div className={s.counterBody}>
+              <div className={s.counterMain}>
+                <div className={s.counterLabel}>Streamed this session</div>
+                <div className={s.counterValue}>
+                  <span>{streamed.toFixed(6)}</span>
+                  <span className={s.currency}>USDC</span>
+                </div>
+                <div className={s.counterSub}>
+                  <span>Rate: <strong>$9.00 / mo</strong></span>
+                  <span>Elapsed: <strong>{fmtElapsed(elapsed)}</strong></span>
+                  <span>Gas/tick: <strong>$0.01</strong></span>
+                </div>
+              </div>
+              <div className={s.counterSide}>
+                <div className={s.ledger}>
+                  {ledger.map((e, i) => (
+                    <div key={i} className={s.ledgerEntry}>
+                      <span>{e.label}</span>
+                      <span className={e.warn ? s.ledgerWarn : s.ledgerAmt}>{e.amt}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className={s.counterActions}>
+                  <button className={s.counterBtn} onClick={handleChangeRate}>change rate</button>
+                  <button className={`${s.counterBtn} ${s.counterBtnCancel}`} onClick={handleCancel}>cancel · refund</button>
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      {/* How it works */}
-      <section style={{ padding: "64px 32px", maxWidth: 960, margin: "0 auto" }}>
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--label)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 32px", textAlign: "center" }}>{"{HOW IT WORKS}"}</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 1 }}>
-          {STEPS.map(({ n, label, sub }, i) => (
-            <div key={n} style={{ position: "relative", padding: "24px 20px", background: i % 2 === 0 ? "#0C1A2C" : "transparent", borderRadius: 12 }}>
-              <p style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 400, color: "rgba(56,152,236,0.3)", margin: "0 0 10px", letterSpacing: "-0.02em" }}>{n}</p>
-              <p style={{ fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 600, color: "#fff", margin: "0 0 6px" }}>{label}</p>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: 0, lineHeight: 1.6 }}>{sub}</p>
+        {/* Comparison */}
+        <section id="compare" className={s.section}>
+          <div className={s.sectionLabel}>// 01 · The math</div>
+          <h2 className={s.sectionTitle}>
+            Payment processors got greedy. <em>We got precise.</em>
+          </h2>
+          <p className={s.sectionIntro}>
+            Every number below is a real constraint of how each rail operates today. TrustFlow doesn&apos;t beat Stripe by a little.
+            It removes the failure modes entirely.
+          </p>
+
+          <div className={`${s.compare} ${s.reveal}`}>
+            <div className={s.compareRow}>
+              <div className={`${s.compareCell} ${s.compareHead}`}>Criterion</div>
+              <div className={`${s.compareCell} ${s.compareHead}`}>Stripe / Traditional</div>
+              <div className={`${s.compareCell} ${s.compareHead} ${s.winner}`}>TrustFlow on Arc</div>
             </div>
-          ))}
-        </div>
-      </section>
+            {COMPARE_ROWS.map(({ criterion, hint, legacy, modern }) => (
+              <div key={criterion} className={s.compareRow}>
+                <div className={s.compareCell}>
+                  <span className={s.criterion}>{criterion}</span>
+                  <span className={s.hint}>{hint}</span>
+                </div>
+                <div className={`${s.compareCell} ${s.loser}`}>
+                  <span className={s.val}>{legacy}</span>
+                </div>
+                <div className={`${s.compareCell} ${s.winner}`}>
+                  <span className={s.val}>{modern}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
-      {/* Integration snippet */}
-      <section style={{ padding: "64px 32px", maxWidth: 760, margin: "0 auto", textAlign: "center" }}>
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--label)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 12px" }}>{"{INTEGRATION}"}</p>
-        <h2 style={{ fontFamily: "var(--font-heading)", fontSize: 26, fontWeight: 700, color: "#fff", margin: "0 0 12px", letterSpacing: "-0.02em" }}>One request to gate anything</h2>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)", margin: "0 auto 28px", maxWidth: 480, lineHeight: 1.6 }}>
-          Drop this into any backend. Returns <code style={{ fontFamily: "var(--font-mono)", color: "#3898EC", fontSize: 12 }}>active: true</code> when the subscriber has a live stream.
-        </p>
-        <div style={{ background: "#060E18", border: "1px solid rgba(56,152,236,0.2)", borderRadius: 12, padding: "20px 24px", textAlign: "left" }}>
-          <pre style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "#ACC6E9", margin: 0, lineHeight: 1.8, overflowX: "auto" }}>{`GET /api/check-subscription
-  ?planId=1
-  &address=0xSubscriber…
+        {/* How it works */}
+        <section id="how" className={s.section}>
+          <div className={s.sectionLabel}>// 02 · Mechanics</div>
+          <h2 className={s.sectionTitle}>Four steps. <em>Zero middlemen.</em></h2>
+          <p className={s.sectionIntro}>
+            Every operation happens onchain on Arc. No payment processor. No hidden batch windows.
+            No &ldquo;we&apos;ll get back to you in 5–7 business days.&rdquo;
+          </p>
 
-→ { "active": true, "stream": { ... } }`}</pre>
-        </div>
-        <Link href="/docs" style={{ display: "inline-block", marginTop: 20, fontFamily: "var(--font-body)", fontSize: 13, color: "var(--cta)", textDecoration: "none" }}>
-          Full integration guide →
-        </Link>
-      </section>
+          <div className={s.steps}>
+            <div className={`${s.step} ${s.reveal}`}>
+              <div className={s.stepNum}>STEP / 01</div>
+              <div className={s.stepBody}>
+                <h3>Merchant defines the plan.</h3>
+                <p>Set the rate, grace period, and cancellation terms. The plan lives as a single onchain record anyone can subscribe to.</p>
+              </div>
+              <pre className={s.stepCode}><span className={s.comment}>// one transaction, one source of truth</span>{"\n"}<span className={s.kw}>PlanRegistry</span>.createPlan({"{"}{"\n"}{"  "}name:      <span className={s.str}>&quot;Pro API&quot;</span>,{"\n"}{"  "}rate:      <span className={s.val}>9_000000</span>, <span className={s.comment}>// $9/mo in 6-dec USDC</span>{"\n"}{"  "}grace:     <span className={s.val}>86400</span>,   <span className={s.comment}>// 1 day</span>{"\n"}{"  "}dispute:   <span className={s.str}>&quot;agent+panel&quot;</span>{"\n"}{"}"})
+</pre>
+            </div>
 
-      {/* CTA footer */}
-      <section style={{ padding: "80px 32px", textAlign: "center", borderTop: "1px solid rgba(172,198,233,0.06)" }}>
-        <h2 style={{ fontFamily: "var(--font-heading)", fontSize: 32, fontWeight: 700, color: "#fff", margin: "0 0 12px", letterSpacing: "-0.02em" }}>Ready to stream revenue?</h2>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)", margin: "0 0 28px" }}>Connect your wallet and create your first plan in under a minute.</p>
-        <WalletButton />
-      </section>
+            <div className={`${s.step} ${s.reveal}`}>
+              <div className={s.stepNum}>STEP / 02</div>
+              <div className={s.stepBody}>
+                <h3>Subscriber opens a stream.</h3>
+                <p>Approve a bounded USDC allowance. Deposit a small buffer (1 week is typical). The stream begins ticking in the same block.</p>
+              </div>
+              <pre className={s.stepCode}><span className={s.comment}>// 2 txs · ~$0.02 total gas on Arc</span>{"\n"}<span className={s.kw}>USDC</span>.approve(streamManager, buffer){"\n"}<span className={s.kw}>StreamManager</span>.createStream(planId, buffer){"\n"}<span className={s.comment}>// → streamId · status: STREAMING</span>
+</pre>
+            </div>
 
-      {/* Footer */}
-      <footer style={{ borderTop: "1px solid rgba(172,198,233,0.06)", padding: "20px 32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", letterSpacing: "0.08em" }}>TRUSTFLOW · ARC TESTNET</span>
-        <div style={{ display: "flex", gap: 20 }}>
-          {[["Dashboard", "/dashboard"], ["Docs", "/docs"]].map(([label, href]) => (
-            <Link key={href} href={href} style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-subtle)", textDecoration: "none" }}>{label}</Link>
-          ))}
-        </div>
-      </footer>
+            <div className={`${s.step} ${s.reveal}`}>
+              <div className={s.stepNum}>STEP / 03</div>
+              <div className={s.stepBody}>
+                <h3>Value flows, per second.</h3>
+                <p>No cron job. No off-chain scheduler. Consumed balance is computed on-demand from <code>(rate × elapsed)</code>. Merchant can claim accrued revenue anytime.</p>
+              </div>
+              <pre className={s.stepCode}><span className={s.comment}>// merchant claims what&apos;s earned so far</span>{"\n"}<span className={s.kw}>StreamManager</span>.claim(streamId){"\n"}<span className={s.comment}>// → transfers accrued USDC to merchant</span>{"\n"}<span className={s.comment}>// → stream continues uninterrupted</span>
+</pre>
+            </div>
+
+            <div className={`${s.step} ${s.reveal}`}>
+              <div className={s.stepNum}>STEP / 04</div>
+              <div className={s.stepBody}>
+                <h3>Cancel. Refund. Sub-second.</h3>
+                <p>Subscriber hits cancel. Unused buffer returns to their wallet in the same transaction. Arc&apos;s deterministic finality means the refund is final before the next heartbeat.</p>
+              </div>
+              <pre className={s.stepCode}><span className={s.comment}>// one call · final in &lt; 1 second</span>{"\n"}<span className={s.kw}>StreamManager</span>.cancel(streamId){"\n"}<span className={s.comment}>// → consumed stays with merchant</span>{"\n"}<span className={s.comment}>// → unused returns to subscriber</span>
+</pre>
+            </div>
+          </div>
+        </section>
+
+        {/* API / Integration */}
+        <section id="integrate" className={s.section}>
+          <div className={s.sectionLabel}>// 03 · Integration</div>
+          <h2 className={s.sectionTitle}>Gate any endpoint. <em>One request.</em></h2>
+          <p className={s.sectionIntro}>
+            Drop this into any backend. Returns <code>active: true</code> when the caller has a live stream.
+            No SDK. No webhook setup. No auth server.
+          </p>
+
+          <div className={`${s.apiCard} ${s.reveal}`}>
+            <div className={s.termHeader}>
+              <div className={s.dots}><span /><span /><span /></div>
+              <div>curl · terminal</div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#4A6F8C" }}>HTTP/1.1</div>
+            </div>
+            <pre className={s.apiTerminal}><span className={s.apiPrompt}>$</span> curl https://api.trustflow.xyz/check \{"\n"}    <span className={s.apiParam}>-d</span> <span className={s.apiString}>&quot;planId=42&quot;</span> \{"\n"}    <span className={s.apiParam}>-d</span> <span className={s.apiString}>&quot;address=0xC8B1...44aA&quot;</span>{"\n\n"}<span className={s.apiComment}># ← response</span>{"\n"}{"{"}{"\n"}  <span className={s.apiKey}>&quot;active&quot;</span>: <span className={s.apiString}>true</span>,{"\n"}  <span className={s.apiKey}>&quot;streamId&quot;</span>: <span className={s.apiString}>&quot;0x3e…b7&quot;</span>,{"\n"}  <span className={s.apiKey}>&quot;rate&quot;</span>: <span className={s.apiString}>&quot;9000000&quot;</span>, <span className={s.apiComment}>// per month</span>{"\n"}  <span className={s.apiKey}>&quot;consumed&quot;</span>: <span className={s.apiString}>&quot;412336&quot;</span>,{"\n"}  <span className={s.apiKey}>&quot;remaining&quot;</span>: <span className={s.apiString}>&quot;8587664&quot;</span>,{"\n"}  <span className={s.apiKey}>&quot;canceledAt&quot;</span>: <span className={s.apiString}>null</span>{"\n"}{"}"}</pre>
+          </div>
+
+          {/* Stats */}
+          <div className={`${s.stats} ${s.reveal}`}>
+            <div className={s.stat}>
+              <div className={`${s.statNum} ${s.live}`}>
+                {statTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div className={s.statLabel}>USDC streamed · testnet</div>
+            </div>
+            <div className={s.stat}>
+              <div className={s.statNum}>1.3s</div>
+              <div className={s.statLabel}>Avg. cancel → refund</div>
+            </div>
+            <div className={s.stat}>
+              <div className={s.statNum}>$0.01</div>
+              <div className={s.statLabel}>Cost per stream op</div>
+            </div>
+            <div className={s.stat}>
+              <div className={s.statNum}>0</div>
+              <div className={s.statLabel}>Chargebacks. Ever.</div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA block */}
+        <section className={s.section}>
+          <div className={`${s.ctaBlock} ${s.reveal}`}>
+            <h2>Built for <em>builders</em>.<br />Open for testnet.</h2>
+            <p>
+              Contracts are verified on arcscan. Faucet-friendly. Bug reports welcome.
+              Ship a subscription in an afternoon, not a sprint.
+            </p>
+            <div className={s.ctaBtns}>
+              <WalletButton />
+              <Link href="/docs" className={`${s.btn} ${s.btnGhost}`}>Read the docs</Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className={s.footer}>
+          <div>TrustFlow · Built on Arc · Testnet</div>
+          <div>
+            <Link href="https://github.com" className={s.footerLink}>GitHub</Link>
+            <Link href="/docs" className={s.footerLink}>Docs</Link>
+            <Link href="https://twitter.com" className={s.footerLink}>Twitter</Link>
+            <Link href="https://discord.com" className={s.footerLink}>Discord</Link>
+          </div>
+        </footer>
+
+      </div>
     </div>
   );
 }

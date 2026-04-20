@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; box-sizing: border-box; }
+body { background: #0D1B2A; font-family: 'Space Grotesk', sans-serif; padding: 20px; }
+.grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; align-items: end; }
+.bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bar { background: linear-gradient(to top, #3898EC, #ACC6E9); border-radius: 4px; width: 100%; }
+.val { font-family: 'Space Mono', monospace; font-size: 9px; color: #4A6F8C; text-align: center; }
+.token { font-family: 'Space Mono', monospace; font-size: 8px; color: #7A9FC4; text-align: center; writing-mode: vertical-rl; transform: rotate(180deg); height: 40px; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="bar-wrap"><div class="bar" style="height:4px"></div><div class="val">4</div><div class="token">--space-1</div></div>
+  <div class="bar-wrap"><div class="bar" style="height:8px"></div><div class="val">8</div><div class="token">--space-2</div></div>
+  <div class="bar-wrap"><div class="bar" style="height:12px"></div><div class="val">12</div><div class="token">--space-3</div></div>
+  <div class="bar-wrap"><div class="bar" style="height:16px"></div><div class="val">16</div><div class="token">--space-4</div></div>
+  <div class="bar-wrap"><div class="bar" style="height:20px"></div><div class="val">20</div><div class="token">--space-5</div></div>
+  <div class="bar-wrap"><div class="bar" style="height:24px"></div><div class="val">24</div><div class="token">--space-6</div></div>
+  <div class="bar-wrap"><div class="bar" style="height:32px"></div><div class="val">32</div><div class="token">--space-8</div></div>
+  <div class="bar-wrap"><div class="bar" style="height:40px"></div><div class="val">40</div><div class="token">--space-10</div></div>
+  <div class="bar-wrap"><div class="bar" style="height:48px"></div><div class="val">48</div><div class="token">--space-12</div></div>
+  <div class="bar-wrap"><div class="bar" style="height:64px"></div><div class="val">64</div><div class="token">--space-16</div></div>
+</div>
+</body>
+</html>

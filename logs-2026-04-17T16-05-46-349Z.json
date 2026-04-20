@@ -1,0 +1,542 @@
+[
+  {
+    "message": "Indexer has failed, restarting",
+    "time": 1776441908893.954,
+    "level": "error",
+    "msg": "Indexer has failed, restarting"
+  },
+  {
+    "msg": " ELIFECYCLE  Command failed with exit code 1.",
+    "time": 1776441908893.949,
+    "level": "stdout"
+  },
+  {
+    "msg": "    Indexer crashed. For more details see the error logs above the TUI. Can't find them? Restart the indexer with the 'TUI_OFF=true pnpm start' command.",
+    "time": 1776441908893.948,
+    "level": "stdout"
+  },
+  {
+    "msg": "Caused by:",
+    "time": 1776441908893.8828,
+    "level": "stdout"
+  },
+  {
+    "msg": "Error: Failed cli execution",
+    "time": 1776441908893.8633,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice",
+    "time": 1776441908893.8582,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice To update run: npm install -g npm@11.12.1",
+    "time": 1776441908893.8547,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1",
+    "time": 1776441908893.8508,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice New minor version of npm available! 11.9.0 -> 11.12.1",
+    "time": 1776441908893.8486,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice",
+    "time": 1776441908893.847,
+    "level": "stdout"
+  },
+  {
+    "msg": "Failed at initialization",
+    "error": {
+      "type": "Error",
+      "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+      "stack_trace": "Error: Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:865:10)\n    at defaultResolve (node:internal/modules/esm/resolve:991:11)\n    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:719:20)\n    at ModuleLoader.#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:618:27)\n    at ModuleJobSync.syncLink (node:internal/modules/esm/module_job:160:33)\n    at ModuleJobSync.link (node:internal/modules/esm/module_job:480:17)\n    at new ModuleJobSync (node:internal/modules/esm/module_job:470:26)"
+    },
+    "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+    "time": 1776441908893.8005,
+    "level": "error"
+  },
+  {
+    "Contract Name": "DisputeResolver",
+    "Expected Handler Path": "src/EventHandlers.ts",
+    "Code": "EE500",
+    "msg": "Failed to import handler file",
+    "error": {
+      "type": "Error",
+      "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+      "stack_trace": "Error: Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:865:10)\n    at defaultResolve (node:internal/modules/esm/resolve:991:11)\n    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:719:20)\n    at ModuleLoader.#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:618:27)\n    at ModuleJobSync.syncLink (node:internal/modules/esm/module_job:160:33)\n    at ModuleJobSync.link (node:internal/modules/esm/module_job:480:17)\n    at new ModuleJobSync (node:internal/modules/esm/module_job:470:26)"
+    },
+    "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+    "time": 1776441908893.7925,
+    "level": "error"
+  },
+  {
+    "msg": "> ts-node src/Index.res.js",
+    "time": 1776441908893.7874,
+    "level": "stdout"
+  },
+  {
+    "msg": "> generated@0.1.0 start",
+    "time": 1776441908893.7864,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"_jsr-registry\". This will stop working in the next major version of npm.",
+    "time": 1776441908893.7224,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"npm-globalconfig\". This will stop working in the next major version of npm.",
+    "time": 1776441908893.716,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"verify-deps-before-run\". This will stop working in the next major version of npm.",
+    "time": 1776441908893.7117,
+    "level": "stdout"
+  },
+  {
+    "msg": "> envio start --config ./config.yaml",
+    "time": 1776441908893.7024,
+    "level": "stdout"
+  },
+  {
+    "msg": "> trustflow-indexer@1.0.0 start /app/base-template",
+    "time": 1776441908893.698,
+    "level": "stdout"
+  },
+  {
+    "message": "Running pnpm start command",
+    "time": 1776441908893.6602,
+    "level": "info",
+    "msg": "Running pnpm start command"
+  },
+  {
+    "message": "Indexer has failed, restarting",
+    "time": 1776441863895.2617,
+    "level": "error",
+    "msg": "Indexer has failed, restarting"
+  },
+  {
+    "msg": " ELIFECYCLE  Command failed with exit code 1.",
+    "time": 1776441863895.2563,
+    "level": "stdout"
+  },
+  {
+    "msg": "    Indexer crashed. For more details see the error logs above the TUI. Can't find them? Restart the indexer with the 'TUI_OFF=true pnpm start' command.",
+    "time": 1776441863895.254,
+    "level": "stdout"
+  },
+  {
+    "msg": "Caused by:",
+    "time": 1776441863895.2527,
+    "level": "stdout"
+  },
+  {
+    "msg": "Error: Failed cli execution",
+    "time": 1776441863895.2065,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice",
+    "time": 1776441863895.1697,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice To update run: npm install -g npm@11.12.1",
+    "time": 1776441863895.1675,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1",
+    "time": 1776441863895.1665,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice New minor version of npm available! 11.9.0 -> 11.12.1",
+    "time": 1776441863895.1523,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice",
+    "time": 1776441863895.1367,
+    "level": "stdout"
+  },
+  {
+    "msg": "Failed at initialization",
+    "error": {
+      "type": "Error",
+      "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+      "stack_trace": "Error: Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:865:10)\n    at defaultResolve (node:internal/modules/esm/resolve:991:11)\n    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:719:20)\n    at ModuleLoader.#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:618:27)\n    at ModuleJobSync.syncLink (node:internal/modules/esm/module_job:160:33)\n    at ModuleJobSync.link (node:internal/modules/esm/module_job:480:17)\n    at new ModuleJobSync (node:internal/modules/esm/module_job:470:26)"
+    },
+    "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+    "time": 1776441863895.135,
+    "level": "error"
+  },
+  {
+    "Contract Name": "DisputeResolver",
+    "Expected Handler Path": "src/EventHandlers.ts",
+    "Code": "EE500",
+    "msg": "Failed to import handler file",
+    "error": {
+      "type": "Error",
+      "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+      "stack_trace": "Error: Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:865:10)\n    at defaultResolve (node:internal/modules/esm/resolve:991:11)\n    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:719:20)\n    at ModuleLoader.#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:618:27)\n    at ModuleJobSync.syncLink (node:internal/modules/esm/module_job:160:33)\n    at ModuleJobSync.link (node:internal/modules/esm/module_job:480:17)\n    at new ModuleJobSync (node:internal/modules/esm/module_job:470:26)"
+    },
+    "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+    "time": 1776441863895.1318,
+    "level": "error"
+  },
+  {
+    "msg": "> ts-node src/Index.res.js",
+    "time": 1776441863895.1033,
+    "level": "stdout"
+  },
+  {
+    "msg": "> generated@0.1.0 start",
+    "time": 1776441863895.1023,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"_jsr-registry\". This will stop working in the next major version of npm.",
+    "time": 1776441863895.0637,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"npm-globalconfig\". This will stop working in the next major version of npm.",
+    "time": 1776441863895.0586,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"verify-deps-before-run\". This will stop working in the next major version of npm.",
+    "time": 1776441863895.0527,
+    "level": "stdout"
+  },
+  {
+    "msg": "> envio start --config ./config.yaml",
+    "time": 1776441863895.0408,
+    "level": "stdout"
+  },
+  {
+    "msg": "> trustflow-indexer@1.0.0 start /app/base-template",
+    "time": 1776441863895.0342,
+    "level": "stdout"
+  },
+  {
+    "message": "Running pnpm start command",
+    "time": 1776441863894.9836,
+    "level": "info",
+    "msg": "Running pnpm start command"
+  },
+  {
+    "message": "Indexer has failed, restarting",
+    "time": 1776441831180.4404,
+    "level": "error",
+    "msg": "Indexer has failed, restarting"
+  },
+  {
+    "msg": " ELIFECYCLE  Command failed with exit code 1.",
+    "time": 1776441831180.43,
+    "level": "stdout"
+  },
+  {
+    "msg": "    Indexer crashed. For more details see the error logs above the TUI. Can't find them? Restart the indexer with the 'TUI_OFF=true pnpm start' command.",
+    "time": 1776441831180.421,
+    "level": "stdout"
+  },
+  {
+    "msg": "Caused by:",
+    "time": 1776441831180.418,
+    "level": "stdout"
+  },
+  {
+    "msg": "Error: Failed cli execution",
+    "time": 1776441831180.3267,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice",
+    "time": 1776441831180.3184,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice To update run: npm install -g npm@11.12.1",
+    "time": 1776441830900.4436,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1",
+    "time": 1776441830900.436,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice New minor version of npm available! 11.9.0 -> 11.12.1",
+    "time": 1776441830900.4316,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice",
+    "time": 1776441830900.429,
+    "level": "stdout"
+  },
+  {
+    "msg": "Failed at initialization",
+    "error": {
+      "type": "Error",
+      "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+      "stack_trace": "Error: Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:865:10)\n    at defaultResolve (node:internal/modules/esm/resolve:991:11)\n    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:719:20)\n    at ModuleLoader.#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:618:27)\n    at ModuleJobSync.syncLink (node:internal/modules/esm/module_job:160:33)\n    at ModuleJobSync.link (node:internal/modules/esm/module_job:480:17)\n    at new ModuleJobSync (node:internal/modules/esm/module_job:470:26)"
+    },
+    "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+    "time": 1776441830649.446,
+    "level": "error"
+  },
+  {
+    "Contract Name": "DisputeResolver",
+    "Expected Handler Path": "src/EventHandlers.ts",
+    "Code": "EE500",
+    "msg": "Failed to import handler file",
+    "error": {
+      "type": "Error",
+      "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+      "stack_trace": "Error: Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:865:10)\n    at defaultResolve (node:internal/modules/esm/resolve:991:11)\n    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:719:20)\n    at ModuleLoader.#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:618:27)\n    at ModuleJobSync.syncLink (node:internal/modules/esm/module_job:160:33)\n    at ModuleJobSync.link (node:internal/modules/esm/module_job:480:17)\n    at new ModuleJobSync (node:internal/modules/esm/module_job:470:26)"
+    },
+    "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+    "time": 1776441830649.4407,
+    "level": "error"
+  },
+  {
+    "msg": "> ts-node src/Index.res.js",
+    "time": 1776441829561.7756,
+    "level": "stdout"
+  },
+  {
+    "msg": "> generated@0.1.0 start",
+    "time": 1776441829561.5278,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"_jsr-registry\". This will stop working in the next major version of npm.",
+    "time": 1776441829561.3828,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"npm-globalconfig\". This will stop working in the next major version of npm.",
+    "time": 1776441829561.2222,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"verify-deps-before-run\". This will stop working in the next major version of npm.",
+    "time": 1776441829560.9817,
+    "level": "stdout"
+  },
+  {
+    "msg": "> envio start --config ./config.yaml",
+    "time": 1776441829560.5378,
+    "level": "stdout"
+  },
+  {
+    "msg": "> trustflow-indexer@1.0.0 start /app/base-template",
+    "time": 1776441829559.8513,
+    "level": "stdout"
+  },
+  {
+    "message": "Running pnpm start command",
+    "time": 1776441828894.8157,
+    "level": "info",
+    "msg": "Running pnpm start command"
+  },
+  {
+    "message": "Indexer has failed, restarting",
+    "time": 1776441818893.8684,
+    "level": "error",
+    "msg": "Indexer has failed, restarting"
+  },
+  {
+    "msg": " ELIFECYCLE  Command failed with exit code 1.",
+    "time": 1776441818893.8633,
+    "level": "stdout"
+  },
+  {
+    "msg": "    Indexer crashed. For more details see the error logs above the TUI. Can't find them? Restart the indexer with the 'TUI_OFF=true pnpm start' command.",
+    "time": 1776441818893.8606,
+    "level": "stdout"
+  },
+  {
+    "msg": "Caused by:",
+    "time": 1776441818893.8586,
+    "level": "stdout"
+  },
+  {
+    "msg": "Error: Failed cli execution",
+    "time": 1776441818893.8076,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice",
+    "time": 1776441818893.8057,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice To update run: npm install -g npm@11.12.1",
+    "time": 1776441818893.8042,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1",
+    "time": 1776441818893.7827,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice New minor version of npm available! 11.9.0 -> 11.12.1",
+    "time": 1776441818893.7803,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm notice",
+    "time": 1776441818893.7793,
+    "level": "stdout"
+  },
+  {
+    "msg": "Failed at initialization",
+    "error": {
+      "type": "Error",
+      "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+      "stack_trace": "Error: Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:865:10)\n    at defaultResolve (node:internal/modules/esm/resolve:991:11)\n    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:719:20)\n    at ModuleLoader.#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:618:27)\n    at ModuleJobSync.syncLink (node:internal/modules/esm/module_job:160:33)\n    at ModuleJobSync.link (node:internal/modules/esm/module_job:480:17)\n    at new ModuleJobSync (node:internal/modules/esm/module_job:470:26)"
+    },
+    "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+    "time": 1776441818893.7656,
+    "level": "error"
+  },
+  {
+    "Contract Name": "DisputeResolver",
+    "Expected Handler Path": "src/EventHandlers.ts",
+    "Code": "EE500",
+    "msg": "Failed to import handler file",
+    "error": {
+      "type": "Error",
+      "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+      "stack_trace": "Error: Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:865:10)\n    at defaultResolve (node:internal/modules/esm/resolve:991:11)\n    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:719:20)\n    at ModuleLoader.#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:618:27)\n    at ModuleJobSync.syncLink (node:internal/modules/esm/module_job:160:33)\n    at ModuleJobSync.link (node:internal/modules/esm/module_job:480:17)\n    at new ModuleJobSync (node:internal/modules/esm/module_job:470:26)"
+    },
+    "message": "Cannot find module '/app/base-template/generated/src/Handlers.gen' imported from /app/base-template/src/EventHandlers.ts\nDid you mean to import \"../generated/src/Handlers.gen.ts\"?",
+    "time": 1776441818893.7595,
+    "level": "error"
+  },
+  {
+    "msg": "> ts-node src/Index.res.js",
+    "time": 1776441818893.7507,
+    "level": "stdout"
+  },
+  {
+    "msg": "> generated@0.1.0 start",
+    "time": 1776441818893.7495,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"_jsr-registry\". This will stop working in the next major version of npm.",
+    "time": 1776441818893.6902,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"npm-globalconfig\". This will stop working in the next major version of npm.",
+    "time": 1776441818893.6777,
+    "level": "stdout"
+  },
+  {
+    "msg": "npm warn Unknown env config \"verify-deps-before-run\". This will stop working in the next major version of npm.",
+    "time": 1776441818893.6748,
+    "level": "stdout"
+  },
+  {
+    "msg": "> envio start --config ./config.yaml",
+    "time": 1776441818893.6584,
+    "level": "stdout"
+  },
+  {
+    "msg": "> trustflow-indexer@1.0.0 start /app/base-template",
+    "time": 1776441818893.6543,
+    "level": "stdout"
+  },
+  {
+    "message": "Running pnpm start command",
+    "time": 1776441818893.628,
+    "level": "info",
+    "msg": "Running pnpm start command"
+  },
+  {
+    "message": "Finished applying schema...",
+    "time": 1776441806014.5833,
+    "level": "info",
+    "msg": "Finished applying schema..."
+  },
+  {
+    "message": "The indexer storage is ready. Starting indexing!",
+    "time": 1776441790479.267,
+    "level": "info",
+    "msg": "The indexer storage is ready. Starting indexing!"
+  },
+  {
+    "msg": "Hasura configuration completed",
+    "operations": 13,
+    "time": 1776441790479.2625,
+    "level": "trace"
+  },
+  {
+    "msg": "Hasura finished tracking tables",
+    "tableNames": [
+      "raw_events",
+      "_meta",
+      "chain_metadata",
+      "ClaimEvent",
+      "Dispute",
+      "Plan",
+      "Stream"
+    ],
+    "time": 1776441789225.4106,
+    "level": "trace"
+  },
+  {
+    "message": "Hasura metadata cleared",
+    "time": 1776441789225.403,
+    "level": "trace",
+    "msg": "Hasura metadata cleared"
+  },
+  {
+    "message": "Tracking tables in Hasura",
+    "time": 1776441789225.3965,
+    "level": "info",
+    "msg": "Tracking tables in Hasura"
+  },
+  {
+    "message": "No cache found to upload.",
+    "time": 1776441789225.3948,
+    "level": "info",
+    "msg": "No cache found to upload."
+  },
+  {
+    "message": "Initializing the indexer storage...",
+    "time": 1776441788724.3538,
+    "level": "info",
+    "msg": "Initializing the indexer storage..."
+  },
+  {
+    "msg": "> node -e 'require(`./src/db/Migrations.res.js`).runUpMigrations(true, true)'",
+    "time": 1776441788473.3157,
+    "level": "stdout"
+  },
+  {
+    "msg": "> generated@0.1.0 db-setup /app/base-template/generated",
+    "time": 1776441788473.3054,
+    "level": "stdout"
+  },
+  {
+    "message": "Applying schema...",
+    "time": 1776441787721.425,
+    "level": "info",
+    "msg": "Applying schema..."
+  }
+]

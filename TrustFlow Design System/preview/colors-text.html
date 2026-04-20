@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500&family=DM+Sans:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; box-sizing: border-box; }
+body { background: #0D1B2A; font-family: 'Space Grotesk', sans-serif; padding: 20px; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; align-items: center; gap: 16px; padding: 10px 14px; background: #0F2236; border-radius: 8px; border: 1px solid rgba(172,198,233,0.1); }
+.dot { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+.meta { flex: 1; }
+.token { font-size: 11px; font-family: 'Space Mono', monospace; color: #4A6F8C; }
+.sample { font-size: 14px; margin-top: 2px; font-family: 'DM Sans', sans-serif; }
+.hex { font-size: 11px; font-family: 'Space Mono', monospace; color: #4A6F8C; margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="stack">
+  <div class="row">
+    <div class="dot" style="background:#FFFFFF"></div>
+    <div class="meta">
+      <div class="token">--color-text-primary</div>
+      <div class="sample" style="color:#FFFFFF">The quick brown fox jumps</div>
+    </div>
+    <span class="hex">#FFFFFF</span>
+  </div>
+  <div class="row">
+    <div class="dot" style="background:#ACC6E9"></div>
+    <div class="meta">
+      <div class="token">--color-text-secondary</div>
+      <div class="sample" style="color:#ACC6E9">The quick brown fox jumps</div>
+    </div>
+    <span class="hex">#ACC6E9</span>
+  </div>
+  <div class="row">
+    <div class="dot" style="background:#7A9FC4"></div>
+    <div class="meta">
+      <div class="token">--color-text-muted</div>
+      <div class="sample" style="color:#7A9FC4">The quick brown fox jumps</div>
+    </div>
+    <span class="hex">#7A9FC4</span>
+  </div>
+  <div class="row">
+    <div class="dot" style="background:#4A6F8C"></div>
+    <div class="meta">
+      <div class="token">--color-text-subtle</div>
+      <div class="sample" style="color:#4A6F8C">The quick brown fox jumps</div>
+    </div>
+    <span class="hex">#4A6F8C</span>
+  </div>
+</div>
+</body>
+</html>

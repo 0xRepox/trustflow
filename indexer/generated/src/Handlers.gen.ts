@@ -1,0 +1,228 @@
+/* TypeScript file generated from Handlers.res by genType. */
+
+/* eslint-disable */
+/* tslint:disable */
+
+const HandlersJS = require('./Handlers.res.js');
+
+import type {DisputeResolver_DisputeOpened_eventFilters as Types_DisputeResolver_DisputeOpened_eventFilters} from './Types.gen';
+
+import type {DisputeResolver_DisputeOpened_event as Types_DisputeResolver_DisputeOpened_event} from './Types.gen';
+
+import type {DisputeResolver_DisputeResponded_eventFilters as Types_DisputeResolver_DisputeResponded_eventFilters} from './Types.gen';
+
+import type {DisputeResolver_DisputeResponded_event as Types_DisputeResolver_DisputeResponded_event} from './Types.gen';
+
+import type {DisputeResolver_DisputeSettled_eventFilters as Types_DisputeResolver_DisputeSettled_eventFilters} from './Types.gen';
+
+import type {DisputeResolver_DisputeSettled_event as Types_DisputeResolver_DisputeSettled_event} from './Types.gen';
+
+import type {HandlerTypes_eventConfig as Types_HandlerTypes_eventConfig} from './Types.gen';
+
+import type {PlanRegistry_PlanCreated_eventFilters as Types_PlanRegistry_PlanCreated_eventFilters} from './Types.gen';
+
+import type {PlanRegistry_PlanCreated_event as Types_PlanRegistry_PlanCreated_event} from './Types.gen';
+
+import type {PlanRegistry_PlanDeactivated_eventFilters as Types_PlanRegistry_PlanDeactivated_eventFilters} from './Types.gen';
+
+import type {PlanRegistry_PlanDeactivated_event as Types_PlanRegistry_PlanDeactivated_event} from './Types.gen';
+
+import type {PlanRegistry_PlanUpdated_eventFilters as Types_PlanRegistry_PlanUpdated_eventFilters} from './Types.gen';
+
+import type {PlanRegistry_PlanUpdated_event as Types_PlanRegistry_PlanUpdated_event} from './Types.gen';
+
+import type {StreamManager_Claimed_eventFilters as Types_StreamManager_Claimed_eventFilters} from './Types.gen';
+
+import type {StreamManager_Claimed_event as Types_StreamManager_Claimed_event} from './Types.gen';
+
+import type {StreamManager_StreamCancelled_eventFilters as Types_StreamManager_StreamCancelled_eventFilters} from './Types.gen';
+
+import type {StreamManager_StreamCancelled_event as Types_StreamManager_StreamCancelled_event} from './Types.gen';
+
+import type {StreamManager_StreamCreated_eventFilters as Types_StreamManager_StreamCreated_eventFilters} from './Types.gen';
+
+import type {StreamManager_StreamCreated_event as Types_StreamManager_StreamCreated_event} from './Types.gen';
+
+import type {StreamManager_StreamPaused_eventFilters as Types_StreamManager_StreamPaused_eventFilters} from './Types.gen';
+
+import type {StreamManager_StreamPaused_event as Types_StreamManager_StreamPaused_event} from './Types.gen';
+
+import type {StreamManager_StreamResumed_eventFilters as Types_StreamManager_StreamResumed_eventFilters} from './Types.gen';
+
+import type {StreamManager_StreamResumed_event as Types_StreamManager_StreamResumed_event} from './Types.gen';
+
+import type {StreamManager_StreamToppedUp_eventFilters as Types_StreamManager_StreamToppedUp_eventFilters} from './Types.gen';
+
+import type {StreamManager_StreamToppedUp_event as Types_StreamManager_StreamToppedUp_event} from './Types.gen';
+
+import type {chain as Types_chain} from './Types.gen';
+
+import type {contractRegistrations as Types_contractRegistrations} from './Types.gen';
+
+import type {fnWithEventConfig as Types_fnWithEventConfig} from './Types.gen';
+
+import type {genericContractRegisterArgs as Internal_genericContractRegisterArgs} from 'envio/src/Internal.gen';
+
+import type {genericContractRegister as Internal_genericContractRegister} from 'envio/src/Internal.gen';
+
+import type {genericHandlerArgs as Internal_genericHandlerArgs} from 'envio/src/Internal.gen';
+
+import type {genericHandlerWithLoader as Internal_genericHandlerWithLoader} from 'envio/src/Internal.gen';
+
+import type {genericHandler as Internal_genericHandler} from 'envio/src/Internal.gen';
+
+import type {genericLoaderArgs as Internal_genericLoaderArgs} from 'envio/src/Internal.gen';
+
+import type {genericLoader as Internal_genericLoader} from 'envio/src/Internal.gen';
+
+import type {handlerContext as Types_handlerContext} from './Types.gen';
+
+import type {loaderContext as Types_loaderContext} from './Types.gen';
+
+import type {onBlockArgs as Envio_onBlockArgs} from 'envio/src/Envio.gen';
+
+import type {onBlockOptions as Envio_onBlockOptions} from 'envio/src/Envio.gen';
+
+export const DisputeResolver_DisputeOpened_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_DisputeResolver_DisputeOpened_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeOpened_eventFilters>> = HandlersJS.DisputeResolver.DisputeOpened.contractRegister as any;
+
+export const DisputeResolver_DisputeOpened_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeOpened_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeOpened_eventFilters>> = HandlersJS.DisputeResolver.DisputeOpened.handler as any;
+
+export const DisputeResolver_DisputeOpened_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_DisputeResolver_DisputeOpened_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeOpened_event,Types_handlerContext,loaderReturn>>,Types_DisputeResolver_DisputeOpened_eventFilters>) => void = HandlersJS.DisputeResolver.DisputeOpened.handlerWithLoader as any;
+
+export const DisputeResolver_DisputeResponded_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_DisputeResolver_DisputeResponded_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeResponded_eventFilters>> = HandlersJS.DisputeResolver.DisputeResponded.contractRegister as any;
+
+export const DisputeResolver_DisputeResponded_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeResponded_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeResponded_eventFilters>> = HandlersJS.DisputeResolver.DisputeResponded.handler as any;
+
+export const DisputeResolver_DisputeResponded_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_DisputeResolver_DisputeResponded_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeResponded_event,Types_handlerContext,loaderReturn>>,Types_DisputeResolver_DisputeResponded_eventFilters>) => void = HandlersJS.DisputeResolver.DisputeResponded.handlerWithLoader as any;
+
+export const DisputeResolver_DisputeSettled_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_DisputeResolver_DisputeSettled_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeSettled_eventFilters>> = HandlersJS.DisputeResolver.DisputeSettled.contractRegister as any;
+
+export const DisputeResolver_DisputeSettled_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeSettled_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeSettled_eventFilters>> = HandlersJS.DisputeResolver.DisputeSettled.handler as any;
+
+export const DisputeResolver_DisputeSettled_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_DisputeResolver_DisputeSettled_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeSettled_event,Types_handlerContext,loaderReturn>>,Types_DisputeResolver_DisputeSettled_eventFilters>) => void = HandlersJS.DisputeResolver.DisputeSettled.handlerWithLoader as any;
+
+export const PlanRegistry_PlanCreated_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_PlanRegistry_PlanCreated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanCreated_eventFilters>> = HandlersJS.PlanRegistry.PlanCreated.contractRegister as any;
+
+export const PlanRegistry_PlanCreated_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanCreated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanCreated_eventFilters>> = HandlersJS.PlanRegistry.PlanCreated.handler as any;
+
+export const PlanRegistry_PlanCreated_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_PlanRegistry_PlanCreated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanCreated_event,Types_handlerContext,loaderReturn>>,Types_PlanRegistry_PlanCreated_eventFilters>) => void = HandlersJS.PlanRegistry.PlanCreated.handlerWithLoader as any;
+
+export const PlanRegistry_PlanUpdated_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_PlanRegistry_PlanUpdated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanUpdated_eventFilters>> = HandlersJS.PlanRegistry.PlanUpdated.contractRegister as any;
+
+export const PlanRegistry_PlanUpdated_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanUpdated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanUpdated_eventFilters>> = HandlersJS.PlanRegistry.PlanUpdated.handler as any;
+
+export const PlanRegistry_PlanUpdated_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_PlanRegistry_PlanUpdated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanUpdated_event,Types_handlerContext,loaderReturn>>,Types_PlanRegistry_PlanUpdated_eventFilters>) => void = HandlersJS.PlanRegistry.PlanUpdated.handlerWithLoader as any;
+
+export const PlanRegistry_PlanDeactivated_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_PlanRegistry_PlanDeactivated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanDeactivated_eventFilters>> = HandlersJS.PlanRegistry.PlanDeactivated.contractRegister as any;
+
+export const PlanRegistry_PlanDeactivated_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanDeactivated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanDeactivated_eventFilters>> = HandlersJS.PlanRegistry.PlanDeactivated.handler as any;
+
+export const PlanRegistry_PlanDeactivated_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_PlanRegistry_PlanDeactivated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanDeactivated_event,Types_handlerContext,loaderReturn>>,Types_PlanRegistry_PlanDeactivated_eventFilters>) => void = HandlersJS.PlanRegistry.PlanDeactivated.handlerWithLoader as any;
+
+export const StreamManager_StreamCreated_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_StreamCreated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamCreated_eventFilters>> = HandlersJS.StreamManager.StreamCreated.contractRegister as any;
+
+export const StreamManager_StreamCreated_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamCreated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamCreated_eventFilters>> = HandlersJS.StreamManager.StreamCreated.handler as any;
+
+export const StreamManager_StreamCreated_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_StreamCreated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamCreated_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_StreamCreated_eventFilters>) => void = HandlersJS.StreamManager.StreamCreated.handlerWithLoader as any;
+
+export const StreamManager_StreamCancelled_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_StreamCancelled_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamCancelled_eventFilters>> = HandlersJS.StreamManager.StreamCancelled.contractRegister as any;
+
+export const StreamManager_StreamCancelled_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamCancelled_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamCancelled_eventFilters>> = HandlersJS.StreamManager.StreamCancelled.handler as any;
+
+export const StreamManager_StreamCancelled_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_StreamCancelled_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamCancelled_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_StreamCancelled_eventFilters>) => void = HandlersJS.StreamManager.StreamCancelled.handlerWithLoader as any;
+
+export const StreamManager_StreamToppedUp_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_StreamToppedUp_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamToppedUp_eventFilters>> = HandlersJS.StreamManager.StreamToppedUp.contractRegister as any;
+
+export const StreamManager_StreamToppedUp_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamToppedUp_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamToppedUp_eventFilters>> = HandlersJS.StreamManager.StreamToppedUp.handler as any;
+
+export const StreamManager_StreamToppedUp_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_StreamToppedUp_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamToppedUp_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_StreamToppedUp_eventFilters>) => void = HandlersJS.StreamManager.StreamToppedUp.handlerWithLoader as any;
+
+export const StreamManager_StreamPaused_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_StreamPaused_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamPaused_eventFilters>> = HandlersJS.StreamManager.StreamPaused.contractRegister as any;
+
+export const StreamManager_StreamPaused_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamPaused_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamPaused_eventFilters>> = HandlersJS.StreamManager.StreamPaused.handler as any;
+
+export const StreamManager_StreamPaused_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_StreamPaused_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamPaused_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_StreamPaused_eventFilters>) => void = HandlersJS.StreamManager.StreamPaused.handlerWithLoader as any;
+
+export const StreamManager_StreamResumed_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_StreamResumed_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamResumed_eventFilters>> = HandlersJS.StreamManager.StreamResumed.contractRegister as any;
+
+export const StreamManager_StreamResumed_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamResumed_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamResumed_eventFilters>> = HandlersJS.StreamManager.StreamResumed.handler as any;
+
+export const StreamManager_StreamResumed_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_StreamResumed_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamResumed_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_StreamResumed_eventFilters>) => void = HandlersJS.StreamManager.StreamResumed.handlerWithLoader as any;
+
+export const StreamManager_Claimed_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_Claimed_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_Claimed_eventFilters>> = HandlersJS.StreamManager.Claimed.contractRegister as any;
+
+export const StreamManager_Claimed_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_Claimed_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_Claimed_eventFilters>> = HandlersJS.StreamManager.Claimed.handler as any;
+
+export const StreamManager_Claimed_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_Claimed_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_Claimed_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_Claimed_eventFilters>) => void = HandlersJS.StreamManager.Claimed.handlerWithLoader as any;
+
+/** Register a Block Handler. It'll be called for every block by default. */
+export const onBlock: (_1:Envio_onBlockOptions<Types_chain>, _2:((_1:Envio_onBlockArgs<Types_handlerContext>) => Promise<void>)) => void = HandlersJS.onBlock as any;
+
+export const DisputeResolver: {
+  DisputeOpened: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_DisputeResolver_DisputeOpened_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeOpened_event,Types_handlerContext,loaderReturn>>,Types_DisputeResolver_DisputeOpened_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeOpened_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeOpened_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_DisputeResolver_DisputeOpened_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeOpened_eventFilters>>
+  }; 
+  DisputeSettled: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_DisputeResolver_DisputeSettled_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeSettled_event,Types_handlerContext,loaderReturn>>,Types_DisputeResolver_DisputeSettled_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeSettled_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeSettled_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_DisputeResolver_DisputeSettled_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeSettled_eventFilters>>
+  }; 
+  DisputeResponded: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_DisputeResolver_DisputeResponded_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeResponded_event,Types_handlerContext,loaderReturn>>,Types_DisputeResolver_DisputeResponded_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_DisputeResolver_DisputeResponded_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeResponded_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_DisputeResolver_DisputeResponded_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_DisputeResolver_DisputeResponded_eventFilters>>
+  }
+} = HandlersJS.DisputeResolver as any;
+
+export const PlanRegistry: {
+  PlanUpdated: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_PlanRegistry_PlanUpdated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanUpdated_event,Types_handlerContext,loaderReturn>>,Types_PlanRegistry_PlanUpdated_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanUpdated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanUpdated_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_PlanRegistry_PlanUpdated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanUpdated_eventFilters>>
+  }; 
+  PlanDeactivated: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_PlanRegistry_PlanDeactivated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanDeactivated_event,Types_handlerContext,loaderReturn>>,Types_PlanRegistry_PlanDeactivated_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanDeactivated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanDeactivated_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_PlanRegistry_PlanDeactivated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanDeactivated_eventFilters>>
+  }; 
+  PlanCreated: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_PlanRegistry_PlanCreated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanCreated_event,Types_handlerContext,loaderReturn>>,Types_PlanRegistry_PlanCreated_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_PlanRegistry_PlanCreated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanCreated_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_PlanRegistry_PlanCreated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_PlanRegistry_PlanCreated_eventFilters>>
+  }
+} = HandlersJS.PlanRegistry as any;
+
+export const StreamManager: {
+  StreamResumed: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_StreamResumed_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamResumed_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_StreamResumed_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamResumed_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamResumed_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_StreamResumed_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamResumed_eventFilters>>
+  }; 
+  StreamPaused: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_StreamPaused_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamPaused_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_StreamPaused_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamPaused_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamPaused_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_StreamPaused_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamPaused_eventFilters>>
+  }; 
+  StreamCancelled: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_StreamCancelled_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamCancelled_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_StreamCancelled_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamCancelled_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamCancelled_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_StreamCancelled_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamCancelled_eventFilters>>
+  }; 
+  StreamCreated: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_StreamCreated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamCreated_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_StreamCreated_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamCreated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamCreated_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_StreamCreated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamCreated_eventFilters>>
+  }; 
+  StreamToppedUp: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_StreamToppedUp_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamToppedUp_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_StreamToppedUp_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_StreamToppedUp_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamToppedUp_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_StreamToppedUp_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_StreamToppedUp_eventFilters>>
+  }; 
+  Claimed: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_StreamManager_Claimed_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_Claimed_event,Types_handlerContext,loaderReturn>>,Types_StreamManager_Claimed_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_StreamManager_Claimed_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_StreamManager_Claimed_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_StreamManager_Claimed_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_StreamManager_Claimed_eventFilters>>
+  }
+} = HandlersJS.StreamManager as any;
