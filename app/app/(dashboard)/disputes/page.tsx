@@ -1,37 +1,348 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/envio";
 import { ADDRESSES, DISPUTE_RESOLVER_ABI } from "@/lib/contracts";
 import { keccak256, toBytes } from "viem";
 
+const USDC_DECIMALS = 1_000_000;
+
+// ============================================================================
+// Shared tokens
+// ============================================================================
+const labelMono: React.CSSProperties = {
+  fontFamily: "var(--font-mono)",
+  fontSize: 9,
+  letterSpacing: "0.15em",
+  textTransform: "uppercase",
+  color: "var(--label, #C9893A)",
+  margin: 0,
+};
+
+const cardStyle: React.CSSProperties = {
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
+  borderRadius: 12,
+  padding: 18,
+  position: "relative",
+};
+
 const inputStyle: React.CSSProperties = {
-  flex: 1, background: "var(--elevated)", border: "1px solid rgba(172,198,233,0.2)",
-  borderRadius: 8, padding: "7px 12px", fontSize: 12, fontFamily: "var(--font-body)",
-  color: "#fff", outline: "none",
+  flex: 1,
+  background: "var(--elevated)",
+  border: "1px solid rgba(172,198,233,0.2)",
+  borderRadius: 8,
+  padding: "8px 12px",
+  fontSize: 12,
+  fontFamily: "var(--font-body)",
+  color: "#fff",
+  outline: "none",
 };
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p style={labelMono}>{`{${children}}`}</p>;
+}
+
+function LivePulse({ color = "var(--success, #5AF0B8)" }: { color?: string }) {
   return (
-    <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 10px", color: "var(--label)" }}>
-      {`{${children}}`}
-    </p>
+    <span
+      style={{
+        display: "inline-block",
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: color,
+        boxShadow: `0 0 8px ${color}`,
+        animation: "pulse 1.4s ease-in-out infinite",
+        marginRight: 8,
+        verticalAlign: "middle",
+      }}
+    />
   );
 }
 
-const STATUS_BORDER: Record<string, string> = {
-  Open:      "rgba(201,137,58,0.35)",
-  Responded: "rgba(56,152,236,0.35)",
-  Settled:   "rgba(172,198,233,0.1)",
-};
-const STATUS_COLOR: Record<string, string> = {
-  Open:      "#C9893A",
-  Responded: "#3898EC",
-  Settled:   "var(--fg-subtle)",
+const STATUS_META: Record<string, { color: string; bg: string; border: string; strip: string }> = {
+  Open: {
+    color: "#C9893A",
+    bg: "rgba(201,137,58,0.12)",
+    border: "rgba(201,137,58,0.35)",
+    strip: "#C9893A",
+  },
+  Responded: {
+    color: "var(--cta, #3898EC)",
+    bg: "rgba(56,152,236,0.12)",
+    border: "rgba(56,152,236,0.35)",
+    strip: "var(--cta, #3898EC)",
+  },
+  Settled: {
+    color: "var(--fg-subtle)",
+    bg: "rgba(172,198,233,0.05)",
+    border: "rgba(172,198,233,0.1)",
+    strip: "var(--fg-subtle)",
+  },
 };
 
+// ============================================================================
+// Countdown component - builds urgency for open disputes
+// ============================================================================
+function Countdown({ deadline }: { deadline: number }) {
+  const [remaining, setRemaining] = useState(deadline - Date.now() / 1000);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRemaining(deadline - Date.now() / 1000);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [deadline]);
+
+  if (remaining <= 0) {
+    return (
+      <span
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 11,
+          color: "var(--error, #FF6B4A)",
+          fontWeight: 500,
+        }}
+      >
+        <LivePulse color="var(--error, #FF6B4A)" />
+        Auto-settle imminent
+      </span>
+    );
+  }
+
+  const days = Math.floor(remaining / 86400);
+  const hours = Math.floor((remaining % 86400) / 3600);
+  const mins = Math.floor((remaining % 3600) / 60);
+
+  const urgent = remaining < 86400; // less than 24h
+  const color = urgent ? "var(--error, #FF6B4A)" : "#C9893A";
+
+  return (
+    <span
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 11,
+        color,
+        display: "inline-flex",
+        alignItems: "center",
+      }}
+    >
+      {urgent && <LivePulse color={color} />}
+      {days > 0 && `${days}d `}
+      {hours.toString().padStart(2, "0")}:{mins.toString().padStart(2, "0")} until auto-settle
+    </span>
+  );
+}
+
+// ============================================================================
+// Status chip
+// ============================================================================
+function StatusChip({ status, responded = false }: { status: string; responded?: boolean }) {
+  const meta = STATUS_META[status] ?? STATUS_META.Settled;
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "3px 10px",
+        borderRadius: 9999,
+        background: meta.bg,
+        border: `1px solid ${meta.border}`,
+        color: meta.color,
+        fontFamily: "var(--font-mono)",
+        fontSize: 10,
+        fontWeight: 500,
+        letterSpacing: "0.05em",
+        textTransform: "uppercase",
+      }}
+    >
+      {status === "Open" && <LivePulse color={meta.color} />}
+      {status === "Responded" ? "Awaiting arbitration" : status}
+    </span>
+  );
+}
+
+// ============================================================================
+// Dispute card
+// ============================================================================
+function DisputeCard({
+  dispute,
+  evidence,
+  onEvidenceChange,
+  onRespond,
+  onDefaultSettle,
+  isPending,
+}: {
+  dispute: any;
+  evidence: string;
+  onEvidenceChange: (v: string) => void;
+  onRespond: () => void;
+  onDefaultSettle: () => void;
+  isPending: boolean;
+}) {
+  const meta = STATUS_META[dispute.status] ?? STATUS_META.Settled;
+  const frozenAmount = Number(dispute.frozenAmount) / USDC_DECIMALS;
+  const subscriberShort = dispute.subscriber
+    ? `${dispute.subscriber.slice(0, 8)}…${dispute.subscriber.slice(-4)}`
+    : "—";
+
+  // Assume 7 day default deadline if not provided
+  const deadline = dispute.deadline
+    ? Number(dispute.deadline)
+    : dispute.openedAt
+    ? Number(dispute.openedAt) + 7 * 86400
+    : Date.now() / 1000 + 7 * 86400;
+
+  return (
+    <div
+      style={{
+        ...cardStyle,
+        border: `1px solid ${meta.border}`,
+        opacity: dispute.status === "Settled" ? 0.65 : 1,
+      }}
+    >
+      {/* Status strip */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 18,
+          bottom: 18,
+          width: 2,
+          background: meta.strip,
+          borderRadius: 2,
+        }}
+      />
+
+      {/* Header row */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: dispute.status === "Open" ? 14 : 0,
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+            <p
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: 14,
+                fontWeight: 500,
+                color: "#fff",
+                margin: 0,
+              }}
+            >
+              Dispute #{dispute.id}
+            </p>
+            <StatusChip status={dispute.status} />
+          </div>
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--fg-subtle)",
+              margin: 0,
+            }}
+          >
+            Stream #{dispute.streamId} · {subscriberShort}
+          </p>
+          {dispute.status === "Open" && (
+            <div style={{ marginTop: 6 }}>
+              <Countdown deadline={deadline} />
+            </div>
+          )}
+          {dispute.status === "Settled" && dispute.verdict && (
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: 11,
+                color: "var(--fg-muted)",
+                margin: "4px 0 0",
+              }}
+            >
+              Verdict: <span style={{ color: "#fff" }}>{dispute.verdict}</span>
+            </p>
+          )}
+        </div>
+
+        {/* Frozen amount */}
+        <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 20 }}>
+          <p style={{ ...labelMono, marginBottom: 4, textAlign: "right" }}>Frozen</p>
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 16,
+              color: dispute.status === "Open" ? "#C9893A" : "#fff",
+              margin: 0,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            ${frozenAmount.toFixed(2)}
+          </p>
+        </div>
+      </div>
+
+      {/* Action row (Open only) */}
+      {dispute.status === "Open" && (
+        <div style={{ display: "flex", gap: 8, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
+          <input
+            style={inputStyle}
+            placeholder="Evidence text (hashed onchain with keccak256)"
+            value={evidence}
+            onChange={(e) => onEvidenceChange(e.target.value)}
+          />
+          <button
+            onClick={onRespond}
+            disabled={isPending || !evidence}
+            style={{
+              background: evidence ? "var(--cta, #3898EC)" : "var(--elevated)",
+              border: "none",
+              borderRadius: 8,
+              padding: "8px 16px",
+              fontFamily: "var(--font-heading)",
+              fontSize: 12,
+              fontWeight: 500,
+              color: evidence ? "#fff" : "var(--fg-subtle)",
+              cursor: evidence && !isPending ? "pointer" : "not-allowed",
+              flexShrink: 0,
+              transition: "all 0.15s",
+            }}
+          >
+            Respond
+          </button>
+          <button
+            onClick={onDefaultSettle}
+            disabled={isPending}
+            style={{
+              background: "var(--elevated)",
+              border: "1px solid var(--border)",
+              borderRadius: 8,
+              padding: "8px 14px",
+              fontFamily: "var(--font-body)",
+              fontSize: 11,
+              color: "var(--fg-muted)",
+              cursor: isPending ? "not-allowed" : "pointer",
+              flexShrink: 0,
+              transition: "all 0.15s",
+            }}
+          >
+            Default settle
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Main page
+// ============================================================================
 export default function DisputesPage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
@@ -99,141 +410,222 @@ export default function DisputesPage() {
   }
 
   if (!isConnected) {
-    return <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>Connect your wallet to view disputes.</p>;
+    return (
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "80px 0", textAlign: "center" }}>
+        <SectionLabel>Disputes · not connected</SectionLabel>
+        <h1
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontSize: 32,
+            fontWeight: 600,
+            color: "#fff",
+            margin: "12px 0 8px",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Connect your wallet
+        </h1>
+        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>
+          Review and respond to disputes across your plans.
+        </p>
+      </div>
+    );
   }
 
-  const open = disputes?.filter((d) => d.status === "Open") ?? [];
-  const responded = disputes?.filter((d) => d.status === "Responded") ?? [];
-  const settled = disputes?.filter((d) => d.status === "Settled") ?? [];
+  const open = disputes?.filter((d: any) => d.status === "Open") ?? [];
+  const responded = disputes?.filter((d: any) => d.status === "Responded") ?? [];
+  const settled = disputes?.filter((d: any) => d.status === "Settled") ?? [];
+
+  const totalFrozen = open.reduce(
+    (sum: number, d: any) => sum + Number(d.frozenAmount) / USDC_DECIMALS,
+    0
+  );
 
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto" }}>
-      <h1 style={{ fontFamily: "var(--font-heading)", fontSize: 26, fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.02em" }}>Disputes</h1>
+    <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.85); }
+        }
+      `}</style>
 
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          marginBottom: 24,
+        }}
+      >
+        <div>
+          <SectionLabel>Disputes · Merchant</SectionLabel>
+          <h1
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: 28,
+              fontWeight: 600,
+              color: "#fff",
+              margin: "6px 0 0",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {open.length > 0 ? (
+              <>
+                <LivePulse color="#C9893A" />
+                {open.length} {open.length === 1 ? "dispute" : "disputes"} need attention
+              </>
+            ) : (
+              "All clear"
+            )}
+          </h1>
+        </div>
+
+        {open.length > 0 && (
+          <div style={{ textAlign: "right" }}>
+            <p style={{ ...labelMono, textAlign: "right", marginBottom: 4 }}>Total frozen</p>
+            <p
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 18,
+                color: "#C9893A",
+                margin: 0,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              ${totalFrozen.toFixed(2)}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* TX status banner */}
       {txStatus && (
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: txStatus.startsWith("Error") ? "var(--error)" : "var(--fg-muted)", marginBottom: 16 }}>
+        <div
+          style={{
+            padding: "10px 14px",
+            background: txStatus.startsWith("Error")
+              ? "rgba(255,107,74,0.1)"
+              : "rgba(56,152,236,0.08)",
+            border: `1px solid ${
+              txStatus.startsWith("Error") ? "rgba(255,107,74,0.3)" : "rgba(56,152,236,0.25)"
+            }`,
+            borderRadius: 8,
+            marginBottom: 16,
+            fontFamily: "var(--font-mono)",
+            fontSize: 12,
+            color: txStatus.startsWith("Error")
+              ? "var(--error, #FF6B4A)"
+              : "var(--cta, #3898EC)",
+          }}
+        >
           {txStatus}
-        </p>
+        </div>
       )}
 
+      {/* Open disputes */}
       {open.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <SectionLabel>Open · {open.length}</SectionLabel>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <SectionLabel>Open · {open.length}</SectionLabel>
+            <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {open.map((d) => (
-              <div key={d.id} style={{
-                background: "var(--surface)", border: `1px solid ${STATUS_BORDER.Open}`,
-                borderRadius: 12, padding: "14px 18px",
-              }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                  <div>
-                    <p style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--fg2)", margin: 0 }}>
-                      Dispute #{d.id} · Stream #{d.streamId}
-                    </p>
-                    <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "3px 0 0" }}>
-                      Subscriber: {d.subscriber.slice(0, 10)}… · Frozen:{" "}
-                      <span style={{ color: "#fff" }}>{(Number(d.frozenAmount) / 1e6).toFixed(2)} USDC</span>
-                    </p>
-                  </div>
-                  <span style={{
-                    background: "rgba(201,137,58,0.12)", color: STATUS_COLOR.Open,
-                    borderRadius: 9999, padding: "3px 10px",
-                    fontFamily: "var(--font-heading)", fontSize: 11, fontWeight: 500,
-                  }}>Open</span>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input
-                    style={inputStyle}
-                    placeholder="Evidence text (hashed onchain)"
-                    value={evidenceInputs[d.id] ?? ""}
-                    onChange={(e) => setEvidenceInputs((prev) => ({ ...prev, [d.id]: e.target.value }))}
-                  />
-                  <button
-                    onClick={() => handleRespond(d.id)}
-                    disabled={isPending && activeId === d.id}
-                    style={{
-                      background: "var(--cta)", border: "none", borderRadius: 8,
-                      padding: "7px 14px", fontFamily: "var(--font-heading)",
-                      fontSize: 12, fontWeight: 500, color: "#fff", cursor: "pointer",
-                      opacity: isPending && activeId === d.id ? 0.5 : 1, flexShrink: 0,
-                    }}
-                  >
-                    Respond
-                  </button>
-                  <button
-                    onClick={() => handleDefaultSettle(d.id)}
-                    disabled={isPending && activeId === d.id}
-                    style={{
-                      background: "var(--elevated)", border: "1px solid rgba(172,198,233,0.15)",
-                      borderRadius: 8, padding: "7px 14px", fontFamily: "var(--font-heading)",
-                      fontSize: 12, fontWeight: 500, color: "var(--fg-muted)", cursor: "pointer",
-                      opacity: isPending && activeId === d.id ? 0.5 : 1, flexShrink: 0,
-                    }}
-                  >
-                    Default Settle
-                  </button>
-                </div>
-              </div>
+            {open.map((d: any) => (
+              <DisputeCard
+                key={d.id}
+                dispute={d}
+                evidence={evidenceInputs[d.id] ?? ""}
+                onEvidenceChange={(v) =>
+                  setEvidenceInputs((prev) => ({ ...prev, [d.id]: v }))
+                }
+                onRespond={() => handleRespond(d.id)}
+                onDefaultSettle={() => handleDefaultSettle(d.id)}
+                isPending={isPending && activeId === d.id}
+              />
             ))}
           </div>
         </div>
       )}
 
+      {/* Responded */}
       {responded.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <SectionLabel>Responded · {responded.length}</SectionLabel>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <SectionLabel>Responded · {responded.length}</SectionLabel>
+            <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {responded.map((d) => (
-              <div key={d.id} style={{
-                background: "var(--surface)", border: `1px solid ${STATUS_BORDER.Responded}`,
-                borderRadius: 12, padding: "14px 18px",
-              }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div>
-                    <p style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--fg2)", margin: 0 }}>
-                      Dispute #{d.id} · Stream #{d.streamId}
-                    </p>
-                    <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "3px 0 0" }}>
-                      Frozen: <span style={{ color: "#fff" }}>{(Number(d.frozenAmount) / 1e6).toFixed(2)} USDC</span>
-                    </p>
-                  </div>
-                  <span style={{
-                    background: "rgba(56,152,236,0.12)", color: STATUS_COLOR.Responded,
-                    borderRadius: 9999, padding: "3px 10px",
-                    fontFamily: "var(--font-heading)", fontSize: 11, fontWeight: 500,
-                  }}>Awaiting Arbitration</span>
-                </div>
-              </div>
+            {responded.map((d: any) => (
+              <DisputeCard
+                key={d.id}
+                dispute={d}
+                evidence=""
+                onEvidenceChange={() => {}}
+                onRespond={() => {}}
+                onDefaultSettle={() => {}}
+                isPending={false}
+              />
             ))}
           </div>
         </div>
       )}
 
+      {/* Settled */}
       {settled.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <SectionLabel>Settled · {settled.length}</SectionLabel>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <SectionLabel>Settled · {settled.length}</SectionLabel>
+            <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {settled.map((d) => (
-              <div key={d.id} style={{
-                background: "var(--surface)", border: `1px solid ${STATUS_BORDER.Settled}`,
-                borderRadius: 12, padding: "14px 18px", opacity: 0.6,
-              }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <p style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--fg2)", margin: 0 }}>
-                    Dispute #{d.id} · Stream #{d.streamId}
-                  </p>
-                  <span style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-subtle)" }}>
-                    Verdict: {d.verdict ?? "—"}
-                  </span>
-                </div>
-              </div>
+            {settled.map((d: any) => (
+              <DisputeCard
+                key={d.id}
+                dispute={d}
+                evidence=""
+                onEvidenceChange={() => {}}
+                onRespond={() => {}}
+                onDefaultSettle={() => {}}
+                isPending={false}
+              />
             ))}
           </div>
         </div>
       )}
 
+      {/* Empty state */}
       {!disputes?.length && (
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)" }}>No disputes found.</p>
+        <div
+          style={{
+            ...cardStyle,
+            padding: "60px 20px",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--fg-subtle)",
+              margin: 0,
+              letterSpacing: "0.05em",
+            }}
+          >
+            // no disputes found
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 13,
+              color: "var(--fg-muted)",
+              margin: "8px 0 0",
+            }}
+          >
+            When a subscriber disputes a stream, it will appear here with a response window.
+          </p>
+        </div>
       )}
     </div>
   );

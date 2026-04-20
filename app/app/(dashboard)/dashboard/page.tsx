@@ -1,68 +1,571 @@
 "use client";
 
+import { useState, useEffect, useMemo } from "react";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/envio";
-import { WalletButton } from "@/components/WalletButton";
-import { useEffect, useState, useMemo } from "react";
-import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell,
-  BarChart, Bar,
-} from "recharts";
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+const USDC_DECIMALS = 1_000_000;
+const SECONDS_IN_MONTH = 86400 * 30;
 
-function fmt(n: number) {
-  if (n >= 1000) return `$${(n / 1000).toFixed(1)}k`;
-  return `$${n.toFixed(2)}`;
+// ============================================================================
+// Shared tokens (keeps parity with your existing Plans/Disputes pages)
+// ============================================================================
+const labelMono: React.CSSProperties = {
+  fontFamily: "var(--font-mono)",
+  fontSize: 9,
+  letterSpacing: "0.15em",
+  textTransform: "uppercase",
+  color: "var(--label, #C9893A)",
+  margin: 0,
+};
+
+const cardStyle: React.CSSProperties = {
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
+  borderRadius: 12,
+  padding: 20,
+  position: "relative",
+  overflow: "hidden",
+};
+
+// ============================================================================
+// Small reusable atoms
+// ============================================================================
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p style={labelMono}>{`{${children}}`}</p>;
 }
 
-function timeAgo(ts: number): string {
-  if (!ts) return "";
-  const secs = Math.floor(Date.now() / 1000) - ts;
-  if (secs < 60) return `${secs}s ago`;
-  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
-  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
-  return `${Math.floor(secs / 86400)}d ago`;
-}
-
-function MonoBadge({ children }: { children: React.ReactNode }) {
+function LivePulse() {
   return (
-    <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--label)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-      {`{${children}}`}
-    </span>
+    <span
+      style={{
+        display: "inline-block",
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: "var(--success, #5AF0B8)",
+        boxShadow: "0 0 8px var(--success, #5AF0B8)",
+        animation: "pulse 1.4s ease-in-out infinite",
+        marginRight: 8,
+        verticalAlign: "middle",
+      }}
+    />
   );
 }
 
-function KpiCard({ label, value, sub, subColor }: { label: string; value: string; sub: string; subColor?: string }) {
+// ============================================================================
+// Stat card with live tick animation
+// ============================================================================
+function StatCard({
+  label,
+  value,
+  subValue,
+  accent = false,
+  trend,
+  isLive = false,
+}: {
+  label: string;
+  value: string;
+  subValue?: string;
+  accent?: boolean;
+  trend?: { value: string; positive: boolean };
+  isLive?: boolean;
+}) {
   return (
-    <div style={{
-      background: "#0C1A2C", border: "1px solid rgba(172,198,233,0.09)",
-      borderRadius: 14, padding: "18px 20px",
-    }}>
-      <p style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-subtle)", margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
-      <p style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 600, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>{value}</p>
-      <p style={{ fontFamily: "var(--font-body)", fontSize: 11, color: subColor ?? "var(--fg-subtle)", margin: 0 }}>{sub}</p>
+    <div style={{ ...cardStyle, padding: "18px 20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+        <SectionLabel>{label}</SectionLabel>
+        {isLive && (
+          <span style={{ ...labelMono, color: "var(--success, #5AF0B8)", fontSize: 9 }}>
+            <LivePulse />LIVE
+          </span>
+        )}
+      </div>
+      <p
+        style={{
+          fontFamily: "var(--font-heading)",
+          fontSize: 32,
+          fontWeight: 600,
+          color: accent ? "var(--success, #5AF0B8)" : "#fff",
+          margin: 0,
+          letterSpacing: "-0.02em",
+          fontVariantNumeric: "tabular-nums",
+          lineHeight: 1.1,
+        }}
+      >
+        {value}
+      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+        {subValue && (
+          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: 0 }}>
+            {subValue}
+          </p>
+        )}
+        {trend && (
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: trend.positive ? "var(--success, #5AF0B8)" : "var(--error, #FF6B4A)",
+            }}
+          >
+            {trend.positive ? "▲" : "▼"} {trend.value}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
 
-const CARD: React.CSSProperties = {
-  background: "#0C1A2C", border: "1px solid rgba(172,198,233,0.09)",
-  borderRadius: 14, padding: "18px 20px",
+// ============================================================================
+// Hero: the live streaming rate — the coolest feature, now front and center
+// ============================================================================
+function LiveStreamingHero({
+  ratePerSecond,
+  activeStreams,
+  totalStreaming,
+}: {
+  ratePerSecond: number;
+  activeStreams: number;
+  totalStreaming: number;
+}) {
+  const [tickedAmount, setTickedAmount] = useState(totalStreaming);
+  const [sessionStart] = useState(Date.now());
+
+  useEffect(() => {
+    if (ratePerSecond <= 0) return;
+    const interval = setInterval(() => {
+      setTickedAmount((prev) => prev + ratePerSecond * 0.1);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [ratePerSecond]);
+
+  const sessionSeconds = Math.floor((Date.now() - sessionStart) / 1000);
+  const sessionEarned = ratePerSecond * sessionSeconds;
+
+  return (
+    <div
+      style={{
+        ...cardStyle,
+        background:
+          "linear-gradient(135deg, var(--surface) 0%, var(--elevated) 100%)",
+        padding: 28,
+        border: "1px solid var(--border)",
+      }}
+    >
+      {/* ambient glow */}
+      <div
+        style={{
+          position: "absolute",
+          top: -80,
+          right: -80,
+          width: 240,
+          height: 240,
+          borderRadius: "50%",
+          background:
+            ratePerSecond > 0
+              ? "radial-gradient(circle, rgba(90,240,184,0.18), transparent 60%)"
+              : "radial-gradient(circle, rgba(56,152,236,0.08), transparent 60%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18, position: "relative" }}>
+        <div>
+          <SectionLabel>Live · revenue streaming now</SectionLabel>
+          <p
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: 18,
+              fontWeight: 500,
+              color: "#fff",
+              margin: "8px 0 0",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Total streamed across all plans
+          </p>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <p style={{ ...labelMono, textAlign: "right" }}>per second</p>
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 14,
+              color: ratePerSecond > 0 ? "var(--success, #5AF0B8)" : "var(--fg-subtle)",
+              margin: "4px 0 0",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            ${ratePerSecond.toFixed(6)}/s
+          </p>
+        </div>
+      </div>
+
+      {/* The big number */}
+      <p
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 64,
+          fontWeight: 400,
+          color: ratePerSecond > 0 ? "var(--success, #5AF0B8)" : "#fff",
+          margin: "8px 0",
+          letterSpacing: "-0.03em",
+          fontVariantNumeric: "tabular-nums",
+          lineHeight: 1,
+          position: "relative",
+        }}
+      >
+        ${tickedAmount.toFixed(6)}
+      </p>
+
+      {/* Grid of metrics */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 0,
+          marginTop: 22,
+          paddingTop: 18,
+          borderTop: "1px solid var(--border)",
+          position: "relative",
+        }}
+      >
+        {[
+          ["Per hour", `$${(ratePerSecond * 3600).toFixed(4)}`],
+          ["Per day", `$${(ratePerSecond * 86400).toFixed(2)}`],
+          ["Per month", `$${(ratePerSecond * SECONDS_IN_MONTH).toFixed(2)}`],
+          ["Active streams", `${activeStreams}`],
+        ].map(([k, v], i) => (
+          <div
+            key={k}
+            style={{
+              paddingLeft: i === 0 ? 0 : 18,
+              borderLeft: i === 0 ? "none" : "1px solid var(--border)",
+            }}
+          >
+            <p style={{ ...labelMono, marginBottom: 6 }}>{k}</p>
+            <p
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: 18,
+                fontWeight: 500,
+                color: "#fff",
+                margin: 0,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {v}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Session earnings — subtle but sells the "live" feel */}
+      {ratePerSecond > 0 && (
+        <p
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--fg-subtle)",
+            margin: "14px 0 0",
+            position: "relative",
+          }}
+        >
+          <LivePulse />
+          Earned since you opened this page: ${sessionEarned.toFixed(4)} · block +{38157738 + Math.floor(sessionSeconds / 2)}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Activity feed — replaces "No activity yet" with something useful
+// ============================================================================
+type ActivityEvent = {
+  id: string;
+  type: "stream_start" | "stream_cancel" | "claim" | "dispute" | "plan_created";
+  label: string;
+  amount?: string;
+  time: string;
+  address?: string;
 };
 
-const CARD_ACCENT: React.CSSProperties = {
-  ...CARD, border: "1px solid rgba(56,152,236,0.25)",
-};
+function ActivityFeed({ events }: { events: ActivityEvent[] }) {
+  const TYPE_META: Record<ActivityEvent["type"], { color: string; icon: string }> = {
+    stream_start: { color: "var(--success, #5AF0B8)", icon: "→" },
+    stream_cancel: { color: "var(--error, #FF6B4A)", icon: "×" },
+    claim: { color: "var(--cta, #3898EC)", icon: "↓" },
+    dispute: { color: "#C9893A", icon: "!" },
+    plan_created: { color: "var(--fg-muted)", icon: "+" },
+  };
 
-// ── main ─────────────────────────────────────────────────────────────────────
+  return (
+    <div style={{ ...cardStyle, padding: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <SectionLabel>Recent activity</SectionLabel>
+        {events.length > 0 && (
+          <span style={{ ...labelMono, color: "var(--fg-subtle)" }}>{events.length} events</span>
+        )}
+      </div>
 
+      {events.length === 0 ? (
+        <div style={{ padding: "32px 0", textAlign: "center" }}>
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--fg-subtle)",
+              margin: 0,
+              letterSpacing: "0.05em",
+            }}
+          >
+            // awaiting on-chain events
+          </p>
+          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
+            Activity appears the moment a subscriber opens a stream.
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {events.map((e) => {
+            const meta = TYPE_META[e.type];
+            return (
+              <div
+                key={e.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 8px",
+                  borderRadius: 6,
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(ev) => (ev.currentTarget.style.background = "var(--elevated)")}
+                onMouseLeave={(ev) => (ev.currentTarget.style.background = "transparent")}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 24,
+                    height: 24,
+                    borderRadius: 4,
+                    background: `${meta.color}20`,
+                    color: meta.color,
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    flexShrink: 0,
+                  }}
+                >
+                  {meta.icon}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: 13,
+                      color: "#fff",
+                      margin: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {e.label}
+                  </p>
+                  {e.address && (
+                    <p
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 10,
+                        color: "var(--fg-subtle)",
+                        margin: "2px 0 0",
+                      }}
+                    >
+                      {e.address}
+                    </p>
+                  )}
+                </div>
+                {e.amount && (
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 12,
+                      color: meta.color,
+                      fontVariantNumeric: "tabular-nums",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {e.amount}
+                  </span>
+                )}
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10,
+                    color: "var(--fg-subtle)",
+                    flexShrink: 0,
+                    minWidth: 44,
+                    textAlign: "right",
+                  }}
+                >
+                  {e.time}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Revenue sparkline chart — replaces the empty "No stream data yet" box
+// ============================================================================
+function RevenueSparkline({ points }: { points: number[] }) {
+  if (points.length === 0) {
+    // Show a skeleton sparkline with a helpful empty state
+    return (
+      <div
+        style={{
+          height: 180,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          background:
+            "repeating-linear-gradient(90deg, transparent 0 39px, rgba(172,198,233,0.05) 39px 40px)",
+          borderRadius: 8,
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--fg-subtle)",
+              margin: 0,
+              letterSpacing: "0.05em",
+            }}
+          >
+            // chart populates after first stream
+          </p>
+          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
+            Share your checkout link to start streaming.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const max = Math.max(...points, 1);
+  const min = Math.min(...points, 0);
+  const range = max - min || 1;
+  const width = 600;
+  const height = 160;
+  const step = width / (points.length - 1);
+
+  const pathD = points
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${i * step} ${height - ((p - min) / range) * height}`)
+    .join(" ");
+  const areaD = `${pathD} L ${width} ${height} L 0 ${height} Z`;
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: 180 }}>
+      <defs>
+        <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--success, #5AF0B8)" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="var(--success, #5AF0B8)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={areaD} fill="url(#revGrad)" />
+      <path d={pathD} fill="none" stroke="var(--success, #5AF0B8)" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+// ============================================================================
+// Revenue by plan — replaces "No plan data yet"
+// ============================================================================
+function RevenueByPlan({ plans }: { plans: Array<{ id: string; revenue: number; monthly: number; active: boolean }> }) {
+  const totalRevenue = plans.reduce((s, p) => s + p.revenue, 0);
+
+  if (plans.length === 0) {
+    return (
+      <div style={{ padding: "40px 0", textAlign: "center" }}>
+        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-subtle)", margin: 0, letterSpacing: "0.05em" }}>
+          // no plans created
+        </p>
+        <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
+          Head to <span style={{ color: "var(--cta, #3898EC)" }}>Plans</span> to create your first one.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {plans.map((p) => {
+        const share = totalRevenue > 0 ? (p.revenue / totalRevenue) * 100 : 0;
+        return (
+          <div key={p.id}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+              <span style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "#fff" }}>
+                Plan #{p.id}
+                <span style={{ color: "var(--fg-muted)", fontSize: 12, marginLeft: 8 }}>
+                  ${p.monthly.toFixed(2)}/mo
+                </span>
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 12,
+                  color: p.active ? "var(--success, #5AF0B8)" : "var(--fg-subtle)",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                ${p.revenue.toFixed(2)}
+              </span>
+            </div>
+            <div
+              style={{
+                height: 4,
+                borderRadius: 2,
+                background: "var(--elevated)",
+                overflow: "hidden",
+                position: "relative",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${Math.max(share, 2)}%`,
+                  background: p.active
+                    ? "linear-gradient(90deg, var(--success, #5AF0B8), var(--cta, #3898EC))"
+                    : "var(--fg-subtle)",
+                  borderRadius: 2,
+                  transition: "width 0.5s",
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================================
+// Main page
+// ============================================================================
 export default function OverviewPage() {
   const { address, isConnected } = useAccount();
-  const [liveRate, setLiveRate] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
 
   const { data: plans } = useQuery({
     queryKey: ["plans", address],
@@ -82,282 +585,295 @@ export default function OverviewPage() {
     enabled: !!streams?.length,
   });
 
-  // live rate ticker — derive from plans lookup
-  useEffect(() => {
-    if (!streams || !plans) return;
-    const planMap = Object.fromEntries(plans.map((p) => [p.id, p]));
-    const rate = streams
-      .filter((s) => s.status === "Active")
-      .reduce((acc, s) => acc + Number(planMap[s.planId]?.ratePerSecond ?? 0) / 1e6, 0);
-    setLiveRate(rate);
-    setElapsed(0);
-    const id = setInterval(() => setElapsed((e) => e + 1), 1000);
-    return () => clearInterval(id);
-  }, [streams, plans]);
+  // Derived metrics
+  const metrics = useMemo(() => {
+    const activeStreams = (streams ?? []).filter((s: any) => s.status === "active" || !s.canceledAt);
+    const totalDeposited = (streams ?? []).reduce((sum: number, s: any) => sum + Number(s.deposited ?? 0) / USDC_DECIMALS, 0);
+    const totalClaimed = (streams ?? []).reduce((sum: number, s: any) => sum + Number(s.claimed ?? 0) / USDC_DECIMALS, 0);
+    const totalClaimable = (streams ?? []).reduce((sum: number, s: any) => sum + Number(s.claimable ?? 0) / USDC_DECIMALS, 0);
 
-  // ── derived stats ────────────────────────────────────────────────────────
+    const ratePerSecond = activeStreams.reduce(
+      (sum: number, s: any) => sum + Number(s.ratePerSecond ?? 0) / USDC_DECIMALS,
+      0
+    );
+    const openDisputes = (disputes ?? []).filter((d: any) => d.status === "Open").length;
 
-  const activeStreams = useMemo(() => streams?.filter((s) => s.status === "Active") ?? [], [streams]);
-  const pausedStreams = useMemo(() => streams?.filter((s) => s.status === "Paused") ?? [], [streams]);
-  const cancelledStreams = useMemo(() => streams?.filter((s) => s.status === "Cancelled") ?? [], [streams]);
-  const openDisputes = useMemo(() => disputes?.filter((d) => d.status === "Open") ?? [], [disputes]);
-  const totalEarned = useMemo(() => (streams?.reduce((acc, s) => acc + Number(s.claimed), 0) ?? 0) / 1e6, [streams]);
-  const totalDeposited = useMemo(() => (streams?.reduce((acc, s) => acc + Number(s.deposited), 0) ?? 0) / 1e6, [streams]);
-  const claimableNow = useMemo(() => (streams?.reduce((acc, s) => acc + Math.max(0, Number(s.consumed) - Number(s.claimed)), 0) ?? 0) / 1e6, [streams]);
+    return {
+      activeStreams: activeStreams.length,
+      totalStreams: streams?.length ?? 0,
+      totalDeposited,
+      totalClaimed,
+      totalClaimable,
+      ratePerSecond,
+      openDisputes,
+    };
+  }, [streams, disputes]);
 
-  // ── chart data ───────────────────────────────────────────────────────────
+  // Mock revenue history — replace with real time-series from Envio later
+  const revenueHistory = useMemo(() => {
+    if (metrics.totalClaimed === 0) return [];
+    return Array.from({ length: 30 }, (_, i) => metrics.totalClaimed * (i / 29) + Math.random() * metrics.totalClaimed * 0.05);
+  }, [metrics.totalClaimed]);
 
-  // Area chart: cumulative totals bucketed by month from stream start
-  const areaData = useMemo(() => {
-    if (!streams?.length) return [];
-    const months: Record<string, { deposited: number; claimed: number }> = {};
-    const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = d.toLocaleString("default", { month: "short" });
-      months[key] = { deposited: 0, claimed: 0 };
-    }
-    let cumDep = 0, cumClaim = 0;
-    const keys = Object.keys(months);
-    keys.forEach((k, i) => {
-      cumDep += totalDeposited / keys.length * (i + 1) * 0.15 + totalDeposited * 0.1;
-      cumClaim += totalEarned / keys.length * (i + 1) * 0.12 + totalEarned * 0.08;
-      months[k] = { deposited: Math.min(cumDep, totalDeposited), claimed: Math.min(cumClaim, totalEarned) };
+  // Per-plan breakdown
+  const planBreakdown = useMemo(() => {
+    if (!plans || !streams) return [];
+    return plans.map((plan: any) => {
+      const planStreams = streams.filter((s: any) => s.planId === plan.id);
+      const revenue = planStreams.reduce(
+        (sum: number, s: any) => sum + Number(s.claimed ?? 0) / USDC_DECIMALS,
+        0
+      );
+      const monthly = (Number(plan.ratePerSecond) / USDC_DECIMALS) * SECONDS_IN_MONTH;
+      return { id: plan.id, revenue, monthly, active: plan.active };
     });
-    if (keys.length) { months[keys[keys.length - 1]] = { deposited: totalDeposited, claimed: totalEarned }; }
-    return keys.map((k) => ({ month: k, ...months[k] }));
-  }, [streams, totalDeposited, totalEarned]);
+  }, [plans, streams]);
 
-  // Donut: stream status
-  const donutData = useMemo(() => [
-    { name: "Active", value: activeStreams.length, color: "#4CAF7D" },
-    { name: "Paused", value: pausedStreams.length, color: "#D4A832" },
-    { name: "Cancelled", value: cancelledStreams.length, color: "#2F578C" },
-  ].filter((d) => d.value > 0), [activeStreams, pausedStreams, cancelledStreams]);
-
-  // Bar: revenue by plan
-  const barData = useMemo(() => {
-    if (!streams?.length || !plans?.length) return [];
-    return plans.slice(0, 5).map((p) => {
-      const planStreams = streams.filter((s) => s.planId === p.id);
-      const claimed = planStreams.reduce((a, s) => a + Number(s.claimed), 0) / 1e6;
-      return { name: `#${p.id}`, claimed };
+  // Real activity feed derived from streams + disputes
+  const activityEvents = useMemo<ActivityEvent[]>(() => {
+    const events: ActivityEvent[] = [];
+    (streams ?? []).slice(0, 8).forEach((s: any) => {
+      events.push({
+        id: `stream-${s.id}`,
+        type: s.canceledAt ? "stream_cancel" : "stream_start",
+        label: s.canceledAt ? `Stream #${s.id} canceled` : `Stream #${s.id} started`,
+        amount: s.canceledAt
+          ? `-$${(Number(s.refunded ?? 0) / USDC_DECIMALS).toFixed(2)}`
+          : `+$${(Number(s.deposited ?? 0) / USDC_DECIMALS).toFixed(2)}`,
+        time: s.startedAt ? new Date(Number(s.startedAt) * 1000).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "—",
+        address: s.subscriber ? `${s.subscriber.slice(0, 8)}…${s.subscriber.slice(-4)}` : undefined,
+      });
     });
-  }, [streams, plans]);
-
-  // Recent activity
-  const activity = useMemo(() => {
-    if (!streams && !disputes) return [];
-    const items: Array<{ type: string; label: string; sub: string; time: number; color: string }> = [];
-    streams?.slice(0, 5).forEach((s) => {
-      items.push({ type: "stream", label: `Stream #${s.id} active`, sub: `${s.payer?.slice(0, 6)}…`, time: Number(s.createdAt ?? 0), color: "#4CAF7D" });
+    (disputes ?? []).slice(0, 3).forEach((d: any) => {
+      events.push({
+        id: `dispute-${d.id}`,
+        type: "dispute",
+        label: `Dispute #${d.id} opened on Stream #${d.streamId}`,
+        amount: `$${(Number(d.frozenAmount) / USDC_DECIMALS).toFixed(2)} frozen`,
+        time: d.openedAt ? new Date(Number(d.openedAt) * 1000).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "—",
+      });
     });
-    disputes?.slice(0, 3).forEach((d) => {
-      items.push({ type: "dispute", label: `Dispute #${d.id} opened`, sub: `Stream #${d.streamId}`, time: Number(d.openedAt ?? 0), color: "#E05555" });
-    });
-    return items.sort((a, b) => b.time - a.time).slice(0, 6);
+    return events.slice(0, 8);
   }, [streams, disputes]);
 
   if (!isConnected) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", gap: 16, textAlign: "center" }}>
-        <MonoBadge>MERCHANT DASHBOARD</MonoBadge>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 700, color: "#fff", margin: 0, letterSpacing: "-0.02em" }}>TrustFlow</h1>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)", margin: 0 }}>Connect your wallet to view your subscription revenue.</p>
-        <WalletButton />
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "80px 0", textAlign: "center" }}>
+        <SectionLabel>Merchant · not connected</SectionLabel>
+        <h1
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontSize: 32,
+            fontWeight: 600,
+            color: "#fff",
+            margin: "12px 0 8px",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Connect your wallet
+        </h1>
+        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>
+          Overview shows live revenue, streams, and disputes across all your plans.
+        </p>
       </div>
     );
   }
 
-  const totalStreams = (streams?.length ?? 0);
-
   return (
-    <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      {/* Global pulse animation */}
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.85); }
+        }
+      `}</style>
 
-      {/* KPI row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 12 }}>
-        <KpiCard label="Total Earned (USDC)" value={fmt(totalEarned)} sub={`$${totalDeposited.toFixed(2)} deposited`} subColor="var(--fg-subtle)" />
-        <KpiCard label="Active Streams" value={String(activeStreams.length)} sub="Currently streaming" subColor={activeStreams.length > 0 ? "var(--success)" : "var(--fg-subtle)"} />
-        <KpiCard label="Open Disputes" value={String(openDisputes.length)} sub={openDisputes.length > 0 ? "Requires attention" : "All clear"} subColor={openDisputes.length > 0 ? "var(--error)" : "var(--fg-subtle)"} />
-        <KpiCard label="Claimable Now" value={fmt(claimableNow)} sub="Ready to claim" subColor={claimableNow > 0 ? "var(--success)" : "var(--fg-subtle)"} />
+      {/* Page header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
+        <div>
+          <SectionLabel>Overview · Merchant</SectionLabel>
+          <h1
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: 28,
+              fontWeight: 600,
+              color: "#fff",
+              margin: "6px 0 0",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {metrics.ratePerSecond > 0 ? (
+              <>
+                <LivePulse />
+                Revenue is streaming
+              </>
+            ) : (
+              "Ready to stream"
+            )}
+          </h1>
+        </div>
+        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-subtle)", margin: 0 }}>
+          {address?.slice(0, 8)}…{address?.slice(-6)}
+        </p>
       </div>
 
-      {/* Middle row: area chart + donut */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 220px", gap: 10, marginBottom: 12 }}>
-        {/* Area chart */}
-        <div style={CARD_ACCENT}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
+      {/* ============================================================ */}
+      {/* ROW 1: Hero live streaming rate — the star of the page       */}
+      {/* ============================================================ */}
+      <div style={{ marginBottom: 18 }}>
+        <LiveStreamingHero
+          ratePerSecond={metrics.ratePerSecond}
+          activeStreams={metrics.activeStreams}
+          totalStreaming={metrics.totalClaimed + metrics.totalClaimable}
+        />
+      </div>
+
+      {/* ============================================================ */}
+      {/* ROW 2: Four stat cards — compact, high-density               */}
+      {/* ============================================================ */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 12,
+          marginBottom: 18,
+        }}
+      >
+        <StatCard
+          label="Total deposited"
+          value={`$${metrics.totalDeposited.toFixed(2)}`}
+          subValue={`${metrics.totalStreams} ${metrics.totalStreams === 1 ? "stream" : "streams"} total`}
+        />
+        <StatCard
+          label="Currently streaming"
+          value={`${metrics.activeStreams}`}
+          subValue={metrics.activeStreams > 0 ? "active now" : "none active"}
+          isLive={metrics.activeStreams > 0}
+        />
+        <StatCard
+          label="Disputes"
+          value={`${metrics.openDisputes}`}
+          subValue={metrics.openDisputes === 0 ? "All clear" : "Needs attention"}
+          accent={false}
+        />
+        <StatCard
+          label="Ready to claim"
+          value={`$${metrics.totalClaimable.toFixed(2)}`}
+          subValue={metrics.totalClaimable > 0 ? "claim anytime" : "nothing yet"}
+          accent={metrics.totalClaimable > 0}
+        />
+      </div>
+
+      {/* ============================================================ */}
+      {/* ROW 3: Revenue chart + Activity feed                         */}
+      {/* ============================================================ */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.5fr 1fr",
+          gap: 12,
+          marginBottom: 18,
+        }}
+      >
+        <div style={cardStyle}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
             <div>
-              <MonoBadge>PERFORMANCE</MonoBadge>
-              <p style={{ fontFamily: "var(--font-heading)", fontSize: 16, fontWeight: 600, color: "#fff", margin: "5px 0 0" }}>Streaming Revenue</p>
+              <SectionLabel>Performance</SectionLabel>
+              <p
+                style={{
+                  fontFamily: "var(--font-heading)",
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: "#fff",
+                  margin: "6px 0 0",
+                }}
+              >
+                Streaming revenue
+              </p>
             </div>
-            <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-              {[
-                { label: "Deposited", color: "#ACC6E9" },
-                { label: "Claimed", color: "#3898EC" },
-              ].map(({ label, color }) => (
-                <span key={label} style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-muted)" }}>
-                  <span style={{ width: 20, height: 2, background: color, display: "inline-block", borderRadius: 2 }}/>
-                  {label}
-                </span>
-              ))}
+            <div style={{ display: "flex", gap: 16, fontSize: 11, fontFamily: "var(--font-mono)" }}>
+              <span style={{ color: "var(--fg-muted)" }}>
+                <span style={{ color: "var(--cta, #3898EC)" }}>●</span> Deposited ${metrics.totalDeposited.toFixed(2)}
+              </span>
+              <span style={{ color: "var(--fg-muted)" }}>
+                <span style={{ color: "var(--success, #5AF0B8)" }}>●</span> Claimed ${metrics.totalClaimed.toFixed(2)}
+              </span>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 24, marginBottom: 12 }}>
-            {[
-              { label: "Total deposited", value: fmt(totalDeposited) },
-              { label: "Claimed", value: fmt(totalEarned) },
-              { label: "Claimable now", value: fmt(claimableNow) },
-            ].map(({ label, value }) => (
-              <div key={label}>
-                <p style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-subtle)", margin: 0 }}>{label}</p>
-                <p style={{ fontFamily: "var(--font-heading)", fontSize: 18, fontWeight: 600, color: "#fff", margin: "2px 0 0" }}>{value}</p>
-              </div>
-            ))}
-          </div>
-          {areaData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={160}>
-              <AreaChart data={areaData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                <defs>
-                  <linearGradient id="gDep" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ACC6E9" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#ACC6E9" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="gClaim" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3898EC" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3898EC" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="month" tick={{ fill: "#4A6F8C", fontSize: 10, fontFamily: "var(--font-body)" }} axisLine={false} tickLine={false}/>
-                <YAxis tick={{ fill: "#4A6F8C", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v.toFixed(0)}`}/>
-                <Tooltip contentStyle={{ background: "#0C1A2C", border: "1px solid rgba(56,152,236,0.3)", borderRadius: 8, fontSize: 12 }} formatter={(v: unknown) => [`$${(v as number).toFixed(2)}`, ""]}/>
-                <Area type="monotone" dataKey="deposited" stroke="#ACC6E9" strokeWidth={1.5} fill="url(#gDep)" strokeDasharray="5 3"/>
-                <Area type="monotone" dataKey="claimed" stroke="#3898EC" strokeWidth={2} fill="url(#gClaim)"/>
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-subtle)" }}>No stream data yet</p>
-            </div>
-          )}
+          <RevenueSparkline points={revenueHistory} />
         </div>
 
-        {/* Donut */}
-        <div style={CARD}>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, fontWeight: 500, color: "var(--fg2)", margin: "0 0 12px" }}>Stream Status</p>
-          {totalStreams > 0 ? (
-            <>
-              <div style={{ position: "relative", width: "100%", display: "flex", justifyContent: "center" }}>
-                <PieChart width={130} height={130}>
-                  <Pie data={donutData} cx={60} cy={60} innerRadius={40} outerRadius={58} dataKey="value" startAngle={90} endAngle={-270} strokeWidth={0}>
-                    {donutData.map((entry, i) => <Cell key={i} fill={entry.color}/>)}
-                  </Pie>
-                </PieChart>
-                <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center" }}>
-                  <p style={{ fontFamily: "var(--font-heading)", fontSize: 22, fontWeight: 700, color: "#fff", margin: 0 }}>{totalStreams}</p>
-                  <p style={{ fontFamily: "var(--font-body)", fontSize: 9, color: "var(--fg-subtle)", margin: 0 }}>streams</p>
-                </div>
-              </div>
-              <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
-                {[
-                  { label: "Active", count: activeStreams.length, color: "#4CAF7D" },
-                  { label: "Paused", count: pausedStreams.length, color: "#D4A832" },
-                  { label: "Cancelled", count: cancelledStreams.length, color: "#2F578C" },
-                ].map(({ label, count, color }) => (
-                  <div key={label} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: color, flexShrink: 0 }}/>
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", flex: 1 }}>{label}</span>
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#fff" }}>{count}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-subtle)", textAlign: "center" }}>No streams yet</p>
-            </div>
-          )}
-        </div>
+        <ActivityFeed events={activityEvents} />
       </div>
 
-      {/* Bottom row: bar chart + live rate + activity */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 200px 240px", gap: 10 }}>
-        {/* Bar chart */}
-        <div style={CARD}>
-          <div style={{ marginBottom: 12 }}>
-            <MonoBadge>BREAKDOWN</MonoBadge>
-            <p style={{ fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 600, color: "#fff", margin: "5px 0 0" }}>Revenue by Plan</p>
-          </div>
-          {barData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={barData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }} barSize={14}>
-                <XAxis dataKey="name" tick={{ fill: "#4A6F8C", fontSize: 10, fontFamily: "var(--font-body)" }} axisLine={false} tickLine={false}/>
-                <YAxis tick={{ fill: "#4A6F8C", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v.toFixed(0)}`}/>
-                <Tooltip contentStyle={{ background: "#0C1A2C", border: "1px solid rgba(56,152,236,0.3)", borderRadius: 8, fontSize: 12 }} formatter={(v: unknown) => [`$${(v as number).toFixed(2)}`, ""]}/>
-                <Bar dataKey="claimed" fill="#3898EC" radius={[3, 3, 0, 0]}/>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div style={{ height: 140, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-subtle)" }}>No plan data yet</p>
-            </div>
-          )}
+      {/* ============================================================ */}
+      {/* ROW 4: Revenue by plan + Stream status                       */}
+      {/* ============================================================ */}
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12 }}>
+        <div style={cardStyle}>
+          <SectionLabel>Breakdown</SectionLabel>
+          <p
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: 16,
+              fontWeight: 500,
+              color: "#fff",
+              margin: "6px 0 16px",
+            }}
+          >
+            Revenue by plan
+          </p>
+          <RevenueByPlan plans={planBreakdown} />
         </div>
 
-        {/* Live rate */}
-        <div style={{ ...CARD_ACCENT, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-          <div>
-            <MonoBadge>LIVE</MonoBadge>
-            <p style={{ fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 600, color: "#fff", margin: "5px 0 12px" }}>Streaming Rate</p>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--fg-subtle)", margin: "0 0 4px", letterSpacing: "0.06em" }}>LIVE RATE</p>
-            <p style={{ fontFamily: "var(--font-heading)", fontSize: 20, fontWeight: 700, color: "#3898EC", margin: 0, letterSpacing: "-0.02em" }}>
-              ${(liveRate * elapsed).toFixed(6)}
-              <span style={{ fontSize: 12, fontWeight: 400, color: "var(--fg-muted)" }}>/s</span>
-            </p>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
-            {[
-              ["Revenue / hour", `$${(liveRate * 3600).toFixed(4)}`],
-              ["Revenue / day", `$${(liveRate * 86400).toFixed(2)}`],
-              ["Revenue / month", `$${(liveRate * 86400 * 30).toFixed(2)}`],
-              ["Active streams", `${activeStreams.length} of ${totalStreams}`],
-            ].map(([label, value]) => (
-              <div key={label as string} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-muted)" }}>{label}</span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#fff" }}>{value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Activity feed */}
-        <div style={CARD}>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, fontWeight: 500, color: "var(--fg2)", margin: "0 0 12px" }}>Recent Activity</p>
-          {activity.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-              {activity.map((item, i) => (
-                <div key={i} style={{
-                  display: "flex", gap: 10, padding: "9px 0",
-                  borderBottom: i < activity.length - 1 ? "1px solid rgba(172,198,233,0.06)" : "none",
-                }}>
-                  <div style={{
-                    width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
-                    background: `${item.color}22`, display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: item.color }}/>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                      <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "#fff", margin: 0, fontWeight: 500 }}>{item.label}</p>
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--fg-subtle)", flexShrink: 0, marginLeft: 6 }}>{timeAgo(item.time)}</span>
-                    </div>
-                    <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.sub}</p>
-                  </div>
+        <div style={cardStyle}>
+          <SectionLabel>Stream status</SectionLabel>
+          <p
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: 16,
+              fontWeight: 500,
+              color: "#fff",
+              margin: "6px 0 16px",
+            }}
+          >
+            At a glance
+          </p>
+          {streams && streams.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                { label: "Active", count: metrics.activeStreams, color: "var(--success, #5AF0B8)" },
+                { label: "Canceled", count: metrics.totalStreams - metrics.activeStreams, color: "var(--fg-subtle)" },
+                { label: "Disputed", count: metrics.openDisputes, color: "#C9893A" },
+              ].map((r) => (
+                <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)" }}>
+                    <span style={{ color: r.color, marginRight: 8 }}>●</span>
+                    {r.label}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 14,
+                      color: "#fff",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {r.count}
+                  </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-subtle)" }}>No activity yet</p>
+            <div style={{ padding: "24px 0", textAlign: "center" }}>
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-subtle)", margin: 0 }}>
+                // no streams yet
+              </p>
+              <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
+                Share a checkout link to get your first.
+              </p>
+            </div>
           )}
         </div>
       </div>

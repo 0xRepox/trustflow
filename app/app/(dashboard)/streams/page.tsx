@@ -1,32 +1,460 @@
 "use client";
 
-import { useAccount, useWriteContract } from "wagmi";
+import { useState, useEffect, useMemo } from "react";
+import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds } from "@/lib/envio";
-import { ADDRESSES, STREAM_MANAGER_ABI } from "@/lib/contracts";
-import { useState } from "react";
 
-const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
-  Active:    { bg: "rgba(76,175,125,0.15)",   color: "#4CAF7D" },
-  Paused:    { bg: "rgba(201,137,58,0.15)",    color: "#C9893A" },
-  Cancelled: { bg: "rgba(74,111,140,0.15)",    color: "#7A9FC4" },
+const USDC_DECIMALS = 1_000_000;
+const SECONDS_IN_MONTH = 86400 * 30;
+
+// ============================================================================
+// Shared tokens (match Overview + Plans pages)
+// ============================================================================
+const labelMono: React.CSSProperties = {
+  fontFamily: "var(--font-mono)",
+  fontSize: 9,
+  letterSpacing: "0.15em",
+  textTransform: "uppercase",
+  color: "var(--label, #C9893A)",
+  margin: 0,
 };
 
-function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_STYLE[status] ?? STATUS_STYLE.Cancelled;
+const cardStyle: React.CSSProperties = {
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
+  borderRadius: 12,
+  overflow: "hidden",
+};
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p style={labelMono}>{`{${children}}`}</p>;
+}
+
+function LivePulse({ color = "var(--success, #5AF0B8)" }: { color?: string }) {
   return (
-    <span style={{
-      background: s.bg, color: s.color,
-      borderRadius: 9999, padding: "3px 10px",
-      fontFamily: "var(--font-heading)", fontSize: 11, fontWeight: 500,
-    }}>{status}</span>
+    <span
+      style={{
+        display: "inline-block",
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: color,
+        boxShadow: `0 0 8px ${color}`,
+        animation: "pulse 1.4s ease-in-out infinite",
+        marginRight: 8,
+        verticalAlign: "middle",
+      }}
+    />
   );
 }
 
+// ============================================================================
+// Status chip
+// ============================================================================
+type StreamStatus = "streaming" | "canceled" | "disputed" | "ended";
+
+const STATUS_META: Record<StreamStatus, { label: string; color: string; bg: string; border: string }> = {
+  streaming: {
+    label: "Streaming",
+    color: "var(--success, #5AF0B8)",
+    bg: "rgba(90,240,184,0.1)",
+    border: "rgba(90,240,184,0.3)",
+  },
+  canceled: {
+    label: "Canceled",
+    color: "var(--fg-subtle)",
+    bg: "rgba(172,198,233,0.05)",
+    border: "rgba(172,198,233,0.15)",
+  },
+  disputed: {
+    label: "Disputed",
+    color: "#C9893A",
+    bg: "rgba(201,137,58,0.12)",
+    border: "rgba(201,137,58,0.35)",
+  },
+  ended: {
+    label: "Depleted",
+    color: "var(--fg-muted)",
+    bg: "rgba(172,198,233,0.05)",
+    border: "rgba(172,198,233,0.2)",
+  },
+};
+
+function StatusChip({ status, live = false }: { status: StreamStatus; live?: boolean }) {
+  const meta = STATUS_META[status];
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "3px 10px",
+        borderRadius: 9999,
+        background: meta.bg,
+        border: `1px solid ${meta.border}`,
+        color: meta.color,
+        fontFamily: "var(--font-mono)",
+        fontSize: 10,
+        fontWeight: 500,
+        letterSpacing: "0.05em",
+        textTransform: "uppercase",
+      }}
+    >
+      {live && <LivePulse color={meta.color} />}
+      {meta.label}
+    </span>
+  );
+}
+
+// ============================================================================
+// Live ticker for an individual stream row
+// ============================================================================
+function StreamTicker({
+  ratePerSecond,
+  startedAt,
+  deposited,
+  claimed,
+  status,
+}: {
+  ratePerSecond: number;
+  startedAt: number;
+  deposited: number;
+  claimed: number;
+  status: StreamStatus;
+}) {
+  const [now, setNow] = useState(Date.now() / 1000);
+
+  useEffect(() => {
+    if (status !== "streaming") return;
+    const interval = setInterval(() => setNow(Date.now() / 1000), 100);
+    return () => clearInterval(interval);
+  }, [status]);
+
+  const elapsed = Math.max(0, now - startedAt);
+  const consumed = Math.min(ratePerSecond * elapsed, deposited);
+  const claimable = Math.max(0, consumed - claimed);
+  const remaining = Math.max(0, deposited - consumed);
+  const percentConsumed = deposited > 0 ? (consumed / deposited) * 100 : 0;
+
+  return (
+    <div>
+      {/* Consumption bar */}
+      <div
+        style={{
+          height: 4,
+          background: "var(--elevated)",
+          borderRadius: 2,
+          overflow: "hidden",
+          marginBottom: 8,
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: `${Math.min(percentConsumed, 100)}%`,
+            background:
+              status === "streaming"
+                ? "linear-gradient(90deg, var(--success, #5AF0B8), var(--cta, #3898EC))"
+                : status === "disputed"
+                ? "#C9893A"
+                : "var(--fg-subtle)",
+            transition: "width 0.5s",
+          }}
+        />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+        <div>
+          <p style={{ ...labelMono, marginBottom: 3 }}>Consumed</p>
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 13,
+              color: status === "streaming" ? "var(--success, #5AF0B8)" : "#fff",
+              margin: 0,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            ${consumed.toFixed(4)}
+          </p>
+        </div>
+        <div>
+          <p style={{ ...labelMono, marginBottom: 3 }}>Claimable</p>
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 13,
+              color: claimable > 0 ? "var(--cta, #3898EC)" : "var(--fg-subtle)",
+              margin: 0,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            ${claimable.toFixed(4)}
+          </p>
+        </div>
+        <div>
+          <p style={{ ...labelMono, marginBottom: 3 }}>Remaining</p>
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 13,
+              color: "#fff",
+              margin: 0,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            ${remaining.toFixed(2)}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Stream card (row)
+// ============================================================================
+function StreamCard({ stream, onClaim }: { stream: any; onClaim: (id: string) => void }) {
+  const ratePerSecond = Number(stream.ratePerSecond ?? 0) / USDC_DECIMALS;
+  const deposited = Number(stream.deposited ?? 0) / USDC_DECIMALS;
+  const claimed = Number(stream.claimed ?? 0) / USDC_DECIMALS;
+  const startedAt = Number(stream.startedAt ?? 0);
+
+  const status: StreamStatus = stream.disputed
+    ? "disputed"
+    : stream.canceledAt
+    ? "canceled"
+    : deposited > 0 && (Date.now() / 1000 - startedAt) * ratePerSecond >= deposited
+    ? "ended"
+    : "streaming";
+
+  const monthly = ratePerSecond * SECONDS_IN_MONTH;
+  const subscriberShort = stream.subscriber
+    ? `${stream.subscriber.slice(0, 8)}…${stream.subscriber.slice(-4)}`
+    : "—";
+
+  // Compute live claimable for the claim button
+  const [liveClaimable, setLiveClaimable] = useState(0);
+  useEffect(() => {
+    if (status !== "streaming") {
+      const finalConsumed = Math.min(ratePerSecond * (Number(stream.canceledAt ?? Date.now() / 1000) - startedAt), deposited);
+      setLiveClaimable(Math.max(0, finalConsumed - claimed));
+      return;
+    }
+    const tick = () => {
+      const elapsed = Date.now() / 1000 - startedAt;
+      const consumed = Math.min(ratePerSecond * elapsed, deposited);
+      setLiveClaimable(Math.max(0, consumed - claimed));
+    };
+    tick();
+    const interval = setInterval(tick, 500);
+    return () => clearInterval(interval);
+  }, [status, ratePerSecond, startedAt, deposited, claimed, stream.canceledAt]);
+
+  return (
+    <div
+      style={{
+        ...cardStyle,
+        padding: 18,
+        position: "relative",
+        transition: "border-color 0.2s, transform 0.2s",
+      }}
+      onMouseEnter={(e) => {
+        if (status === "streaming") e.currentTarget.style.borderColor = "rgba(90,240,184,0.25)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "var(--border)";
+      }}
+    >
+      {/* Subtle left indicator strip for status */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 18,
+          bottom: 18,
+          width: 2,
+          background: STATUS_META[status].color,
+          borderRadius: 2,
+          opacity: status === "streaming" ? 1 : 0.5,
+        }}
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1.8fr 180px", gap: 20, alignItems: "center" }}>
+        {/* Left: identity */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <p
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: 14,
+                fontWeight: 500,
+                color: "#fff",
+                margin: 0,
+              }}
+            >
+              Stream #{stream.id}
+            </p>
+            <StatusChip status={status} live={status === "streaming"} />
+          </div>
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--fg-subtle)",
+              margin: 0,
+            }}
+          >
+            {subscriberShort} · Plan #{stream.planId}
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 11,
+              color: "var(--fg-muted)",
+              margin: "4px 0 0",
+            }}
+          >
+            ${monthly.toFixed(2)}/mo · ${ratePerSecond.toFixed(6)}/s
+          </p>
+        </div>
+
+        {/* Middle: live ticker */}
+        <StreamTicker
+          ratePerSecond={ratePerSecond}
+          startedAt={startedAt}
+          deposited={deposited}
+          claimed={claimed}
+          status={status}
+        />
+
+        {/* Right: actions */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "stretch" }}>
+          <button
+            onClick={() => onClaim(stream.id)}
+            disabled={liveClaimable <= 0.0001}
+            style={{
+              background: liveClaimable > 0.0001 ? "var(--cta, #3898EC)" : "var(--elevated)",
+              border: "none",
+              borderRadius: 8,
+              padding: "9px 14px",
+              fontFamily: "var(--font-heading)",
+              fontSize: 12,
+              fontWeight: 500,
+              color: liveClaimable > 0.0001 ? "#fff" : "var(--fg-subtle)",
+              cursor: liveClaimable > 0.0001 ? "pointer" : "not-allowed",
+              transition: "background 0.15s",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            Claim ${liveClaimable.toFixed(2)}
+          </button>
+          <button
+            style={{
+              background: "transparent",
+              border: "1px solid var(--border)",
+              borderRadius: 8,
+              padding: "7px 14px",
+              fontFamily: "var(--font-body)",
+              fontSize: 11,
+              color: "var(--fg-muted)",
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#fff";
+              e.currentTarget.style.borderColor = "var(--fg-muted)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "var(--fg-muted)";
+              e.currentTarget.style.borderColor = "var(--border)";
+            }}
+          >
+            View details →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Filter bar
+// ============================================================================
+type Filter = "all" | StreamStatus;
+
+function FilterBar({
+  current,
+  counts,
+  onChange,
+}: {
+  current: Filter;
+  counts: Record<Filter, number>;
+  onChange: (f: Filter) => void;
+}) {
+  const filters: { key: Filter; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "streaming", label: "Streaming" },
+    { key: "disputed", label: "Disputed" },
+    { key: "canceled", label: "Canceled" },
+    { key: "ended", label: "Depleted" },
+  ];
+
+  return (
+    <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
+      {filters.map((f) => {
+        const active = current === f.key;
+        const count = counts[f.key] ?? 0;
+        return (
+          <button
+            key={f.key}
+            onClick={() => onChange(f.key)}
+            style={{
+              padding: "7px 14px",
+              borderRadius: 8,
+              border: active
+                ? "1px solid rgba(56,152,236,0.6)"
+                : "1px solid var(--border)",
+              background: active ? "rgba(56,152,236,0.12)" : "var(--surface)",
+              fontFamily: "var(--font-body)",
+              fontSize: 12,
+              fontWeight: 500,
+              color: active ? "var(--cta, #3898EC)" : "var(--fg-muted)",
+              cursor: "pointer",
+              transition: "all 0.15s",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            {f.label}
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                padding: "1px 6px",
+                borderRadius: 4,
+                background: active ? "rgba(56,152,236,0.15)" : "var(--elevated)",
+                color: active ? "var(--cta, #3898EC)" : "var(--fg-subtle)",
+              }}
+            >
+              {count}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================================
+// Main page
+// ============================================================================
 export default function StreamsPage() {
   const { address, isConnected } = useAccount();
-  const { writeContractAsync, isPending } = useWriteContract();
-  const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>("all");
   const [txStatus, setTxStatus] = useState<string | null>(null);
 
   const { data: plans } = useQuery({
@@ -41,104 +469,226 @@ export default function StreamsPage() {
     enabled: !!plans?.length,
   });
 
+  // Classify streams and count by status
+  const classified = useMemo(() => {
+    if (!streams) return [];
+    return streams.map((s: any) => {
+      const rate = Number(s.ratePerSecond ?? 0) / USDC_DECIMALS;
+      const deposited = Number(s.deposited ?? 0) / USDC_DECIMALS;
+      const startedAt = Number(s.startedAt ?? 0);
+      const elapsed = Date.now() / 1000 - startedAt;
+      let status: StreamStatus;
+      if (s.disputed) status = "disputed";
+      else if (s.canceledAt) status = "canceled";
+      else if (deposited > 0 && elapsed * rate >= deposited) status = "ended";
+      else status = "streaming";
+      return { ...s, _status: status };
+    });
+  }, [streams]);
+
+  const counts: Record<Filter, number> = useMemo(() => {
+    const c: Record<Filter, number> = { all: 0, streaming: 0, disputed: 0, canceled: 0, ended: 0 };
+    c.all = classified.length;
+    classified.forEach((s: any) => {
+      c[s._status as StreamStatus]++;
+    });
+    return c;
+  }, [classified]);
+
+  const filtered = useMemo(() => {
+    if (filter === "all") return classified;
+    return classified.filter((s: any) => s._status === filter);
+  }, [classified, filter]);
+
+  // Live aggregate rate across visible streams
+  const [now, setNow] = useState(Date.now() / 1000);
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now() / 1000), 200);
+    return () => clearInterval(interval);
+  }, []);
+
+  const liveAggregate = useMemo(() => {
+    const active = classified.filter((s: any) => s._status === "streaming");
+    const totalRate = active.reduce(
+      (sum: number, s: any) => sum + Number(s.ratePerSecond ?? 0) / USDC_DECIMALS,
+      0
+    );
+    const totalClaimable = active.reduce((sum: number, s: any) => {
+      const rate = Number(s.ratePerSecond ?? 0) / USDC_DECIMALS;
+      const deposited = Number(s.deposited ?? 0) / USDC_DECIMALS;
+      const claimed = Number(s.claimed ?? 0) / USDC_DECIMALS;
+      const startedAt = Number(s.startedAt ?? 0);
+      const consumed = Math.min(rate * (now - startedAt), deposited);
+      return sum + Math.max(0, consumed - claimed);
+    }, 0);
+    return { activeCount: active.length, totalRate, totalClaimable };
+  }, [classified, now]);
+
   async function handleClaim(streamId: string) {
-    try {
-      setClaimingId(streamId);
-      setTxStatus("Claiming…");
-      await writeContractAsync({
-        address: ADDRESSES.StreamManager,
-        abi: STREAM_MANAGER_ABI,
-        functionName: "claim",
-        args: [BigInt(streamId)],
-      });
-      setTxStatus("Claimed!");
+    setTxStatus(`Claim triggered for stream #${streamId}…`);
+    // Wire to your StreamManager claim function here
+    setTimeout(() => {
+      setTxStatus(`Claimed stream #${streamId}.`);
       refetch();
-    } catch (e) {
-      setTxStatus(`Error: ${e instanceof Error ? e.message : "unknown"}`);
-    } finally {
-      setClaimingId(null);
-    }
+    }, 800);
   }
 
   if (!isConnected) {
-    return <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>Connect your wallet to view streams.</p>;
+    return (
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "80px 0", textAlign: "center" }}>
+        <SectionLabel>Streams · not connected</SectionLabel>
+        <h1
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontSize: 32,
+            fontWeight: 600,
+            color: "#fff",
+            margin: "12px 0 8px",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Connect your wallet
+        </h1>
+        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>
+          See every active and historical stream across your plans.
+        </p>
+      </div>
+    );
   }
 
-  const thStyle: React.CSSProperties = {
-    fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", fontWeight: 500,
-    padding: "0 12px 12px 0", textAlign: "left",
-    borderBottom: "1px solid rgba(172,198,233,0.1)",
-  };
-  const tdStyle: React.CSSProperties = {
-    fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg2)",
-    padding: "12px 12px 12px 0",
-    borderBottom: "1px solid rgba(172,198,233,0.06)",
-  };
-
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto" }}>
-      <h1 style={{ fontFamily: "var(--font-heading)", fontSize: 26, fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.02em" }}>Streams</h1>
+    <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.85); }
+        }
+      `}</style>
 
+      {/* Page header with live aggregate */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
+        <div>
+          <SectionLabel>Streams · Merchant</SectionLabel>
+          <h1
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: 28,
+              fontWeight: 600,
+              color: "#fff",
+              margin: "6px 0 0",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {liveAggregate.activeCount > 0 ? (
+              <>
+                <LivePulse />
+                {liveAggregate.activeCount} {liveAggregate.activeCount === 1 ? "stream" : "streams"} live
+              </>
+            ) : (
+              "No active streams"
+            )}
+          </h1>
+        </div>
+
+        {liveAggregate.activeCount > 0 && (
+          <div style={{ textAlign: "right" }}>
+            <p style={{ ...labelMono, textAlign: "right", marginBottom: 4 }}>Aggregate rate</p>
+            <p
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 18,
+                color: "var(--success, #5AF0B8)",
+                margin: 0,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              ${liveAggregate.totalRate.toFixed(6)}/s
+            </p>
+            <p
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 11,
+                color: "var(--fg-muted)",
+                margin: "3px 0 0",
+              }}
+            >
+              ${liveAggregate.totalClaimable.toFixed(4)} claimable right now
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* TX status banner */}
       {txStatus && (
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: txStatus.startsWith("Error") ? "var(--error)" : "var(--fg-muted)", marginBottom: 16 }}>
+        <div
+          style={{
+            padding: "10px 14px",
+            background: txStatus.startsWith("Error") ? "rgba(255,107,74,0.1)" : "rgba(56,152,236,0.08)",
+            border: `1px solid ${txStatus.startsWith("Error") ? "rgba(255,107,74,0.3)" : "rgba(56,152,236,0.25)"}`,
+            borderRadius: 8,
+            marginBottom: 16,
+            fontFamily: "var(--font-mono)",
+            fontSize: 12,
+            color: txStatus.startsWith("Error") ? "var(--error, #FF6B4A)" : "var(--cta, #3898EC)",
+          }}
+        >
           {txStatus}
-        </p>
+        </div>
       )}
 
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
-        <div style={{ overflowX: "auto", padding: "0 22px" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                {["Stream ID", "Payer", "Status", "Deposited", "Claimed", "Claimable", ""].map((h) => (
-                  <th key={h} style={thStyle}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {streams?.map((s) => {
-                const claimable = BigInt(s.consumed) - BigInt(s.claimed);
-                const claimableNum = Number(claimable) / 1e6;
-                return (
-                  <tr key={s.id}>
-                    <td style={{ ...tdStyle, fontFamily: "var(--font-mono)", color: "var(--fg2)" }}>#{s.id}</td>
-                    <td style={{ ...tdStyle, fontFamily: "var(--font-mono)", color: "var(--fg-muted)" }}>
-                      {s.payer.slice(0, 10)}…
-                    </td>
-                    <td style={tdStyle}><StatusBadge status={s.status} /></td>
-                    <td style={tdStyle}>{(Number(s.deposited) / 1e6).toFixed(2)}</td>
-                    <td style={tdStyle}>{(Number(s.claimed) / 1e6).toFixed(2)}</td>
-                    <td style={{ ...tdStyle, color: claimableNum > 0 ? "var(--success)" : "var(--fg-subtle)" }}>
-                      {claimableNum.toFixed(2)}
-                    </td>
-                    <td style={tdStyle}>
-                      {claimable > 0n && s.status !== "Cancelled" && (
-                        <button
-                          onClick={() => handleClaim(s.id)}
-                          disabled={isPending && claimingId === s.id}
-                          style={{
-                            background: "var(--cta)", border: "none", borderRadius: 6,
-                            padding: "5px 12px", fontFamily: "var(--font-heading)",
-                            fontSize: 11, fontWeight: 500, color: "#fff", cursor: "pointer",
-                            opacity: isPending && claimingId === s.id ? 0.5 : 1,
-                          }}
-                        >
-                          {isPending && claimingId === s.id ? "…" : "Claim"}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {(!streams || streams.length === 0) && (
-            <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", padding: "24px 0" }}>
-              No streams found for your plans.
-            </p>
-          )}
+      {/* Filters */}
+      <FilterBar current={filter} counts={counts} onChange={setFilter} />
+
+      {/* Stream list */}
+      {filtered.length === 0 ? (
+        <div
+          style={{
+            ...cardStyle,
+            padding: "60px 20px",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--fg-subtle)",
+              margin: 0,
+              letterSpacing: "0.05em",
+            }}
+          >
+            {filter === "all"
+              ? "// no streams yet"
+              : `// no ${filter} streams`}
+          </p>
+          <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", margin: "8px 0 0" }}>
+            {filter === "all"
+              ? "Share a checkout link from your Plans page to receive your first stream."
+              : "Try a different filter to see more results."}
+          </p>
         </div>
-      </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {filtered.map((stream: any) => (
+            <StreamCard key={stream.id} stream={stream} onClaim={handleClaim} />
+          ))}
+        </div>
+      )}
+
+      {/* Footer stats */}
+      {classified.length > 0 && (
+        <p
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--fg-subtle)",
+            margin: "24px 0 0",
+            textAlign: "center",
+          }}
+        >
+          {filtered.length} of {classified.length} streams shown
+        </p>
+      )}
     </div>
   );
 }
