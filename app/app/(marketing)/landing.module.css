@@ -11,13 +11,11 @@
   content: "";
   position: fixed;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(172,198,233,0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(172,198,233,0.07) 1px, transparent 1px);
-  background-size: 56px 56px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/></svg>");
+  opacity: 0.03;
   pointer-events: none;
   z-index: 0;
-  mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 75%);
+  mix-blend-mode: overlay;
 }
 
 .wrap {
