@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, DM_Sans, Space_Mono } from "next/font/google";
+import { Space_Grotesk, DM_Sans, Space_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
@@ -24,6 +24,14 @@ const spaceMono = Space_Mono({
   display: "swap",
 });
 
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["700", "800", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "TrustFlow",
   description: "Per-second USDC streaming subscriptions on Arc Network. Stream, trust, verify.",
@@ -43,7 +51,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable} ${spaceMono.variable}`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable} ${spaceMono.variable} ${playfair.variable}`}>
       <body style={{ background: "var(--bg)", color: "var(--fg1)", fontFamily: "var(--font-body)", margin: 0 }}>
         <Providers>
           {children}

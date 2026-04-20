@@ -87,22 +87,26 @@
   width: 6px; height: 6px; background: #3898EC; border-radius: 50%;
 }
 .heroTitle {
-  font-family: var(--font-heading);
-  font-size: clamp(48px, 8vw, 112px);
-  line-height: 0.97;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-size: clamp(52px, 9vw, 120px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
   margin: 28px 0 32px;
   max-width: 14ch;
-  font-weight: 700;
+  font-weight: 900;
   color: #fff;
 }
 .strike {
   color: #4A6F8C;
   text-decoration: line-through;
   text-decoration-color: #E05555;
-  text-decoration-thickness: 3px;
+  text-decoration-thickness: 4px;
 }
-.heroAccent { color: #3898EC; font-style: italic; }
+.heroAccent {
+  color: #4CAF7D;
+  font-style: italic;
+  font-family: var(--font-display);
+}
 .heroSub {
   font-size: 18px; color: #7A9FC4; max-width: 52ch;
   margin-bottom: 40px; font-weight: 300; line-height: 1.6;
@@ -216,11 +220,11 @@
 }
 .sectionLabel::before { content: ""; width: 24px; height: 1px; background: #4A6F8C; }
 .sectionTitle {
-  font-family: var(--font-heading); font-size: clamp(36px, 5vw, 64px);
-  line-height: 1.02; letter-spacing: -0.025em; max-width: 18ch;
-  margin-bottom: 20px; font-weight: 700; color: #fff;
+  font-family: var(--font-display); font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.02; letter-spacing: -0.02em; max-width: 18ch;
+  margin-bottom: 20px; font-weight: 800; color: #fff;
 }
-.sectionTitle em { color: #3898EC; font-style: italic; }
+.sectionTitle em { color: #4CAF7D; font-style: italic; }
 .sectionIntro { font-size: 17px; color: #7A9FC4; max-width: 58ch; line-height: 1.6; }
 
 /* Compare */
@@ -256,7 +260,7 @@
 }
 .step:last-child { border-bottom: none; }
 .stepNum { font-family: var(--font-mono); font-size: 12px; color: #4A6F8C; letter-spacing: 0.1em; padding-top: 4px; }
-.stepBody h3 { font-family: var(--font-heading); font-size: 28px; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 10px; font-weight: 600; color: #fff; }
+.stepBody h3 { font-family: var(--font-display); font-size: 28px; line-height: 1.1; letter-spacing: -0.01em; margin-bottom: 10px; font-weight: 800; color: #fff; }
 .stepBody p { color: #7A9FC4; max-width: 38ch; font-size: 14px; line-height: 1.65; }
 .stepCode {
   background: #080E14; border: 1px solid rgba(172,198,233,0.12); padding: 18px 20px;
@@ -309,11 +313,11 @@
   pointer-events: none;
 }
 .ctaBlock h2 {
-  font-family: var(--font-heading); font-size: clamp(32px, 5vw, 56px);
-  line-height: 1.06; letter-spacing: -0.025em; margin-bottom: 16px;
-  font-weight: 700; color: #fff; position: relative;
+  font-family: var(--font-display); font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.06; letter-spacing: -0.02em; margin-bottom: 16px;
+  font-weight: 800; color: #fff; position: relative;
 }
-.ctaBlock h2 em { color: #3898EC; font-style: italic; }
+.ctaBlock h2 em { color: #4CAF7D; font-style: italic; }
 .ctaBlock p { color: #7A9FC4; max-width: 46ch; margin: 0 auto 28px; font-size: 16px; line-height: 1.6; position: relative; }
 .ctaBtns { display: inline-flex; gap: 12px; position: relative; flex-wrap: wrap; justify-content: center; }
 
