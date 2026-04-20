@@ -172,11 +172,13 @@ function RatePreview({ amount, period }: { amount: number; period: string }) {
 function PlanCard({
   plan,
   streams,
+  name,
   onDeactivate,
   onCopyLink,
 }: {
   plan: any;
   streams: any[];
+  name?: string;
   onDeactivate: (id: string) => void;
   onCopyLink: (id: string) => void;
 }) {
@@ -258,7 +260,7 @@ function PlanCard({
                 margin: 0,
               }}
             >
-              Plan #{plan.id}
+              {name || `Plan #${plan.id}`}
             </p>
             <span
               style={{
@@ -444,6 +446,16 @@ function PlanCard({
 // ============================================================================
 // Main page
 // ============================================================================
+const NAMES_KEY = "trustflow_plan_names";
+
+function loadNames(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(NAMES_KEY) ?? "{}"); } catch { return {}; }
+}
+function saveName(planId: string, name: string) {
+  const names = loadNames();
+  localStorage.setItem(NAMES_KEY, JSON.stringify({ ...names, [planId]: name }));
+}
+
 export default function PlansPage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
@@ -452,7 +464,11 @@ export default function PlansPage() {
   const [period, setPeriod] = useState("monthly");
   const [grace, setGrace] = useState("0");
   const [policy, setPolicy] = useState("0");
+  const [planName, setPlanName] = useState("");
+  const [planNames, setPlanNames] = useState<Record<string, string>>({});
   const [txStatus, setTxStatus] = useState<string | null>(null);
+
+  useEffect(() => { setPlanNames(loadNames()); }, []);
 
   const amountNum = useMemo(() => parseFloat(amount) || 0, [amount]);
   const rateWei = useMemo(() => rateWeiFromPeriod(amountNum, period), [amountNum, period]);
@@ -473,15 +489,22 @@ export default function PlansPage() {
     if (!amountNum || rateWei === 0n) return;
     try {
       setTxStatus("Sending transaction…");
-      await writeContractAsync({
+      const result = await writeContractAsync({
         address: ADDRESSES.PlanRegistry,
         abi: PLAN_REGISTRY_ABI,
         functionName: "createPlan",
         args: [rateWei, Number(grace) * 86400, Number(policy)],
       });
+      // Save name locally — contract doesn't store metadata
+      const newPlans = await refetch();
+      const latestPlan = newPlans.data?.[newPlans.data.length - 1];
+      if (latestPlan && planName.trim()) {
+        saveName(String(latestPlan.id), planName.trim());
+        setPlanNames(loadNames());
+      }
       setTxStatus("Plan created!");
       setAmount("");
-      refetch();
+      setPlanName("");
     } catch (e) {
       setTxStatus(`Error: ${e instanceof Error ? e.message : "unknown"}`);
     }
@@ -596,6 +619,19 @@ export default function PlansPage() {
           >
             Create plan
           </p>
+
+          {/* Plan name */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>Plan name (optional)</label>
+            <input
+              style={inputStyle}
+              type="text"
+              placeholder="e.g. Pro API, Starter, Enterprise"
+              value={planName}
+              onChange={(e) => setPlanName(e.target.value)}
+              maxLength={48}
+            />
+          </div>
 
           {/* Billing period selector */}
           <div style={{ marginBottom: 14 }}>
@@ -760,6 +796,7 @@ export default function PlansPage() {
               key={plan.id}
               plan={plan}
               streams={streams ?? []}
+              name={planNames[String(plan.id)]}
               onDeactivate={handleDeactivate}
               onCopyLink={handleCopyLink}
             />
