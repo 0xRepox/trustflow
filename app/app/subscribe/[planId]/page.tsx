@@ -1,12 +1,22 @@
 "use client";
 
-import { use, useState, useMemo, useEffect } from "react";
+import { use, useState, useMemo, useEffect, Suspense } from "react";
 import { useAccount, useWriteContract, useReadContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams, useRouter } from "next/navigation";
 import { getPlanById } from "@/lib/envio";
 import { ADDRESSES, STREAM_MANAGER_ABI, USDC_ABI } from "@/lib/contracts";
 import { WalletButton } from "@/components/WalletButton";
 import Link from "next/link";
+
+function isSafeRedirectUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_PER_MONTH = 86400 * 30;
@@ -77,14 +87,20 @@ function getDisplayConfig(monthlyPrice: number): {
   };
 }
 
-export default function SubscribePage({ params }: { params: Promise<{ planId: string }> }) {
+function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
   const { planId } = use(params);
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const rawSuccess = searchParams.get("success") ?? "";
+  const successUrl = isSafeRedirectUrl(rawSuccess) ? rawSuccess : null;
 
   const [runway, setRunway] = useState("1w");
   const [step, setStep] = useState<"idle" | "approving" | "subscribing" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(5);
 
   const { data: plan, isLoading } = useQuery({
     queryKey: ["plan", planId],
@@ -114,6 +130,22 @@ export default function SubscribePage({ params }: { params: Promise<{ planId: st
       setRunway(runways[0].key);
     }
   }, [runways, runway]);
+
+  // Auto-redirect countdown after successful payment
+  useEffect(() => {
+    if (step !== "done" || !successUrl) return;
+    setCountdown(5);
+    const interval = setInterval(() => {
+      setCountdown((n) => {
+        if (n <= 1) {
+          clearInterval(interval);
+          router.push(successUrl);
+        }
+        return n - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [step, successUrl, router]);
 
   const options = useMemo(() =>
     runways.map((r) => ({
@@ -208,14 +240,32 @@ export default function SubscribePage({ params }: { params: Promise<{ planId: st
           <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", margin: "0 0 22px" }}>
             {selected.label} · ${selected.cost.toFixed(2)} deposited
           </p>
-          <Link href="/account" style={{
-            display: "block", background: "var(--elevated)",
-            border: "1px solid var(--border)", borderRadius: 10,
-            padding: "10px 0", fontFamily: "var(--font-heading)",
-            fontSize: 13, fontWeight: 500, color: "var(--fg2)", textDecoration: "none",
-          }}>
-            Manage subscription →
-          </Link>
+          {successUrl ? (
+            <div>
+              <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "0 0 10px" }}>
+                Redirecting to merchant in <span style={{ color: "#fff", fontFamily: "var(--font-mono)" }}>{countdown}s</span>…
+              </p>
+              <button
+                onClick={() => router.push(successUrl)}
+                style={{
+                  width: "100%", background: "var(--cta)", border: "none", borderRadius: 10,
+                  padding: "10px 0", fontFamily: "var(--font-heading)", fontSize: 13,
+                  fontWeight: 500, color: "#fff", cursor: "pointer",
+                }}
+              >
+                Go now →
+              </button>
+            </div>
+          ) : (
+            <Link href="/account" style={{
+              display: "block", background: "var(--elevated)",
+              border: "1px solid var(--border)", borderRadius: 10,
+              padding: "10px 0", fontFamily: "var(--font-heading)",
+              fontSize: 13, fontWeight: 500, color: "var(--fg2)", textDecoration: "none",
+            }}>
+              Manage subscription →
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -366,17 +416,27 @@ export default function SubscribePage({ params }: { params: Promise<{ planId: st
           </p>
         )}
 
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", textAlign: "center", margin: "16px 0 0", letterSpacing: "0.04em" }}>
-          POWERED BY TRUSTFLOW · FUNDS STREAM PER-SECOND ONCHAIN
-        </p>
       </div>
     </div>
   );
 }
 
+export default function SubscribePage({ params }: { params: Promise<{ planId: string }> }) {
+  return (
+    <Suspense fallback={
+      <div style={pageWrap}>
+        <div style={card}>
+          <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>Loading plan…</p>
+        </div>
+      </div>
+    }>
+      <SubscribeInner params={params} />
+    </Suspense>
+  );
+}
+
 const pageWrap: React.CSSProperties = {
-  minHeight: "100vh", background: "var(--bg)",
-  display: "flex", alignItems: "center", justifyContent: "center", padding: "24px",
+  display: "flex", alignItems: "center", justifyContent: "center", width: "100%",
 };
 
 const card: React.CSSProperties = {

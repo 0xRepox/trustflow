@@ -5,6 +5,7 @@ import { useAccount, useWriteContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds } from "@/lib/envio";
 import { ADDRESSES, PLAN_REGISTRY_ABI } from "@/lib/contracts";
+import { ConnectPrompt } from "@/components/ConnectPrompt";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS: Record<string, number> = {
@@ -173,14 +174,18 @@ function PlanCard({
   plan,
   streams,
   name,
+  successUrl,
   onDeactivate,
   onCopyLink,
+  onSetSuccessUrl,
 }: {
   plan: any;
   streams: any[];
   name?: string;
+  successUrl?: string;
   onDeactivate: (id: string) => void;
-  onCopyLink: (id: string) => void;
+  onCopyLink: (id: string, successUrl?: string) => void;
+  onSetSuccessUrl: (id: string, url: string) => void;
 }) {
   const monthly = rateToMonthly(plan.ratePerSecond);
   const planStreams = streams.filter((s: any) => s.planId === plan.id);
@@ -208,13 +213,27 @@ function PlanCard({
   }, [activeStreams]);
 
   const [copied, setCopied] = useState(false);
-  const subscribeUrl =
-    typeof window !== "undefined" ? `${window.location.origin}/subscribe/${plan.id}` : "";
+  const [redirectInput, setRedirectInput] = useState(successUrl ?? "");
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const subscribeUrl = origin ? `${origin}/subscribe/${plan.id}` : "";
+  const checkoutLink = successUrl
+    ? `${subscribeUrl}?success=${encodeURIComponent(successUrl)}`
+    : subscribeUrl;
 
   const handleCopy = () => {
-    onCopyLink(plan.id);
+    onCopyLink(plan.id, successUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handlePreview = () => {
+    if (checkoutLink) window.open(checkoutLink, "_blank", "noopener,noreferrer");
+  };
+
+  const handleRedirectSave = () => {
+    const trimmed = redirectInput.trim();
+    if (trimmed && !trimmed.startsWith("https://")) return;
+    onSetSuccessUrl(plan.id, trimmed);
   };
 
   return (
@@ -394,48 +413,68 @@ function PlanCard({
               border: "1px solid var(--border)",
             }}
           >
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 10,
-                color: "var(--fg-subtle)",
-                letterSpacing: "0.05em",
-              }}
-            >
-              →
-            </span>
-            <p
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 11,
-                color: "var(--fg-subtle)",
-                flex: 1,
-                margin: 0,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {subscribeUrl}
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", letterSpacing: "0.05em" }}>→</span>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-subtle)", flex: 1, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {checkoutLink}
             </p>
+            <button
+              onClick={handlePreview}
+              style={{
+                background: "none", border: "1px solid var(--border)", borderRadius: 4,
+                cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 11, fontWeight: 500,
+                color: "var(--fg-muted)", flexShrink: 0, padding: "3px 8px", transition: "all 0.15s",
+              }}
+              title="Open checkout in new tab"
+            >
+              Preview ↗
+            </button>
             <button
               onClick={handleCopy}
               style={{
-                background: copied ? "rgba(90,240,184,0.12)" : "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "var(--font-body)",
-                fontSize: 11,
-                fontWeight: 500,
+                background: copied ? "rgba(90,240,184,0.12)" : "none", border: "none",
+                cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 11, fontWeight: 500,
                 color: copied ? "var(--success, #5AF0B8)" : "var(--cta, #3898EC)",
-                flexShrink: 0,
-                padding: "3px 8px",
-                borderRadius: 4,
-                transition: "all 0.15s",
+                flexShrink: 0, padding: "3px 8px", borderRadius: 4, transition: "all 0.15s",
               }}
             >
               {copied ? "Copied ✓" : "Copy link"}
             </button>
+          </div>
+
+          {/* Redirect URL after payment */}
+          <div style={{ marginTop: 8 }}>
+            <label style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-muted)", display: "block", marginBottom: 4 }}>
+              Redirect after payment (optional)
+            </label>
+            <div style={{ display: "flex", gap: 6 }}>
+              <input
+                type="url"
+                placeholder="https://yoursite.com/thank-you"
+                value={redirectInput}
+                onChange={(e) => setRedirectInput(e.target.value)}
+                onBlur={handleRedirectSave}
+                style={{
+                  flex: 1, background: "var(--elevated)", border: "1px solid rgba(172,198,233,0.15)",
+                  borderRadius: 6, padding: "6px 10px", fontSize: 11, fontFamily: "var(--font-mono)",
+                  color: "var(--fg2)", outline: "none", boxSizing: "border-box",
+                }}
+              />
+              <button
+                onClick={handleRedirectSave}
+                style={{
+                  background: "var(--elevated)", border: "1px solid var(--border)", borderRadius: 6,
+                  cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 11,
+                  color: "var(--fg-muted)", padding: "6px 10px", flexShrink: 0,
+                }}
+              >
+                Save
+              </button>
+            </div>
+            {redirectInput && !redirectInput.startsWith("https://") && (
+              <p style={{ fontFamily: "var(--font-body)", fontSize: 10, color: "var(--error, #FF6B4A)", margin: "3px 0 0" }}>
+                Must start with https://
+              </p>
+            )}
           </div>
         </>
       )}
@@ -447,6 +486,7 @@ function PlanCard({
 // Main page
 // ============================================================================
 const NAMES_KEY = "trustflow_plan_names";
+const REDIRECTS_KEY = "trustflow_plan_redirects";
 
 function loadNames(): Record<string, string> {
   try { return JSON.parse(localStorage.getItem(NAMES_KEY) ?? "{}"); } catch { return {}; }
@@ -454,6 +494,13 @@ function loadNames(): Record<string, string> {
 function saveName(planId: string, name: string) {
   const names = loadNames();
   localStorage.setItem(NAMES_KEY, JSON.stringify({ ...names, [planId]: name }));
+}
+function loadRedirects(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(REDIRECTS_KEY) ?? "{}"); } catch { return {}; }
+}
+function saveRedirect(planId: string, url: string) {
+  const redirects = loadRedirects();
+  localStorage.setItem(REDIRECTS_KEY, JSON.stringify({ ...redirects, [planId]: url }));
 }
 
 export default function PlansPage() {
@@ -466,9 +513,13 @@ export default function PlansPage() {
   const [policy, setPolicy] = useState("0");
   const [planName, setPlanName] = useState("");
   const [planNames, setPlanNames] = useState<Record<string, string>>({});
+  const [successUrls, setSuccessUrls] = useState<Record<string, string>>({});
   const [txStatus, setTxStatus] = useState<string | null>(null);
 
-  useEffect(() => { setPlanNames(loadNames()); }, []);
+  useEffect(() => {
+    setPlanNames(loadNames());
+    setSuccessUrls(loadRedirects());
+  }, []);
 
   const amountNum = useMemo(() => parseFloat(amount) || 0, [amount]);
   const rateWei = useMemo(() => rateWeiFromPeriod(amountNum, period), [amountNum, period]);
@@ -526,31 +577,19 @@ export default function PlansPage() {
     }
   }
 
-  function handleCopyLink(planId: string) {
-    navigator.clipboard.writeText(`${window.location.origin}/subscribe/${planId}`);
+  function handleCopyLink(planId: string, successUrl?: string) {
+    const base = `${window.location.origin}/subscribe/${planId}`;
+    const link = successUrl ? `${base}?success=${encodeURIComponent(successUrl)}` : base;
+    navigator.clipboard.writeText(link);
+  }
+
+  function handleSetSuccessUrl(planId: string, url: string) {
+    saveRedirect(planId, url);
+    setSuccessUrls(loadRedirects());
   }
 
   if (!isConnected) {
-    return (
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "80px 0", textAlign: "center" }}>
-        <SectionLabel>Plans · not connected</SectionLabel>
-        <h1
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: 32,
-            fontWeight: 600,
-            color: "#fff",
-            margin: "12px 0 8px",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Connect your wallet
-        </h1>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>
-          Create and manage subscription plans.
-        </p>
-      </div>
-    );
+    return <ConnectPrompt context="merchant" />;
   }
 
   const activePlansCount = plans?.filter((p: any) => p.active).length ?? 0;
@@ -797,8 +836,10 @@ export default function PlansPage() {
               plan={plan}
               streams={streams ?? []}
               name={planNames[String(plan.id)]}
+              successUrl={successUrls[String(plan.id)]}
               onDeactivate={handleDeactivate}
               onCopyLink={handleCopyLink}
+              onSetSuccessUrl={handleSetSuccessUrl}
             />
           ))}
         </div>

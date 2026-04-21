@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/envio";
 import { ADDRESSES, DISPUTE_RESOLVER_ABI } from "@/lib/contracts";
 import { keccak256, toBytes } from "viem";
+import { ConnectPrompt } from "@/components/ConnectPrompt";
 
 const USDC_DECIMALS = 1_000_000;
 
@@ -410,26 +411,7 @@ export default function DisputesPage() {
   }
 
   if (!isConnected) {
-    return (
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "80px 0", textAlign: "center" }}>
-        <SectionLabel>Disputes · not connected</SectionLabel>
-        <h1
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: 32,
-            fontWeight: 600,
-            color: "#fff",
-            margin: "12px 0 8px",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Connect your wallet
-        </h1>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>
-          Review and respond to disputes across your plans.
-        </p>
-      </div>
-    );
+    return <ConnectPrompt context="merchant" headline="Manage disputes transparently" subline="Connect your wallet to review, respond to, and resolve disputes raised by your subscribers." />;
   }
 
   const open = disputes?.filter((d: any) => d.status === "Open") ?? [];

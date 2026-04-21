@@ -5,6 +5,7 @@ import { useAccount, useWriteContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds, type Plan } from "@/lib/envio";
 import { ADDRESSES, STREAM_MANAGER_ABI } from "@/lib/contracts";
+import { ConnectPrompt } from "@/components/ConnectPrompt";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_IN_MONTH = 86400 * 30;
@@ -625,26 +626,7 @@ export default function StreamsPage() {
   }
 
   if (!isConnected) {
-    return (
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "80px 0", textAlign: "center" }}>
-        <SectionLabel>Streams · not connected</SectionLabel>
-        <h1
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: 32,
-            fontWeight: 600,
-            color: "#fff",
-            margin: "12px 0 8px",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Connect your wallet
-        </h1>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>
-          See every active and historical stream across your plans.
-        </p>
-      </div>
-    );
+    return <ConnectPrompt context="merchant" headline="See every stream, live" subline="Connect your wallet to view all active and historical payment streams across your plans." />;
   }
 
   return (

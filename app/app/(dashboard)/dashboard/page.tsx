@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/envio";
+import { ConnectPrompt } from "@/components/ConnectPrompt";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_IN_MONTH = 86400 * 30;
@@ -700,26 +701,7 @@ export default function OverviewPage() {
   }, [streams, disputes]);
 
   if (!isConnected) {
-    return (
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "80px 0", textAlign: "center" }}>
-        <SectionLabel>Merchant · not connected</SectionLabel>
-        <h1
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: 32,
-            fontWeight: 600,
-            color: "#fff",
-            margin: "12px 0 8px",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Connect your wallet
-        </h1>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>
-          Overview shows live revenue, streams, and disputes across all your plans.
-        </p>
-      </div>
-    );
+    return <ConnectPrompt context="merchant" />;
   }
 
   return (
