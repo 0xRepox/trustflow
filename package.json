@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "deploy": "VERCEL_PROJECT_ID=prj_Z9h3O0Lkd6allgyHrVESRRkX68SD VERCEL_ORG_ID=team_yWApM5WevexoWHGPpyXGzne3 npx vercel --prod"
+  }
+}
