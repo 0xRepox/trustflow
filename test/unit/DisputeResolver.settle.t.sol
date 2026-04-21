@@ -102,7 +102,7 @@ contract DisputeResolverSettleTest is BaseTest {
         resolver.arbitrate(disputeId, IDisputeResolver.Verdict.Subscriber);
     }
 
-    function test_defaultSettle_proMerchantAfterDeadline() public {
+    function test_defaultSettle_proSubscriberAfterDeadline() public {
         // Open a new dispute with no response
         usdc.mint(alice, DEPOSIT);
         uint256 streamId2 = _approveAndCreateStream(alice, planId, DEPOSIT);
@@ -120,13 +120,13 @@ contract DisputeResolverSettleTest is BaseTest {
 
         resolver.defaultSettle(dId);
 
-        // Subscriber gets bond back; merchant gets frozen
-        assertEq(usdc.balanceOf(alice), aliceBefore + bond);
-        assertEq(usdc.balanceOf(merchant), merchantBefore + FROZEN);
+        // Subscriber wins: gets frozen amount + bond back; merchant gets nothing
+        assertEq(usdc.balanceOf(alice), aliceBefore + FROZEN + bond);
+        assertEq(usdc.balanceOf(merchant), merchantBefore);
 
         IDisputeResolver.Dispute memory d = resolver.getDispute(dId);
         assertEq(uint8(d.status), uint8(IDisputeResolver.DisputeStatus.Settled));
-        assertEq(uint8(d.verdict), uint8(IDisputeResolver.Verdict.Merchant));
+        assertEq(uint8(d.verdict), uint8(IDisputeResolver.Verdict.Subscriber));
     }
 
     function test_defaultSettle_revertsBeforeDeadline() public {

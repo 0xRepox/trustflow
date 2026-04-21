@@ -28,4 +28,6 @@ library Errors {
     error ZeroDisputeAmount();
     error DisputeResolverNotSet();
     error NotDisputeResolver();
+    error ZeroAddress();
+    error StreamHasActiveDispute();
 }

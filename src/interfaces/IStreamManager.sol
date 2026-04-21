@@ -15,6 +15,7 @@ interface IStreamManager {
         uint128 consumed;
         uint128 claimed;
         uint128 frozen;
+        uint128 ratePerSecond;
         uint64 startTimestamp;
         uint64 lastClaimTimestamp;
         uint64 cancelledAt;
@@ -28,6 +29,7 @@ interface IStreamManager {
     event StreamPaused(uint256 indexed streamId);
     event StreamResumed(uint256 indexed streamId);
     event Claimed(uint256 indexed streamId, address indexed merchant, uint128 amount);
+    event DisputeResolverUpdated(address indexed oldResolver, address indexed newResolver);
 
     function createStream(uint256 planId, uint128 depositAmount) external returns (uint256 streamId);
 

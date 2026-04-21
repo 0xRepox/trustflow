@@ -41,6 +41,8 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
     }
 
     function setDisputeResolver(address _disputeResolver) external onlyOwner {
+        if (_disputeResolver == address(0)) revert Errors.ZeroAddress();
+        emit DisputeResolverUpdated(disputeResolver, _disputeResolver);
         disputeResolver = _disputeResolver;
     }
 
@@ -60,6 +62,7 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
             consumed: 0,
             claimed: 0,
             frozen: 0,
+            ratePerSecond: plan.ratePerSecond,
             startTimestamp: uint64(block.timestamp),
             lastClaimTimestamp: uint64(block.timestamp),
             cancelledAt: 0,
@@ -93,6 +96,7 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
             consumed: 0,
             claimed: 0,
             frozen: 0,
+            ratePerSecond: plan.ratePerSecond,
             startTimestamp: uint64(block.timestamp),
             lastClaimTimestamp: uint64(block.timestamp),
             cancelledAt: 0,
@@ -109,6 +113,7 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
         if (stream.payer == address(0)) revert Errors.InvalidStream();
         if (stream.payer != msg.sender) revert Errors.NotStreamPayer();
         if (stream.status == StreamStatus.Cancelled) revert Errors.StreamNotActive();
+        if (stream.frozen > 0) revert Errors.StreamHasActiveDispute();
 
         (uint256 consumed,) = _computeConsumed(streamId);
         uint128 consumed128 = uint128(consumed);
@@ -139,8 +144,8 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
 
         if (claimable == 0) return;
 
-        // Apply daily cap: clamps claimable to remaining window allowance; reverts if window exhausted
-        uint128 dailyCap = uint128(plan.ratePerSecond * 86400 * DAILY_CAP_MULTIPLIER);
+        // Apply daily cap using snapshotted rate
+        uint128 dailyCap = uint128(stream.ratePerSecond * 86400 * DAILY_CAP_MULTIPLIER);
         claimable = _applyDailyCap(streamId, claimable, dailyCap);
 
         stream.claimed += claimable;
@@ -173,6 +178,7 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
 
         IPlanRegistry.Plan memory plan = registry.getPlan(stream.planId);
         if (plan.owner != msg.sender) revert Errors.NotPlanMerchant();
+        // plan.owner check still needed; rate now sourced from stream.ratePerSecond
 
         // Shift startTimestamp forward by pause duration so consumed time doesn't include pause
         uint64 pauseDuration = uint64(block.timestamp) - stream.pausedAt;
@@ -185,9 +191,9 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
         // Attempt immediate claim of any accrued (should be 0 since paused, but handle resume)
         (uint256 consumed,) = _computeConsumed(streamId);
         uint128 consumed128 = uint128(consumed);
-        uint128 claimable = consumed128 - stream.claimed;
+        uint128 claimable = consumed128 - stream.claimed - stream.frozen;
         if (claimable > 0) {
-            uint128 dailyCap = uint128(plan.ratePerSecond * 86400 * DAILY_CAP_MULTIPLIER);
+            uint128 dailyCap = uint128(stream.ratePerSecond * 86400 * DAILY_CAP_MULTIPLIER);
             claimable = _applyDailyCap(streamId, claimable, dailyCap);
 
             stream.claimed += claimable;
@@ -242,7 +248,7 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
         Stream storage stream = _streams[streamId];
         uint64 effectiveNow = stream.status == StreamStatus.Paused ? stream.pausedAt : uint64(block.timestamp);
         return StreamMath.computeConsumed(
-            registry.getPlan(stream.planId).ratePerSecond,
+            stream.ratePerSecond,
             stream.startTimestamp,
             effectiveNow,
             stream.deposited
@@ -284,6 +290,8 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
     function _permit2Transfer(address from, uint128 amount, bytes calldata permitData, bytes calldata sig) internal {
         ISignatureTransfer.PermitTransferFrom memory permit =
             abi.decode(permitData, (ISignatureTransfer.PermitTransferFrom));
+        if (permit.permitted.token != address(usdc)) revert Errors.InvalidStream();
+        if (permit.permitted.amount < amount) revert Errors.DepositTooSmall();
         ISignatureTransfer.SignatureTransferDetails memory details =
             ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: amount});
         ISignatureTransfer(permit2).permitTransferFrom(permit, details, from, sig);

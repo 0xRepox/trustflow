@@ -75,7 +75,7 @@ let makeGeneratedConfig = () => {
       let chain = ChainMap.Chain.makeUnsafe(~chainId=5042002)
       {
         Config.maxReorgDepth: 200,
-        startBlock: 0,
+        startBlock: 37617000,
         id: 5042002,
         contracts,
         sources: NetworkSources.evm(~chain, ~contracts=[{name: "PlanRegistry",events: [Types.PlanRegistry.PlanCreated.register(), Types.PlanRegistry.PlanUpdated.register(), Types.PlanRegistry.PlanDeactivated.register()],abi: Types.PlanRegistry.abi}, {name: "StreamManager",events: [Types.StreamManager.StreamCreated.register(), Types.StreamManager.StreamCancelled.register(), Types.StreamManager.StreamToppedUp.register(), Types.StreamManager.StreamPaused.register(), Types.StreamManager.StreamResumed.register(), Types.StreamManager.Claimed.register()],abi: Types.StreamManager.abi}, {name: "DisputeResolver",events: [Types.DisputeResolver.DisputeOpened.register(), Types.DisputeResolver.DisputeResponded.register(), Types.DisputeResolver.DisputeSettled.register()],abi: Types.DisputeResolver.abi}], ~hyperSync=None, ~allEventSignatures=[Types.PlanRegistry.eventSignatures, Types.StreamManager.eventSignatures, Types.DisputeResolver.eventSignatures]->Belt.Array.concatMany, ~shouldUseHypersyncClientDecoder=true, ~rpcs=[{url: "https://rpc.testnet.arc.network", sourceFor: Sync, syncConfig: {}}], ~lowercaseAddresses=false)

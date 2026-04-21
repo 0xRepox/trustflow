@@ -94,8 +94,8 @@ contract DisputeResolver is IDisputeResolver, ReentrancyGuard {
         if (d.status == DisputeStatus.Responded) revert Errors.DisputeAlreadyResponded();
         if (block.timestamp <= d.respondDeadline) revert Errors.RespondWindowActive();
 
-        // No response within deadline → pro-merchant
-        _settle(disputeId, d, Verdict.Merchant);
+        // No response within deadline → subscriber wins by default
+        _settle(disputeId, d, Verdict.Subscriber);
     }
 
     function getDispute(uint256 disputeId) external view returns (Dispute memory) {
