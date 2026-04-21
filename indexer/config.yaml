@@ -5,7 +5,7 @@ networks:
   - id: 5042002
     rpc_config:
       url: https://rpc.testnet.arc.network
-    start_block: 0
+    start_block: 37617000
     contracts:
       - name: PlanRegistry
         address: "0x276Ad3A0c2A96d2C135736c6Bde315Ff7d9F6648"

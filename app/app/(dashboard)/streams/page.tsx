@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { getPlansByOwner, getStreamsByPlanIds } from "@/lib/envio";
+import { useRouter } from "next/navigation";
+import { getPlansByOwner, getStreamsByPlanIds, type Plan } from "@/lib/envio";
+import { ADDRESSES, STREAM_MANAGER_ABI } from "@/lib/contracts";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_IN_MONTH = 86400 * 30;
@@ -216,30 +218,33 @@ function StreamTicker({
 // ============================================================================
 // Stream card (row)
 // ============================================================================
-function StreamCard({ stream, onClaim }: { stream: any; onClaim: (id: string) => void }) {
-  const ratePerSecond = Number(stream.ratePerSecond ?? 0) / USDC_DECIMALS;
+function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null; onClaim: (id: string) => void }) {
+  const router = useRouter();
+  // ratePerSecond lives on the Plan, not the Stream
+  const ratePerSecond = plan ? Number(plan.ratePerSecond) / USDC_DECIMALS : 0;
   const deposited = Number(stream.deposited ?? 0) / USDC_DECIMALS;
   const claimed = Number(stream.claimed ?? 0) / USDC_DECIMALS;
-  const startedAt = Number(stream.startedAt ?? 0);
+  // Envio field names: createdAt (not startedAt), cancelledAt (not canceledAt), payer (not subscriber)
+  const startedAt = Number(stream.createdAt ?? 0);
 
-  const status: StreamStatus = stream.disputed
+  const status: StreamStatus = stream.status === "Disputed"
     ? "disputed"
-    : stream.canceledAt
+    : stream.cancelledAt || stream.status === "Cancelled"
     ? "canceled"
-    : deposited > 0 && (Date.now() / 1000 - startedAt) * ratePerSecond >= deposited
+    : deposited > 0 && ratePerSecond > 0 && (Date.now() / 1000 - startedAt) * ratePerSecond >= deposited
     ? "ended"
     : "streaming";
 
   const monthly = ratePerSecond * SECONDS_IN_MONTH;
-  const subscriberShort = stream.subscriber
-    ? `${stream.subscriber.slice(0, 8)}…${stream.subscriber.slice(-4)}`
+  const subscriberShort = stream.payer
+    ? `${stream.payer.slice(0, 8)}…${stream.payer.slice(-4)}`
     : "—";
 
   // Compute live claimable for the claim button
   const [liveClaimable, setLiveClaimable] = useState(0);
   useEffect(() => {
     if (status !== "streaming") {
-      const finalConsumed = Math.min(ratePerSecond * (Number(stream.canceledAt ?? Date.now() / 1000) - startedAt), deposited);
+      const finalConsumed = Math.min(ratePerSecond * (Number(stream.cancelledAt ?? Date.now() / 1000) - startedAt), deposited);
       setLiveClaimable(Math.max(0, finalConsumed - claimed));
       return;
     }
@@ -352,6 +357,7 @@ function StreamCard({ stream, onClaim }: { stream: any; onClaim: (id: string) =>
             Claim ${liveClaimable.toFixed(2)}
           </button>
           <button
+            onClick={() => router.push(`/account`)}
             style={{
               background: "transparent",
               border: "1px solid var(--border)",
@@ -454,6 +460,7 @@ function FilterBar({
 // ============================================================================
 export default function StreamsPage() {
   const { address, isConnected } = useAccount();
+  const { writeContractAsync } = useWriteContract();
   const [filter, setFilter] = useState<Filter>("all");
   const [txStatus, setTxStatus] = useState<string | null>(null);
 
@@ -463,28 +470,34 @@ export default function StreamsPage() {
     enabled: !!address,
   });
 
+  const planMap = useMemo(
+    () => Object.fromEntries((plans ?? []).map((p) => [p.id, p])),
+    [plans]
+  );
+
   const { data: streams, refetch } = useQuery({
     queryKey: ["streams", plans?.map((p) => p.id)],
     queryFn: () => getStreamsByPlanIds(plans!.map((p) => p.id)),
     enabled: !!plans?.length,
   });
 
-  // Classify streams and count by status
+  // Classify streams — use Envio field names (createdAt, cancelledAt, payer)
   const classified = useMemo(() => {
     if (!streams) return [];
-    return streams.map((s: any) => {
-      const rate = Number(s.ratePerSecond ?? 0) / USDC_DECIMALS;
+    return streams.map((s) => {
+      const plan = planMap[s.planId];
+      const rate = plan ? Number(plan.ratePerSecond) / USDC_DECIMALS : 0;
       const deposited = Number(s.deposited ?? 0) / USDC_DECIMALS;
-      const startedAt = Number(s.startedAt ?? 0);
+      const startedAt = Number(s.createdAt ?? 0);
       const elapsed = Date.now() / 1000 - startedAt;
       let status: StreamStatus;
-      if (s.disputed) status = "disputed";
-      else if (s.canceledAt) status = "canceled";
-      else if (deposited > 0 && elapsed * rate >= deposited) status = "ended";
+      if (s.status === "Disputed") status = "disputed";
+      else if (s.cancelledAt || s.status === "Cancelled") status = "canceled";
+      else if (deposited > 0 && rate > 0 && elapsed * rate >= deposited) status = "ended";
       else status = "streaming";
       return { ...s, _status: status };
     });
-  }, [streams]);
+  }, [streams, planMap]);
 
   const counts: Record<Filter, number> = useMemo(() => {
     const c: Record<Filter, number> = { all: 0, streaming: 0, disputed: 0, canceled: 0, ended: 0 };
@@ -509,28 +522,36 @@ export default function StreamsPage() {
 
   const liveAggregate = useMemo(() => {
     const active = classified.filter((s: any) => s._status === "streaming");
-    const totalRate = active.reduce(
-      (sum: number, s: any) => sum + Number(s.ratePerSecond ?? 0) / USDC_DECIMALS,
-      0
-    );
+    const totalRate = active.reduce((sum: number, s: any) => {
+      const plan = planMap[s.planId];
+      return sum + (plan ? Number(plan.ratePerSecond) / USDC_DECIMALS : 0);
+    }, 0);
     const totalClaimable = active.reduce((sum: number, s: any) => {
-      const rate = Number(s.ratePerSecond ?? 0) / USDC_DECIMALS;
+      const plan = planMap[s.planId];
+      const rate = plan ? Number(plan.ratePerSecond) / USDC_DECIMALS : 0;
       const deposited = Number(s.deposited ?? 0) / USDC_DECIMALS;
       const claimed = Number(s.claimed ?? 0) / USDC_DECIMALS;
-      const startedAt = Number(s.startedAt ?? 0);
+      const startedAt = Number(s.createdAt ?? 0);
       const consumed = Math.min(rate * (now - startedAt), deposited);
       return sum + Math.max(0, consumed - claimed);
     }, 0);
     return { activeCount: active.length, totalRate, totalClaimable };
-  }, [classified, now]);
+  }, [classified, planMap, now]);
 
   async function handleClaim(streamId: string) {
-    setTxStatus(`Claim triggered for stream #${streamId}…`);
-    // Wire to your StreamManager claim function here
-    setTimeout(() => {
-      setTxStatus(`Claimed stream #${streamId}.`);
+    setTxStatus(`Claiming stream #${streamId}…`);
+    try {
+      await writeContractAsync({
+        address: ADDRESSES.StreamManager,
+        abi: STREAM_MANAGER_ABI,
+        functionName: "claim",
+        args: [BigInt(streamId)],
+      });
+      setTxStatus(`Stream #${streamId} claimed.`);
       refetch();
-    }, 800);
+    } catch (e) {
+      setTxStatus(`Error: ${e instanceof Error ? e.message : "unknown"}`);
+    }
   }
 
   if (!isConnected) {
@@ -670,7 +691,7 @@ export default function StreamsPage() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {filtered.map((stream: any) => (
-            <StreamCard key={stream.id} stream={stream} onClaim={handleClaim} />
+            <StreamCard key={stream.id} stream={stream} plan={planMap[stream.planId] ?? null} onClaim={handleClaim} />
           ))}
         </div>
       )}
