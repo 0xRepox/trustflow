@@ -585,17 +585,29 @@ export default function OverviewPage() {
     enabled: !!streams?.length,
   });
 
+  // planMap: planId → plan (for rate lookup)
+  const planMap = useMemo(
+    () => Object.fromEntries((plans ?? []).map((p: any) => [p.id, p])),
+    [plans]
+  );
+
   // Derived metrics
   const metrics = useMemo(() => {
-    const activeStreams = (streams ?? []).filter((s: any) => s.status === "active" || !s.canceledAt);
+    const activeStreams = (streams ?? []).filter((s: any) => s.status === "Active");
     const totalDeposited = (streams ?? []).reduce((sum: number, s: any) => sum + Number(s.deposited ?? 0) / USDC_DECIMALS, 0);
     const totalClaimed = (streams ?? []).reduce((sum: number, s: any) => sum + Number(s.claimed ?? 0) / USDC_DECIMALS, 0);
-    const totalClaimable = (streams ?? []).reduce((sum: number, s: any) => sum + Number(s.claimable ?? 0) / USDC_DECIMALS, 0);
+    // claimable = consumed - claimed (consumed is last indexed value)
+    const totalClaimable = (streams ?? []).reduce((sum: number, s: any) => {
+      const consumed = Number(s.consumed ?? 0) / USDC_DECIMALS;
+      const claimed = Number(s.claimed ?? 0) / USDC_DECIMALS;
+      return sum + Math.max(0, consumed - claimed);
+    }, 0);
 
-    const ratePerSecond = activeStreams.reduce(
-      (sum: number, s: any) => sum + Number(s.ratePerSecond ?? 0) / USDC_DECIMALS,
-      0
-    );
+    // Rate comes from Plan entity, not Stream
+    const ratePerSecond = activeStreams.reduce((sum: number, s: any) => {
+      const plan = planMap[s.planId];
+      return sum + (plan ? Number(plan.ratePerSecond) / USDC_DECIMALS : 0);
+    }, 0);
     const openDisputes = (disputes ?? []).filter((d: any) => d.status === "Open").length;
 
     return {
@@ -607,7 +619,7 @@ export default function OverviewPage() {
       ratePerSecond,
       openDisputes,
     };
-  }, [streams, disputes]);
+  }, [streams, disputes, planMap]);
 
   // Mock revenue history — replace with real time-series from Envio later
   const revenueHistory = useMemo(() => {
@@ -635,13 +647,13 @@ export default function OverviewPage() {
     (streams ?? []).slice(0, 8).forEach((s: any) => {
       events.push({
         id: `stream-${s.id}`,
-        type: s.canceledAt ? "stream_cancel" : "stream_start",
-        label: s.canceledAt ? `Stream #${s.id} canceled` : `Stream #${s.id} started`,
-        amount: s.canceledAt
-          ? `-$${(Number(s.refunded ?? 0) / USDC_DECIMALS).toFixed(2)}`
+        type: s.cancelledAt ? "stream_cancel" : "stream_start",
+        label: s.cancelledAt ? `Stream #${s.id} cancelled` : `Stream #${s.id} started`,
+        amount: s.cancelledAt
+          ? `-$${(Number(s.refund ?? 0) / USDC_DECIMALS).toFixed(2)}`
           : `+$${(Number(s.deposited ?? 0) / USDC_DECIMALS).toFixed(2)}`,
-        time: s.startedAt ? new Date(Number(s.startedAt) * 1000).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "—",
-        address: s.subscriber ? `${s.subscriber.slice(0, 8)}…${s.subscriber.slice(-4)}` : undefined,
+        time: s.createdAt ? new Date(Number(s.createdAt) * 1000).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "—",
+        address: s.payer ? `${s.payer.slice(0, 8)}…${s.payer.slice(-4)}` : undefined,
       });
     });
     (disputes ?? []).slice(0, 3).forEach((d: any) => {
@@ -844,7 +856,7 @@ export default function OverviewPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
                 { label: "Active", count: metrics.activeStreams, color: "var(--success, #5AF0B8)" },
-                { label: "Canceled", count: metrics.totalStreams - metrics.activeStreams, color: "var(--fg-subtle)" },
+                { label: "Cancelled", count: (streams ?? []).filter((s: any) => s.status === "Cancelled").length, color: "var(--fg-subtle)" },
                 { label: "Disputed", count: metrics.openDisputes, color: "#C9893A" },
               ].map((r) => (
                 <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
