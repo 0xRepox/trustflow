@@ -2,7 +2,7 @@
 
 Per-second USDC subscription billing on [Arc Network](https://arc.network). Merchants set a streaming rate; subscribers deposit a runway and pay only for time consumed. Cancel anytime — unused funds return instantly, no forms, no waiting.
 
-**Live indexer:** [trustflow-production.up.railway.app/graphql](https://trustflow-production.up.railway.app/graphql)
+**Live app:** [app-omega-two-83.vercel.app](https://app-omega-two-83.vercel.app)
 
 ---
 
