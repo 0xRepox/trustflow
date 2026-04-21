@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAccount, useDisconnect } from "wagmi";
+import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getDisputesByMerchant, getStreamsByPlanIds, getPlansByOwner } from "@/lib/envio";
-import { WalletButton } from "@/components/WalletButton";
-
 const NAV = [
   {
     href: "/dashboard", label: "Overview",
@@ -55,20 +53,9 @@ const NAV = [
   },
 ];
 
-function DisconnectIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <polyline points="16 17 21 12 16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
 export function Sidebar() {
   const pathname = usePathname();
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
+  const { address } = useAccount();
 
   const { data: plans } = useQuery({
     queryKey: ["plans", address],
@@ -123,63 +110,6 @@ export function Sidebar() {
             <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--label)", letterSpacing: "0.08em", margin: 0 }}>{"{MERCHANT}"}</p>
           </div>
         </div>
-      </div>
-
-      {/* Wallet — top left, under logo */}
-      <div style={{ padding: "0 10px 14px" }}>
-        {isConnected && address ? (
-          <div style={{
-            display: "flex", alignItems: "center", gap: 8,
-            background: "rgba(172,198,233,0.04)",
-            border: "1px solid rgba(172,198,233,0.08)",
-            borderRadius: 10, padding: "7px 10px",
-          }}>
-            <div style={{
-              width: 26, height: 26, borderRadius: "50%",
-              background: "linear-gradient(135deg, #3898EC 0%, #ACC6E9 100%)",
-              flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "#08111C", fontWeight: 700 }}>
-                {address.slice(2, 4).toUpperCase()}
-              </span>
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{
-                fontFamily: "var(--font-mono)", fontSize: 10, color: "#fff",
-                margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {address.slice(0, 6)}…{address.slice(-4)}
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 1 }}>
-                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4CAF7D", boxShadow: "0 0 5px #4CAF7D" }}/>
-                <p style={{ fontFamily: "var(--font-body)", fontSize: 9, color: "#4CAF7D", margin: 0 }}>Connected</p>
-              </div>
-            </div>
-            {/* Disconnect button */}
-            <button
-              onClick={() => disconnect()}
-              title="Disconnect wallet"
-              style={{
-                background: "none", border: "none", cursor: "pointer",
-                color: "rgba(172,198,233,0.3)", padding: 4, borderRadius: 6,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "color 0.12s, background 0.12s", flexShrink: 0,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#E05555";
-                e.currentTarget.style.background = "rgba(224,85,85,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "rgba(172,198,233,0.3)";
-                e.currentTarget.style.background = "none";
-              }}
-            >
-              <DisconnectIcon />
-            </button>
-          </div>
-        ) : (
-          <WalletButton />
-        )}
       </div>
 
       {/* Chain badge */}
