@@ -121,25 +121,35 @@ function StatCard({
 // ============================================================================
 // Hero: the live streaming rate — the coolest feature, now front and center
 // ============================================================================
+type ActiveStream = { ratePerSecond: number; startedAt: number; deposited: number };
+
+function computeLiveTotal(streams: ActiveStream[]): number {
+  const now = Date.now() / 1000;
+  return streams.reduce((sum, s) => {
+    const elapsed = Math.max(0, now - s.startedAt);
+    return sum + Math.min(s.ratePerSecond * elapsed, s.deposited);
+  }, 0);
+}
+
 function LiveStreamingHero({
   ratePerSecond,
   activeStreams,
-  totalStreaming,
+  liveStreams,
 }: {
   ratePerSecond: number;
   activeStreams: number;
-  totalStreaming: number;
+  liveStreams: ActiveStream[];
 }) {
-  const [tickedAmount, setTickedAmount] = useState(totalStreaming);
+  const [tickedAmount, setTickedAmount] = useState(() => computeLiveTotal(liveStreams));
   const [sessionStart] = useState(Date.now());
 
   useEffect(() => {
     if (ratePerSecond <= 0) return;
     const interval = setInterval(() => {
-      setTickedAmount((prev) => prev + ratePerSecond * 0.1);
+      setTickedAmount(computeLiveTotal(liveStreams));
     }, 100);
     return () => clearInterval(interval);
-  }, [ratePerSecond]);
+  }, [ratePerSecond, liveStreams]);
 
   const sessionSeconds = Math.floor((Date.now() - sessionStart) / 1000);
   const sessionEarned = ratePerSecond * sessionSeconds;
@@ -610,6 +620,15 @@ export default function OverviewPage() {
     }, 0);
     const openDisputes = (disputes ?? []).filter((d: any) => d.status === "Open").length;
 
+    const liveStreams = activeStreams.map((s: any) => {
+      const plan = planMap[s.planId];
+      return {
+        ratePerSecond: plan ? Number(plan.ratePerSecond) / USDC_DECIMALS : 0,
+        startedAt: Number(s.createdAt ?? 0),
+        deposited: Number(s.deposited ?? 0) / USDC_DECIMALS,
+      };
+    });
+
     return {
       activeStreams: activeStreams.length,
       totalStreams: streams?.length ?? 0,
@@ -618,6 +637,7 @@ export default function OverviewPage() {
       totalClaimable,
       ratePerSecond,
       openDisputes,
+      liveStreams,
     };
   }, [streams, disputes, planMap]);
 
@@ -737,7 +757,7 @@ export default function OverviewPage() {
         <LiveStreamingHero
           ratePerSecond={metrics.ratePerSecond}
           activeStreams={metrics.activeStreams}
-          totalStreaming={metrics.totalClaimed + metrics.totalClaimable}
+          liveStreams={metrics.liveStreams}
         />
       </div>
 
