@@ -14,9 +14,14 @@ export const arcTestnet = defineChain({
   },
 });
 
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!;
+
 export const wagmiConfig = createConfig({
   chains: [arcTestnet],
-  connectors: [injected()],
+  connectors: [
+    injected(),
+    walletConnect({ projectId }),
+  ],
   transports: {
     [arcTestnet.id]: http("https://rpc.testnet.arc.network"),
   },
