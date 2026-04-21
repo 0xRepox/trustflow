@@ -13,6 +13,10 @@ out/
 # Internal docs — not for deployment
 brand/
 TrustFlow_PRD.docx
+TrustFlow Design System/
+
+# macOS
+.DS_Store
 
 # Node
 node_modules/
