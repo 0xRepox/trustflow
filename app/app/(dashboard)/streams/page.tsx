@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { getPlansByOwner, getStreamsByPlanIds, type Plan } from "@/lib/envio";
 import { ADDRESSES, STREAM_MANAGER_ABI } from "@/lib/contracts";
 
@@ -219,7 +218,7 @@ function StreamTicker({
 // Stream card (row)
 // ============================================================================
 function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null; onClaim: (id: string) => void }) {
-  const router = useRouter();
+  const [expanded, setExpanded] = useState(false);
   // ratePerSecond lives on the Plan, not the Stream
   const ratePerSecond = plan ? Number(plan.ratePerSecond) / USDC_DECIMALS : 0;
   const deposited = Number(stream.deposited ?? 0) / USDC_DECIMALS;
@@ -287,7 +286,7 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
         }}
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1.8fr 180px", gap: 20, alignItems: "center" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1.8fr 180px", gap: 20, alignItems: "center", paddingLeft: 10 }}>
         {/* Left: identity */}
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
@@ -357,7 +356,7 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
             Claim ${liveClaimable.toFixed(2)}
           </button>
           <button
-            onClick={() => router.push(`/account`)}
+            onClick={() => setExpanded((v) => !v)}
             style={{
               background: "transparent",
               border: "1px solid var(--border)",
@@ -365,23 +364,94 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
               padding: "7px 14px",
               fontFamily: "var(--font-body)",
               fontSize: 11,
-              color: "var(--fg-muted)",
+              color: expanded ? "#fff" : "var(--fg-muted)",
               cursor: "pointer",
               transition: "all 0.15s",
+              borderColor: expanded ? "rgba(172,198,233,0.3)" : "var(--border)",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.color = "#fff";
-              e.currentTarget.style.borderColor = "var(--fg-muted)";
+              e.currentTarget.style.borderColor = "rgba(172,198,233,0.3)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = "var(--fg-muted)";
-              e.currentTarget.style.borderColor = "var(--border)";
+              if (!expanded) {
+                e.currentTarget.style.color = "var(--fg-muted)";
+                e.currentTarget.style.borderColor = "var(--border)";
+              }
             }}
           >
-            View details →
+            {expanded ? "Hide details ↑" : "View details →"}
           </button>
         </div>
       </div>
+
+      {/* Inline expanded detail panel */}
+      {expanded && (
+        <div style={{
+          marginTop: 14,
+          paddingTop: 14,
+          borderTop: "1px solid rgba(172,198,233,0.08)",
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 16,
+          paddingLeft: 10,
+        }}>
+          {/* Subscriber */}
+          <div>
+            <p style={{ ...labelMono, marginBottom: 6 }}>Subscriber</p>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#fff", margin: 0, wordBreak: "break-all" }}>
+              {stream.payer ?? "—"}
+            </p>
+          </div>
+
+          {/* Timeline */}
+          <div>
+            <p style={{ ...labelMono, marginBottom: 6 }}>Timeline</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg2)", margin: 0 }}>
+                Started: {stream.createdAt ? new Date(Number(stream.createdAt) * 1000).toLocaleString() : "—"}
+              </p>
+              {stream.cancelledAt && (
+                <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-subtle)", margin: 0 }}>
+                  Cancelled: {new Date(Number(stream.cancelledAt) * 1000).toLocaleString()}
+                </p>
+              )}
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-subtle)", margin: 0 }}>
+                Deposited: ${(Number(stream.deposited ?? 0) / USDC_DECIMALS).toFixed(2)} USDC
+              </p>
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-subtle)", margin: 0 }}>
+                Claimed: ${(Number(stream.claimed ?? 0) / USDC_DECIMALS).toFixed(4)} USDC
+              </p>
+            </div>
+          </div>
+
+          {/* Links */}
+          <div>
+            <p style={{ ...labelMono, marginBottom: 6 }}>Explorer</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <a
+                href={`https://testnet.arcscan.app/address/${stream.payer}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--cta, #3898EC)", textDecoration: "none" }}
+              >
+                View subscriber ↗
+              </a>
+              <a
+                href={`https://testnet.arcscan.app/address/${ADDRESSES.StreamManager}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--cta, #3898EC)", textDecoration: "none" }}
+              >
+                StreamManager ↗
+              </a>
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", margin: 0 }}>
+                Stream ID: #{stream.id}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
