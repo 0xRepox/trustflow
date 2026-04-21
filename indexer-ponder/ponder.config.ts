@@ -6,6 +6,9 @@ import StreamManagerAbi from "./abis/StreamManager.json";
 import DisputeResolverAbi from "./abis/DisputeResolver.json";
 
 export default createConfig({
+  database: {
+    schema: "ponder",
+  },
   chains: {
     arcTestnet: {
       id: 5042002,
