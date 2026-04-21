@@ -641,11 +641,22 @@ export default function OverviewPage() {
     };
   }, [streams, disputes, planMap]);
 
-  // Mock revenue history — replace with real time-series from Envio later
+  // Revenue history: simulate consumed growth from stream start → now
   const revenueHistory = useMemo(() => {
-    if (metrics.totalClaimed === 0) return [];
-    return Array.from({ length: 30 }, (_, i) => metrics.totalClaimed * (i / 29) + Math.random() * metrics.totalClaimed * 0.05);
-  }, [metrics.totalClaimed]);
+    if (!streams || metrics.liveStreams.length === 0) return [];
+    const now = Date.now() / 1000;
+    const earliest = Math.min(...metrics.liveStreams.map((s) => s.startedAt));
+    const elapsed = now - earliest;
+    if (elapsed <= 0) return [];
+    // 30 sample points across the stream's lifetime
+    return Array.from({ length: 30 }, (_, i) => {
+      const t = earliest + (elapsed * i) / 29;
+      return metrics.liveStreams.reduce((sum, s) => {
+        const e = Math.max(0, t - s.startedAt);
+        return sum + Math.min(s.ratePerSecond * e, s.deposited);
+      }, 0);
+    });
+  }, [metrics.liveStreams, streams]);
 
   // Per-plan breakdown
   const planBreakdown = useMemo(() => {
