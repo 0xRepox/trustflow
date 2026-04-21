@@ -17,10 +17,11 @@ export function WalletButton() {
       <button
         onClick={() => switchChain({ chainId: arcTestnet.id })}
         style={{
-          padding: "8px 16px", borderRadius: 8, border: "1px solid rgba(201,137,58,0.4)",
+          padding: "6px 14px", borderRadius: 8,
+          border: "1px solid rgba(201,137,58,0.4)",
           background: "rgba(201,137,58,0.12)", color: "#C9893A",
           fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 500,
-          cursor: "pointer", transition: "all 0.15s",
+          cursor: "pointer",
         }}
       >
         Switch to Arc Testnet
@@ -30,36 +31,50 @@ export function WalletButton() {
 
   if (isConnected && address) {
     return (
-      <button
-        onClick={() => disconnect()}
-        title="Click to disconnect"
-        style={{
-          display: "inline-flex", alignItems: "center", gap: 8,
-          padding: "8px 14px", borderRadius: 8,
-          border: "1px solid var(--border)", background: "var(--surface)",
-          fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--fg2)",
-          cursor: "pointer", transition: "all 0.15s",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "rgba(224,85,85,0.4)";
-          e.currentTarget.style.color = "var(--error)";
-          e.currentTarget.querySelector("span")!.textContent = "Disconnect";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.color = "var(--fg2)";
-          e.currentTarget.querySelector("span")!.textContent = `${address.slice(0, 6)}…${address.slice(-4)}`;
-        }}
-      >
-        <span
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        {/* Address chip */}
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 7,
+          padding: "5px 12px", borderRadius: 8,
+          border: "1px solid rgba(172,198,233,0.12)",
+          background: "rgba(172,198,233,0.05)",
+        }}>
+          <span style={{
+            width: 6, height: 6, borderRadius: "50%",
+            background: "#4CAF7D", boxShadow: "0 0 6px #4CAF7D",
+            flexShrink: 0, display: "inline-block",
+          }}/>
+          <span style={{
+            fontFamily: "var(--font-mono)", fontSize: 12, color: "#fff",
+          }}>
+            {address.slice(0, 6)}…{address.slice(-4)}
+          </span>
+        </div>
+
+        {/* Disconnect button — separate, clearly labelled */}
+        <button
+          onClick={() => disconnect()}
           style={{
-            width: 7, height: 7, borderRadius: "50%",
-            background: "var(--success)", flexShrink: 0,
-            display: "inline-block",
+            padding: "5px 10px", borderRadius: 8,
+            border: "1px solid rgba(172,198,233,0.1)",
+            background: "transparent",
+            fontFamily: "var(--font-body)", fontSize: 12, color: "rgba(172,198,233,0.45)",
+            cursor: "pointer", transition: "all 0.15s",
           }}
-        />
-        <span>{address.slice(0, 6)}…{address.slice(-4)}</span>
-      </button>
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "#E05555";
+            e.currentTarget.style.borderColor = "rgba(224,85,85,0.35)";
+            e.currentTarget.style.background = "rgba(224,85,85,0.08)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "rgba(172,198,233,0.45)";
+            e.currentTarget.style.borderColor = "rgba(172,198,233,0.1)";
+            e.currentTarget.style.background = "transparent";
+          }}
+        >
+          Disconnect
+        </button>
+      </div>
     );
   }
 
@@ -67,7 +82,7 @@ export function WalletButton() {
     <button
       onClick={() => connect({ connector: injected(), chainId: arcTestnet.id })}
       style={{
-        padding: "8px 16px", borderRadius: 8, border: "none",
+        padding: "6px 16px", borderRadius: 8, border: "none",
         background: "var(--cta)", color: "#fff",
         fontFamily: "var(--font-heading)", fontSize: 13, fontWeight: 500,
         cursor: "pointer", transition: "background 0.15s",
