@@ -13,38 +13,26 @@ export default function SubscribeLayout({ children }: { children: React.ReactNod
         padding: "24px 16px",
       }}>
         {/* Logo */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 28,
-          textDecoration: "none",
-        }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 28 }}>
           <div style={{
-            width: 28,
-            height: 28,
-            borderRadius: 7,
-            background: "linear-gradient(135deg, #1A3A5C 0%, #0D2035 100%)",
-            border: "1px solid rgba(56,152,236,0.3)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            width: 30, height: 30, borderRadius: 8,
+            background: "rgba(56,152,236,0.12)",
+            border: "1px solid rgba(56,152,236,0.2)",
+            display: "flex", alignItems: "center", justifyContent: "center",
             flexShrink: 0,
           }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 2L7 7M7 7L4 5M7 7L10 5" stroke="#3898EC" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M3 9.5C3 9.5 4.5 12 7 12C9.5 12 11 9.5 11 9.5" stroke="#4CAF7D" strokeWidth="1.5" strokeLinecap="round"/>
+            <svg width="16" height="16" viewBox="0 0 48 48" fill="none">
+              <circle cx="5" cy="24" r="3.5" fill="#ACC6E9"/>
+              <path d="M8.5 24 C13 24 13 15 19.5 15 C26 15 26 33 32.5 33 C37 33 38.5 27 39.5 24"
+                    stroke="#ACC6E9" strokeWidth="2.5" strokeLinecap="round"/>
+              <path d="M37 19.5 L43 24 L37 28.5" stroke="#3898EC" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="43" cy="24" r="1.5" fill="#3898EC"/>
             </svg>
           </div>
-          <span style={{
-            fontFamily: "var(--font-heading, 'Space Grotesk', sans-serif)",
-            fontSize: 15,
-            fontWeight: 600,
-            color: "#fff",
-            letterSpacing: "-0.01em",
-          }}>
+          <p style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: 15, color: "#fff", margin: 0 }}>
             TrustFlow
-          </span>
+          </p>
         </div>
 
         {children}
