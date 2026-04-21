@@ -8,7 +8,11 @@ out/
 /broadcast/**/dry-run/
 
 # Dotenv file
-.env
+.env*
+
+# Internal docs — not for deployment
+brand/
+TrustFlow_PRD.docx
 
 # Node
 node_modules/
