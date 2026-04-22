@@ -110,6 +110,7 @@ export default function LandingPage() {
             <li><Link href="/docs" className={s.navLink}>Docs</Link></li>
             <li><Link href="/dashboard" className={s.navCta}>Launch app →</Link></li>
           </ul>
+          <Link href="/dashboard" className={`${s.navCta} ${s.navMobile}`}>Launch app →</Link>
         </nav>
 
         {/* Hero */}
@@ -140,7 +141,7 @@ export default function LandingPage() {
               <div className={s.dots}>
                 <span /><span /><span />
               </div>
-              <div>stream · 0x7A3f…9E2c → 0xC8B1…44aA</div>
+              <div className={s.termHeaderAddr}>stream · 0x7A3f…9E2c → 0xC8B1…44aA</div>
               <div className={s.liveLabel}>LIVE</div>
             </div>
             <div className={s.counterBody}>
