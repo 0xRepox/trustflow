@@ -120,7 +120,7 @@ export function Sidebar() {
           borderRadius: 20, padding: "4px 10px",
         }}>
           <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4CAF7D", display: "inline-block", boxShadow: "0 0 6px #4CAF7D" }}/>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "#4CAF7D", letterSpacing: "0.06em" }}>ARC TESTNET</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "#4CAF7D", letterSpacing: "0.06em" }}>Arc Testnet</span>
         </div>
       </div>
 

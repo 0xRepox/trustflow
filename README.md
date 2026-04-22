@@ -1,6 +1,6 @@
 # TrustFlow
 
-Per-second USDC subscription billing on [Arc Network](https://arc.network). Merchants set a streaming rate; subscribers deposit a runway and pay only for time consumed. Cancel anytime — unused funds return instantly, no forms, no waiting.
+Per-second USDC subscription billing built on Arc. Merchants set a streaming rate; subscribers deposit a runway and pay only for time consumed. Cancel anytime — unused funds return instantly, no forms, no waiting.
 
 **Live app:** [app-omega-two-83.vercel.app](https://app-omega-two-83.vercel.app)
 
@@ -25,7 +25,7 @@ Chain ID `5042002` · Explorer: [testnet.arcscan.app](https://testnet.arcscan.ap
 
 **Subscribers** deposit a buffer — 1 week, 1 month, or 3 months of runway. The deposit drains second-by-second to the merchant. Cancel anytime; the unspent portion returns instantly via Arc's sub-second finality.
 
-**Disputes** freeze the contested amount on-chain. The merchant has 7 days to submit an evidence hash. An arbitrator settles — Subscriber, Merchant, or 50/50 Split. If the merchant doesn't respond, the subscriber wins by default and the frozen funds return automatically.
+**Disputes** freeze the contested amount onchain. The merchant has 7 days to submit an evidence hash. An arbitrator settles — Subscriber, Merchant, or 50/50 Split. If the merchant doesn't respond, the subscriber wins by default and the frozen funds return automatically.
 
 ---
 

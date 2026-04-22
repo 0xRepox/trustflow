@@ -34,17 +34,17 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "TrustFlow",
-  description: "Per-second USDC streaming subscriptions on Arc Network. Stream, trust, verify.",
+  description: "Per-second USDC streaming subscriptions built on Arc. Stream, trust, verify.",
   openGraph: {
     title: "TrustFlow",
-    description: "Per-second USDC streaming subscriptions on Arc Network.",
+    description: "Per-second USDC streaming subscriptions built on Arc.",
     images: [{ url: "/og-image.svg", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "TrustFlow",
-    description: "Per-second USDC streaming subscriptions on Arc Network.",
+    description: "Per-second USDC streaming subscriptions built on Arc.",
     images: ["/og-image.svg"],
   },
 };

@@ -19,7 +19,7 @@ export function TopBar() {
     }}>
       <div style={{ display: "flex", gap: 24 }}>
         {[
-          ["ARC TESTNET EXPLORER", null],
+          ["Arc Testnet Explorer", null],
           ["USDC", "0x3600…0000"],
           ["BLOCK", block ? `+${block.number.toLocaleString()}` : "…"],
         ].map(([label, value]) => (

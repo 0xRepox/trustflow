@@ -125,7 +125,7 @@ export default function LandingPage() {
           </h1>
 
           <p className={s.heroSub}>
-            A subscription protocol on <strong>Arc Network</strong> that replaces 30-day billing cycles with
+            A subscription protocol built on <strong>Arc</strong> that replaces 30-day billing cycles with
             continuous USDC streams. Subscribers pay only for time consumed. Merchants receive revenue every second.
             Cancel at 13 seconds? You get refunded for the other 2,591,987.
           </p>

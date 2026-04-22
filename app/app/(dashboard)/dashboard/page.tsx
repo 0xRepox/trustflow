@@ -333,7 +333,7 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
               letterSpacing: "0.05em",
             }}
           >
-            // awaiting on-chain events
+            // awaiting onchain events
           </p>
           <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
             Activity appears the moment a subscriber opens a stream.
