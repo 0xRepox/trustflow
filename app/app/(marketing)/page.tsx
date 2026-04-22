@@ -120,8 +120,8 @@ export default function LandingPage() {
           <span className={s.tag}>Live on Arc Testnet · Chain 5042002</span>
 
           <h1 className={s.heroTitle}>
-            <span className={s.strike}>Stripe</span> bills per month.<br />
-            <span className={s.heroAccent}>TrustFlow</span> bills per second.
+            Subscriptions that settle every second,<br />
+            <span className={s.heroAccent}>not every 30 days.</span>
           </h1>
 
           <p className={s.heroSub}>
