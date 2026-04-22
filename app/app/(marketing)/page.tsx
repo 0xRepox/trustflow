@@ -41,9 +41,6 @@ export default function LandingPage() {
   const streamedRef = useRef(0);
   const statRef = useRef(48932.17);
 
-  useEffect(() => {
-    if (isConnected) router.replace("/dashboard");
-  }, [isConnected, router]);
 
   useEffect(() => {
     const id = setInterval(() => {

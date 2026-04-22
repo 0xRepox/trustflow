@@ -88,7 +88,7 @@ export function Sidebar() {
 
       {/* Logo */}
       <div style={{ padding: "20px 16px 14px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none" }}>
           <div style={{
             width: 30, height: 30, borderRadius: 8,
             background: "rgba(56,152,236,0.12)",
@@ -109,7 +109,7 @@ export function Sidebar() {
             <p style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: 14, color: "#fff", margin: 0, lineHeight: 1.2 }}>TrustFlow</p>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--label)", letterSpacing: "0.08em", margin: 0 }}>{"{MERCHANT}"}</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Chain badge */}
