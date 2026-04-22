@@ -168,6 +168,62 @@ function RatePreview({ amount, period }: { amount: number; period: string }) {
 }
 
 // ============================================================================
+// Deactivate button with inline confirmation
+// ============================================================================
+function DeactivateButton({ planId, active, hasActiveStreams, onDeactivate }: {
+  planId: string; active: boolean; hasActiveStreams: boolean; onDeactivate: (id: string) => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  if (!active) return null;
+  if (confirming) {
+    return (
+      <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+        {hasActiveStreams && (
+          <span style={{ fontFamily: "var(--font-body)", fontSize: 10, color: "var(--error, #FF6B4A)", maxWidth: 120 }}>
+            {hasActiveStreams ? "Active subscribers exist." : ""}
+          </span>
+        )}
+        <button
+          onClick={() => { onDeactivate(planId); setConfirming(false); }}
+          style={{
+            background: "rgba(224,85,85,0.12)", border: "1px solid rgba(224,85,85,0.4)",
+            borderRadius: 6, padding: "5px 10px", cursor: "pointer",
+            fontFamily: "var(--font-body)", fontSize: 11, color: "var(--error, #FF6B4A)",
+          }}
+        >
+          Confirm
+        </button>
+        <button
+          onClick={() => setConfirming(false)}
+          style={{
+            background: "none", border: "1px solid var(--border)", borderRadius: 6,
+            padding: "5px 10px", cursor: "pointer",
+            fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-muted)",
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+  return (
+    <button
+      onClick={() => setConfirming(true)}
+      style={{
+        background: "none", border: "1px solid var(--border)", borderRadius: 6,
+        padding: "5px 10px", cursor: "pointer",
+        fontFamily: "var(--font-body)", fontSize: 11, color: "var(--error, #FF6B4A)",
+        transition: "all 0.15s",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--error, #FF6B4A)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
+    >
+      Deactivate
+    </button>
+  );
+}
+
+// ============================================================================
 // Plan card with live subscriber stats
 // ============================================================================
 function PlanCard({
@@ -215,10 +271,12 @@ function PlanCard({
   const [copied, setCopied] = useState(false);
   const [redirectInput, setRedirectInput] = useState(successUrl ?? "");
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const subscribeUrl = origin ? `${origin}/subscribe/${plan.id}` : "";
+  const token = origin ? getPlanToken(plan.id) : "";
+  const baseUrl = origin ? `${origin}/subscribe/${token}` : "";
+  const nameParam = name ? `&name=${encodeURIComponent(name)}` : "";
   const checkoutLink = successUrl
-    ? `${subscribeUrl}?success=${encodeURIComponent(successUrl)}`
-    : subscribeUrl;
+    ? `${baseUrl}?success=${encodeURIComponent(successUrl)}${nameParam}`
+    : name ? `${baseUrl}?name=${encodeURIComponent(name)}` : baseUrl;
 
   const handleCopy = () => {
     onCopyLink(plan.id, successUrl);
@@ -315,30 +373,7 @@ function PlanCard({
           </p>
         </div>
 
-        {plan.active && (
-          <button
-            onClick={() => onDeactivate(plan.id)}
-            style={{
-              background: "none",
-              border: "1px solid var(--border)",
-              borderRadius: 6,
-              padding: "5px 10px",
-              cursor: "pointer",
-              fontFamily: "var(--font-body)",
-              fontSize: 11,
-              color: "var(--error, #FF6B4A)",
-              transition: "all 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "var(--error, #FF6B4A)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "var(--border)";
-            }}
-          >
-            Deactivate
-          </button>
-        )}
+        <DeactivateButton planId={plan.id} active={plan.active} hasActiveStreams={activeStreams.length > 0} onDeactivate={onDeactivate} />
       </div>
 
       {plan.active && (
@@ -487,6 +522,7 @@ function PlanCard({
 // ============================================================================
 const NAMES_KEY = "trustflow_plan_names";
 const REDIRECTS_KEY = "trustflow_plan_redirects";
+const TOKENS_KEY = "trustflow_plan_tokens";
 
 function loadNames(): Record<string, string> {
   try { return JSON.parse(localStorage.getItem(NAMES_KEY) ?? "{}"); } catch { return {}; }
@@ -501,6 +537,22 @@ function loadRedirects(): Record<string, string> {
 function saveRedirect(planId: string, url: string) {
   const redirects = loadRedirects();
   localStorage.setItem(REDIRECTS_KEY, JSON.stringify({ ...redirects, [planId]: url }));
+}
+function loadTokens(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(TOKENS_KEY) ?? "{}"); } catch { return {}; }
+}
+function getPlanToken(planId: string): string {
+  const tokens = loadTokens();
+  if (tokens[planId]) return tokens[planId];
+  const arr = crypto.getRandomValues(new Uint8Array(5));
+  const prefix = Array.from(arr).map(b => b.toString(36).padStart(2, "0")).join("").slice(0, 8);
+  const suffix = parseInt(planId).toString(36).padStart(4, "0");
+  const token = prefix + suffix;
+  localStorage.setItem(TOKENS_KEY, JSON.stringify({ ...tokens, [planId]: token }));
+  return token;
+}
+function decodePlanToken(token: string): string {
+  return parseInt(token.slice(-4), 36).toString();
 }
 
 export default function PlansPage() {
@@ -578,7 +630,9 @@ export default function PlansPage() {
   }
 
   function handleCopyLink(planId: string, successUrl?: string) {
-    const base = `${window.location.origin}/subscribe/${planId}`;
+    // token + name are handled inside PlanCard; this is a fallback
+    const token = getPlanToken(planId);
+    const base = `${window.location.origin}/subscribe/${token}`;
     const link = successUrl ? `${base}?success=${encodeURIComponent(successUrl)}` : base;
     navigator.clipboard.writeText(link);
   }

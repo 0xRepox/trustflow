@@ -18,6 +18,15 @@ function isSafeRedirectUrl(url: string): boolean {
   }
 }
 
+function decodeToken(token: string): string {
+  try {
+    const suffix = token.slice(-4);
+    const id = parseInt(suffix, 36);
+    if (!isNaN(id) && id > 0) return id.toString();
+  } catch { /* */ }
+  return token; // fallback: treat as raw planId
+}
+
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_PER_MONTH = 86400 * 30;
 const SECONDS_PER_HOUR = 3600;
@@ -88,7 +97,8 @@ function getDisplayConfig(monthlyPrice: number): {
 }
 
 function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
-  const { planId } = use(params);
+  const { planId: token } = use(params);
+  const planId = decodeToken(token);
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
   const searchParams = useSearchParams();
@@ -96,6 +106,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
 
   const rawSuccess = searchParams.get("success") ?? "";
   const successUrl = isSafeRedirectUrl(rawSuccess) ? rawSuccess : null;
+  const planName = searchParams.get("name") ?? "";
 
   const [runway, setRunway] = useState("1w");
   const [step, setStep] = useState<"idle" | "approving" | "subscribing" | "done">("idle");
@@ -278,7 +289,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
 
         {/* Label */}
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--label)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 14px" }}>
-          {"{SUBSCRIPTION PLAN #"}{planId}{"}"}
+          {planName ? `{${planName}}` : "{SUBSCRIPTION PLAN}"}
         </p>
 
         {/* Price hero */}
