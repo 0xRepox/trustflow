@@ -20,7 +20,7 @@ interface LedgerEntry { label: string; amt: string; warn?: boolean }
 
 const COMPARE_ROWS = [
   { criterion: "Transaction fee", hint: "per charge", legacy: "2.9% + $0.30", modern: "~$0.01 gas" },
-  { criterion: "Refund on cancel", hint: "for unused time", legacy: "5–10 business days", modern: "< 1 second" },
+  { criterion: "Refund on cancel", hint: "for unused time", legacy: "5-10 biz days", modern: "< 1 second" },
   { criterion: "Chargeback risk", hint: "merchant exposure", legacy: "$20 fee + reversal", modern: "Impossible by design" },
   { criterion: "Viable monthly price", hint: "fees eat margin", legacy: "~$5.00 minimum", modern: "$0.01 minimum" },
   { criterion: "Billing granularity", hint: "resolution", legacy: "Monthly cycle", modern: "Per-second" },

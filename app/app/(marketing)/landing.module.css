@@ -397,8 +397,9 @@
   .compareRow:not(:first-child) .compareCell:nth-child(2),
   .compareRow:not(:first-child) .compareCell:nth-child(3) {
     border-bottom: none;
-    padding: 10px 16px 14px;
+    padding: 10px 12px 14px;
   }
+  .val { font-size: 12px; }
   .compareCell { padding: 12px 16px; }
   .val { font-size: 13px; }
 
