@@ -53,7 +53,7 @@ export function ConnectPrompt({
         {"{ TrustFlow · Merchant Dashboard }"}
       </p>
       <h1 style={{
-        fontFamily: "var(--font-heading)",
+        fontFamily: "var(--font-sans)",
         fontSize: 30,
         fontWeight: 700,
         color: "#fff",
@@ -64,7 +64,7 @@ export function ConnectPrompt({
         {headline ?? defaultHeadline}
       </h1>
       <p style={{
-        fontFamily: "var(--font-body)",
+        fontFamily: "var(--font-sans)",
         fontSize: 14,
         color: "var(--fg-muted)",
         margin: "0 0 36px",
@@ -97,7 +97,7 @@ export function ConnectPrompt({
           }}>
             <span style={{ fontSize: 20, display: "block", marginBottom: 8 }}>{f.icon}</span>
             <p style={{
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 13,
               fontWeight: 600,
               color: "#fff",
@@ -106,7 +106,7 @@ export function ConnectPrompt({
               {f.title}
             </p>
             <p style={{
-              fontFamily: "var(--font-body)",
+              fontFamily: "var(--font-sans)",
               fontSize: 12,
               color: "var(--fg-muted)",
               margin: 0,
@@ -134,8 +134,8 @@ export function ConnectPrompt({
         <div style={{ position: "absolute", left: 0, top: 18, bottom: 18, width: 2, background: "var(--success, #4CAF7D)", borderRadius: 2 }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <p style={{ fontFamily: "var(--font-heading)", fontSize: 13, fontWeight: 500, color: "#fff", margin: "0 0 4px" }}>Pro API</p>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: 0 }}>$29.00/mo · 3 active subscribers</p>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 500, color: "#fff", margin: "0 0 4px" }}>Pro API</p>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: 0 }}>$29.00/mo · 3 active subscribers</p>
           </div>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--success)", padding: "3px 8px", border: "1px solid rgba(76,175,125,0.3)", borderRadius: 9999 }}>ACTIVE</span>
         </div>
@@ -150,7 +150,7 @@ export function ConnectPrompt({
         <div style={{ background: "var(--elevated)", borderRadius: 8, padding: "8px 12px", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)" }}>→</span>
           <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-subtle)", flex: 1, margin: 0 }}>app.trustflow.io/subscribe/1</p>
-          <span style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--cta)" }}>Copy link</span>
+          <span style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--cta)" }}>Copy link</span>
         </div>
       </div>
     </div>

@@ -37,7 +37,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 8,
   padding: "8px 12px",
   fontSize: 12,
-  fontFamily: "var(--font-body)",
+  fontFamily: "var(--font-sans)",
   color: "#fff",
   outline: "none",
 };
@@ -232,7 +232,7 @@ function DisputeCard({
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
             <p
               style={{
-                fontFamily: "var(--font-heading)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 14,
                 fontWeight: 500,
                 color: "#fff",
@@ -261,7 +261,7 @@ function DisputeCard({
           {dispute.status === "Settled" && dispute.verdict && (
             <p
               style={{
-                fontFamily: "var(--font-body)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 11,
                 color: "var(--fg-muted)",
                 margin: "4px 0 0",
@@ -306,7 +306,7 @@ function DisputeCard({
               border: "none",
               borderRadius: 8,
               padding: "8px 16px",
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 12,
               fontWeight: 500,
               color: evidence ? "#fff" : "var(--fg-subtle)",
@@ -325,7 +325,7 @@ function DisputeCard({
               border: "1px solid var(--border)",
               borderRadius: 8,
               padding: "8px 14px",
-              fontFamily: "var(--font-body)",
+              fontFamily: "var(--font-sans)",
               fontSize: 11,
               color: "var(--fg-muted)",
               cursor: isPending ? "not-allowed" : "pointer",
@@ -445,7 +445,7 @@ export default function DisputesPage() {
           <SectionLabel>Disputes · Merchant</SectionLabel>
           <h1
             style={{
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 28,
               fontWeight: 600,
               color: "#fff",
@@ -599,7 +599,7 @@ export default function DisputesPage() {
           </p>
           <p
             style={{
-              fontFamily: "var(--font-body)",
+              fontFamily: "var(--font-sans)",
               fontSize: 13,
               color: "var(--fg-muted)",
               margin: "8px 0 0",

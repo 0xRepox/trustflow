@@ -106,7 +106,7 @@ export function Sidebar() {
             </svg>
           </div>
           <div>
-            <p style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: 14, color: "#fff", margin: 0, lineHeight: 1.2 }}>TrustFlow</p>
+            <p style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: 14, color: "#fff", margin: 0, lineHeight: 1.2 }}>TrustFlow</p>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--label)", letterSpacing: "0.08em", margin: 0 }}>{"{MERCHANT}"}</p>
           </div>
         </Link>
@@ -167,7 +167,7 @@ export function Sidebar() {
                 {icon}
               </span>
               <span style={{
-                fontFamily: "var(--font-body)", fontSize: 13,
+                fontFamily: "var(--font-sans)", fontSize: 13,
                 fontWeight: active ? 600 : 400, flex: 1,
               }}>
                 {label}

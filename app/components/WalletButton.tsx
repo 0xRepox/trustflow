@@ -20,7 +20,7 @@ export function WalletButton() {
           padding: "6px 14px", borderRadius: 8,
           border: "1px solid rgba(201,137,58,0.4)",
           background: "rgba(201,137,58,0.12)", color: "#C9893A",
-          fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 500,
+          fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 500,
           cursor: "pointer",
         }}
       >
@@ -58,7 +58,7 @@ export function WalletButton() {
             padding: "5px 10px", borderRadius: 8,
             border: "1px solid rgba(172,198,233,0.1)",
             background: "transparent",
-            fontFamily: "var(--font-body)", fontSize: 12, color: "rgba(172,198,233,0.45)",
+            fontFamily: "var(--font-sans)", fontSize: 12, color: "rgba(172,198,233,0.45)",
             cursor: "pointer", transition: "all 0.15s",
           }}
           onMouseEnter={(e) => {
@@ -84,7 +84,7 @@ export function WalletButton() {
       style={{
         padding: "6px 16px", borderRadius: 8, border: "none",
         background: "var(--cta)", color: "#fff",
-        fontFamily: "var(--font-heading)", fontSize: 13, fontWeight: 500,
+        fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 500,
         cursor: "pointer", transition: "background 0.15s",
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--cta-hover)")}

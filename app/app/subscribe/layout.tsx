@@ -30,7 +30,7 @@ export default function SubscribeLayout({ children }: { children: React.ReactNod
               <circle cx="43" cy="24" r="1.5" fill="#3898EC"/>
             </svg>
           </div>
-          <p style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: 15, color: "#fff", margin: 0 }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: 15, color: "#fff", margin: 0 }}>
             TrustFlow
           </p>
         </div>

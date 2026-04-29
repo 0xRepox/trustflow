@@ -85,7 +85,7 @@ function StatCard({
       </div>
       <p
         style={{
-          fontFamily: "var(--font-heading)",
+          fontFamily: "var(--font-sans)",
           fontSize: 32,
           fontWeight: 600,
           color: accent ? "var(--success, #5AF0B8)" : "#fff",
@@ -99,7 +99,7 @@ function StatCard({
       </p>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
         {subValue && (
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: 0 }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: 0 }}>
             {subValue}
           </p>
         )}
@@ -187,7 +187,7 @@ function LiveStreamingHero({
           <SectionLabel>Live · revenue streaming now</SectionLabel>
           <p
             style={{
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 18,
               fontWeight: 500,
               color: "#fff",
@@ -259,7 +259,7 @@ function LiveStreamingHero({
             <p style={{ ...labelMono, marginBottom: 6 }}>{k}</p>
             <p
               style={{
-                fontFamily: "var(--font-heading)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 18,
                 fontWeight: 500,
                 color: "#fff",
@@ -335,7 +335,7 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
           >
             // awaiting onchain events
           </p>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
             Activity appears the moment a subscriber opens a stream.
           </p>
         </div>
@@ -378,7 +378,7 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p
                     style={{
-                      fontFamily: "var(--font-body)",
+                      fontFamily: "var(--font-sans)",
                       fontSize: 13,
                       color: "#fff",
                       margin: 0,
@@ -467,7 +467,7 @@ function RevenueSparkline({ points }: { points: number[] }) {
           >
             // chart populates after first stream
           </p>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
             Share your checkout link to start streaming.
           </p>
         </div>
@@ -513,7 +513,7 @@ function RevenueByPlan({ plans }: { plans: Array<{ id: string; revenue: number; 
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-subtle)", margin: 0, letterSpacing: "0.05em" }}>
           // no plans created
         </p>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
           Head to <span style={{ color: "var(--cta, #3898EC)" }}>Plans</span> to create your first one.
         </p>
       </div>
@@ -527,7 +527,7 @@ function RevenueByPlan({ plans }: { plans: Array<{ id: string; revenue: number; 
         return (
           <div key={p.id}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "#fff" }}>
+              <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "#fff" }}>
                 Plan #{p.id}
                 <span style={{ color: "var(--fg-muted)", fontSize: 12, marginLeft: 8 }}>
                   ${p.monthly.toFixed(2)}/mo
@@ -720,7 +720,7 @@ export default function OverviewPage() {
           <SectionLabel>Overview · Merchant</SectionLabel>
           <h1
             style={{
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 28,
               fontWeight: 600,
               color: "#fff",
@@ -807,7 +807,7 @@ export default function OverviewPage() {
               <SectionLabel>Performance</SectionLabel>
               <p
                 style={{
-                  fontFamily: "var(--font-heading)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 16,
                   fontWeight: 500,
                   color: "#fff",
@@ -840,7 +840,7 @@ export default function OverviewPage() {
           <SectionLabel>Breakdown</SectionLabel>
           <p
             style={{
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 16,
               fontWeight: 500,
               color: "#fff",
@@ -856,7 +856,7 @@ export default function OverviewPage() {
           <SectionLabel>Stream status</SectionLabel>
           <p
             style={{
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 16,
               fontWeight: 500,
               color: "#fff",
@@ -873,7 +873,7 @@ export default function OverviewPage() {
                 { label: "Disputed", count: metrics.openDisputes, color: "#C9893A" },
               ].map((r) => (
                 <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)" }}>
+                  <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--fg-muted)" }}>
                     <span style={{ color: r.color, marginRight: 8 }}>●</span>
                     {r.label}
                   </span>
@@ -895,7 +895,7 @@ export default function OverviewPage() {
               <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-subtle)", margin: 0 }}>
                 // no streams yet
               </p>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
+              <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 0" }}>
                 Share a checkout link to get your first.
               </p>
             </div>

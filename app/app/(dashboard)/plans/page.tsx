@@ -59,14 +59,14 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 8,
   padding: "8px 12px",
   fontSize: 13,
-  fontFamily: "var(--font-body)",
+  fontFamily: "var(--font-sans)",
   color: "#fff",
   outline: "none",
   boxSizing: "border-box",
 };
 
 const labelStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body)",
+  fontFamily: "var(--font-sans)",
   fontSize: 12,
   color: "var(--fg-muted)",
   display: "block",
@@ -130,7 +130,7 @@ function RatePreview({ amount, period }: { amount: number; period: string }) {
           >
             <p
               style={{
-                fontFamily: "var(--font-body)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 10,
                 color: "var(--fg-muted)",
                 margin: 0,
@@ -140,7 +140,7 @@ function RatePreview({ amount, period }: { amount: number; period: string }) {
             </p>
             <p
               style={{
-                fontFamily: "var(--font-heading)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 12,
                 fontWeight: 500,
                 color: "#fff",
@@ -179,7 +179,7 @@ function DeactivateButton({ planId, active, hasActiveStreams, onDeactivate }: {
     return (
       <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
         {hasActiveStreams && (
-          <span style={{ fontFamily: "var(--font-body)", fontSize: 10, color: "var(--error, #FF6B4A)", maxWidth: 120 }}>
+          <span style={{ fontFamily: "var(--font-sans)", fontSize: 10, color: "var(--error, #FF6B4A)", maxWidth: 120 }}>
             {hasActiveStreams ? "Active subscribers exist." : ""}
           </span>
         )}
@@ -188,7 +188,7 @@ function DeactivateButton({ planId, active, hasActiveStreams, onDeactivate }: {
           style={{
             background: "rgba(224,85,85,0.12)", border: "1px solid rgba(224,85,85,0.4)",
             borderRadius: 6, padding: "5px 10px", cursor: "pointer",
-            fontFamily: "var(--font-body)", fontSize: 11, color: "var(--error, #FF6B4A)",
+            fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--error, #FF6B4A)",
           }}
         >
           Confirm
@@ -198,7 +198,7 @@ function DeactivateButton({ planId, active, hasActiveStreams, onDeactivate }: {
           style={{
             background: "none", border: "1px solid var(--border)", borderRadius: 6,
             padding: "5px 10px", cursor: "pointer",
-            fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-muted)",
+            fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--fg-muted)",
           }}
         >
           Cancel
@@ -212,7 +212,7 @@ function DeactivateButton({ planId, active, hasActiveStreams, onDeactivate }: {
       style={{
         background: "none", border: "1px solid var(--border)", borderRadius: 6,
         padding: "5px 10px", cursor: "pointer",
-        fontFamily: "var(--font-body)", fontSize: 11, color: "var(--error, #FF6B4A)",
+        fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--error, #FF6B4A)",
         transition: "all 0.15s",
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--error, #FF6B4A)"; }}
@@ -330,7 +330,7 @@ function PlanCard({
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
             <p
               style={{
-                fontFamily: "var(--font-heading)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 14,
                 fontWeight: 500,
                 color: "#fff",
@@ -362,7 +362,7 @@ function PlanCard({
           </div>
           <p
             style={{
-              fontFamily: "var(--font-body)",
+              fontFamily: "var(--font-sans)",
               fontSize: 12,
               color: "var(--fg-muted)",
               margin: 0,
@@ -456,7 +456,7 @@ function PlanCard({
               onClick={handlePreview}
               style={{
                 background: "none", border: "1px solid var(--border)", borderRadius: 4,
-                cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 11, fontWeight: 500,
+                cursor: "pointer", fontFamily: "var(--font-sans)", fontSize: 11, fontWeight: 500,
                 color: "var(--fg-muted)", flexShrink: 0, padding: "3px 8px", transition: "all 0.15s",
               }}
               title="Open checkout in new tab"
@@ -467,7 +467,7 @@ function PlanCard({
               onClick={handleCopy}
               style={{
                 background: copied ? "rgba(90,240,184,0.12)" : "none", border: "none",
-                cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 11, fontWeight: 500,
+                cursor: "pointer", fontFamily: "var(--font-sans)", fontSize: 11, fontWeight: 500,
                 color: copied ? "var(--success, #5AF0B8)" : "var(--cta, #3898EC)",
                 flexShrink: 0, padding: "3px 8px", borderRadius: 4, transition: "all 0.15s",
               }}
@@ -478,7 +478,7 @@ function PlanCard({
 
           {/* Redirect URL after payment */}
           <div style={{ marginTop: 8 }}>
-            <label style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-muted)", display: "block", marginBottom: 4 }}>
+            <label style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--fg-muted)", display: "block", marginBottom: 4 }}>
               Redirect after payment (optional)
             </label>
             <div style={{ display: "flex", gap: 6 }}>
@@ -498,7 +498,7 @@ function PlanCard({
                 onClick={handleRedirectSave}
                 style={{
                   background: "var(--elevated)", border: "1px solid var(--border)", borderRadius: 6,
-                  cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 11,
+                  cursor: "pointer", fontFamily: "var(--font-sans)", fontSize: 11,
                   color: "var(--fg-muted)", padding: "6px 10px", flexShrink: 0,
                 }}
               >
@@ -506,7 +506,7 @@ function PlanCard({
               </button>
             </div>
             {redirectInput && !redirectInput.startsWith("https://") && (
-              <p style={{ fontFamily: "var(--font-body)", fontSize: 10, color: "var(--error, #FF6B4A)", margin: "3px 0 0" }}>
+              <p style={{ fontFamily: "var(--font-sans)", fontSize: 10, color: "var(--error, #FF6B4A)", margin: "3px 0 0" }}>
                 Must start with https://
               </p>
             )}
@@ -670,7 +670,7 @@ export default function PlansPage() {
           <SectionLabel>Plans · Merchant</SectionLabel>
           <h1
             style={{
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 28,
               fontWeight: 600,
               color: "#fff",
@@ -703,7 +703,7 @@ export default function PlansPage() {
           <SectionLabel>New plan</SectionLabel>
           <p
             style={{
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 16,
               fontWeight: 500,
               color: "#fff",
@@ -742,7 +742,7 @@ export default function PlansPage() {
                         ? "1px solid rgba(56,152,236,0.6)"
                         : "1px solid rgba(172,198,233,0.15)",
                     background: period === p ? "rgba(56,152,236,0.12)" : "var(--elevated)",
-                    fontFamily: "var(--font-body)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: 12,
                     fontWeight: 500,
                     color: period === p ? "var(--cta, #3898EC)" : "var(--fg-muted)",
@@ -823,7 +823,7 @@ export default function PlansPage() {
               border: "none",
               borderRadius: 8,
               padding: "11px 0",
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 13,
               fontWeight: 500,
               color: amountNum && !isPending ? "#fff" : "var(--fg-subtle)",
@@ -873,7 +873,7 @@ export default function PlansPage() {
               </p>
               <p
                 style={{
-                  fontFamily: "var(--font-body)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 13,
                   color: "var(--fg-muted)",
                   margin: "8px 0 0",

@@ -42,10 +42,10 @@ function ConsumptionBar({ consumed, deposited, pct }: { consumed: number; deposi
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)" }}>
+        <span style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)" }}>
           Consumed: <span style={{ color: "var(--fg2)" }}>${consumed.toFixed(2)}</span>
         </span>
-        <span style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)" }}>
+        <span style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)" }}>
           Deposit: <span style={{ color: "var(--fg2)" }}>${deposited.toFixed(2)}</span>
         </span>
       </div>
@@ -69,7 +69,7 @@ function TopUpPanel({ monthly, onConfirm, onClose, isActing }: {
   const amount = monthly * months;
   return (
     <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 16px" }}>
-      <p style={{ fontFamily: "var(--font-body)", fontSize: 12, fontWeight: 500, color: "var(--fg2)", margin: "0 0 10px" }}>
+      <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500, color: "var(--fg2)", margin: "0 0 10px" }}>
         Add deposit
       </p>
       <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
@@ -81,7 +81,7 @@ function TopUpPanel({ monthly, onConfirm, onClose, isActing }: {
               flex: 1, padding: "8px 4px", borderRadius: 8, cursor: "pointer",
               border: months === m ? "1px solid rgba(56,152,236,0.6)" : "1px solid var(--border)",
               background: months === m ? "rgba(56,152,236,0.1)" : "var(--elevated)",
-              fontFamily: "var(--font-heading)", fontSize: 12, fontWeight: 600,
+              fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 600,
               color: months === m ? "var(--cta)" : "var(--fg2)",
             }}
           >
@@ -89,7 +89,7 @@ function TopUpPanel({ monthly, onConfirm, onClose, isActing }: {
           </button>
         ))}
       </div>
-      <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "0 0 12px" }}>
+      <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: "0 0 12px" }}>
         Adding <span style={{ color: "#fff", fontWeight: 500 }}>${amount.toFixed(2)} USDC</span>
       </p>
       <div style={{ display: "flex", gap: 8 }}>
@@ -99,7 +99,7 @@ function TopUpPanel({ monthly, onConfirm, onClose, isActing }: {
           style={{
             flex: 1, padding: "9px 0", borderRadius: 8, border: "none",
             background: isActing ? "rgba(56,152,236,0.4)" : "var(--cta)",
-            fontFamily: "var(--font-heading)", fontSize: 12, fontWeight: 500,
+            fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500,
             color: "#fff", cursor: isActing ? "not-allowed" : "pointer",
           }}
         >
@@ -109,7 +109,7 @@ function TopUpPanel({ monthly, onConfirm, onClose, isActing }: {
           onClick={onClose}
           style={{
             padding: "9px 14px", borderRadius: 8, border: "1px solid var(--border)",
-            background: "var(--elevated)", fontFamily: "var(--font-body)", fontSize: 12,
+            background: "var(--elevated)", fontFamily: "var(--font-sans)", fontSize: 12,
             color: "var(--fg-muted)", cursor: "pointer",
           }}
         >
@@ -136,10 +136,10 @@ function DisputePanel({ maxAmount, bondUsdc, onConfirm, onClose, isActing }: {
       background: "var(--bg)", border: "1px solid rgba(201,137,58,0.3)",
       borderRadius: 10, padding: "14px 16px",
     }}>
-      <p style={{ fontFamily: "var(--font-body)", fontSize: 12, fontWeight: 500, color: "var(--label)", margin: "0 0 6px" }}>
+      <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500, color: "var(--label)", margin: "0 0 6px" }}>
         Open Dispute
       </p>
-      <p style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-muted)", margin: "0 0 12px", lineHeight: 1.5 }}>
+      <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--fg-muted)", margin: "0 0 12px", lineHeight: 1.5 }}>
         Freeze funds you believe weren't delivered. Bond:{" "}
         <span style={{ color: "#fff" }}>${bondUsdc.toFixed(4)} USDC</span> — returned if upheld.
       </p>
@@ -166,7 +166,7 @@ function DisputePanel({ maxAmount, bondUsdc, onConfirm, onClose, isActing }: {
         />
       </div>
       {parsed > maxAmount && (
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--error)", margin: "0 0 10px" }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--error)", margin: "0 0 10px" }}>
           Max disputable: ${maxAmount.toFixed(2)}
         </p>
       )}
@@ -177,7 +177,7 @@ function DisputePanel({ maxAmount, bondUsdc, onConfirm, onClose, isActing }: {
           style={{
             flex: 1, padding: "9px 0", borderRadius: 8, border: "none",
             background: !valid || isActing ? "var(--elevated)" : "rgba(201,137,58,0.85)",
-            fontFamily: "var(--font-heading)", fontSize: 12, fontWeight: 500,
+            fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500,
             color: !valid || isActing ? "var(--fg-subtle)" : "#fff",
             cursor: !valid || isActing ? "not-allowed" : "pointer",
           }}
@@ -188,7 +188,7 @@ function DisputePanel({ maxAmount, bondUsdc, onConfirm, onClose, isActing }: {
           onClick={onClose}
           style={{
             padding: "9px 14px", borderRadius: 8, border: "1px solid var(--border)",
-            background: "var(--elevated)", fontFamily: "var(--font-body)", fontSize: 12,
+            background: "var(--elevated)", fontFamily: "var(--font-sans)", fontSize: 12,
             color: "var(--fg-muted)", cursor: "pointer",
           }}
         >
@@ -231,7 +231,7 @@ function StreamCard({ stream, plan, dispute, onCancel, onTopUp, onDispute, isAct
           <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", letterSpacing: "0.08em", margin: "0 0 4px" }}>
             STREAM #{stream.id}
           </p>
-          <p style={{ fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 600, color: "#fff", margin: 0 }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 600, color: "#fff", margin: 0 }}>
             Plan #{stream.planId}
             {plan && (
               <span style={{ fontWeight: 400, color: "var(--fg-muted)", marginLeft: 8, fontSize: 13 }}>
@@ -247,7 +247,7 @@ function StreamCard({ stream, plan, dispute, onCancel, onTopUp, onDispute, isAct
 
       {isActive && (
         <p style={{
-          fontFamily: "var(--font-body)", fontSize: 12, margin: "0 0 14px",
+          fontFamily: "var(--font-sans)", fontSize: 12, margin: "0 0 14px",
           color: lowRunway ? "var(--label)" : "var(--fg-muted)",
         }}>
           {lowRunway ? "⚠ " : ""}Remaining:{" "}
@@ -269,7 +269,7 @@ function StreamCard({ stream, plan, dispute, onCancel, onTopUp, onDispute, isAct
           border: "1px solid " + (dispute.status === "Settled" ? "var(--border)" : "rgba(201,137,58,0.3)"),
         }}>
           <p style={{
-            fontFamily: "var(--font-body)", fontSize: 12, margin: 0,
+            fontFamily: "var(--font-sans)", fontSize: 12, margin: 0,
             color: dispute.status === "Settled" ? "var(--fg-muted)" : "var(--label)",
           }}>
             Dispute #{dispute.id} · {dispute.status}
@@ -322,7 +322,7 @@ function StreamCard({ stream, plan, dispute, onCancel, onTopUp, onDispute, isAct
       )}
 
       {stream.status === "Cancelled" && (
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-subtle)", margin: 0 }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-subtle)", margin: 0 }}>
           ${remaining.toFixed(2)} returned to your wallet
         </p>
       )}
@@ -430,7 +430,7 @@ export default function AccountPage() {
   if (!isConnected) {
     return (
       <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--fg-muted)" }}>
           Connect your wallet to view your subscriptions.
         </p>
         <WalletButton />
@@ -444,22 +444,22 @@ export default function AccountPage() {
   return (
     <div style={{ maxWidth: 520 }}>
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: 24, fontWeight: 700, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+        <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 700, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
           My Subscriptions
         </h1>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", margin: 0 }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--fg-muted)", margin: 0 }}>
           {active.length} active · {inactive.length} past
         </p>
       </div>
 
       {txStatus && (
         <div style={{ background: "rgba(56,152,236,0.06)", border: "1px solid rgba(56,152,236,0.18)", borderRadius: 8, padding: "10px 14px", marginBottom: 18 }}>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg2)", margin: 0 }}>{txStatus}</p>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg2)", margin: 0 }}>{txStatus}</p>
         </div>
       )}
       {txError && (
         <div style={{ background: "rgba(224,85,85,0.06)", border: "1px solid rgba(224,85,85,0.25)", borderRadius: 8, padding: "10px 14px", marginBottom: 18 }}>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--error)", margin: 0 }}>{txError}</p>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--error)", margin: 0 }}>{txError}</p>
         </div>
       )}
 
@@ -487,7 +487,7 @@ export default function AccountPage() {
       )}
 
       {streams?.length === 0 && (
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)", textAlign: "center", marginTop: 60 }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--fg-muted)", textAlign: "center", marginTop: 60 }}>
           No subscriptions found for this wallet.
         </p>
       )}
@@ -498,6 +498,6 @@ export default function AccountPage() {
 const actionBtn: React.CSSProperties = {
   flex: 1, padding: "9px 0", borderRadius: 8,
   border: "1px solid var(--border)", background: "var(--elevated)",
-  fontFamily: "var(--font-heading)", fontSize: 12, fontWeight: 500,
+  fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500,
   color: "var(--fg2)", cursor: "pointer", transition: "border-color 0.15s",
 };

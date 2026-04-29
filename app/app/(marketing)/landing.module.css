@@ -4,7 +4,7 @@
   min-height: 100vh;
   background: #08111C;
   color: #fff;
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   overflow-x: hidden;
 }
 .bg::before {
@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--font-heading);
+  font-family: var(--font-sans);
   font-size: 20px;
   font-weight: 600;
   color: #fff;
@@ -66,7 +66,7 @@
   background: #3898EC;
   color: #fff;
   border-radius: 5px;
-  font-family: var(--font-heading);
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
   text-decoration: none;
@@ -120,7 +120,7 @@
   padding: 13px 20px; border-radius: 5px; font-weight: 600; font-size: 14px;
   cursor: pointer; border: 1px solid transparent; text-decoration: none;
   display: inline-flex; align-items: center; gap: 8px; transition: all .2s;
-  font-family: var(--font-heading);
+  font-family: var(--font-sans);
 }
 .btnPrimary { background: #3898EC; color: #fff; border-color: #3898EC; }
 .btnPrimary:hover { background: #5AABF0; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(56,152,236,0.3); }
@@ -296,7 +296,7 @@
   margin-top: 48px; border-radius: 8px; overflow: hidden;
 }
 .stat { background: #0C1A2C; padding: 28px 24px; display: flex; flex-direction: column; gap: 6px; }
-.statNum { font-family: var(--font-heading); font-size: 40px; line-height: 1; letter-spacing: -0.02em; font-weight: 700; color: #fff; }
+.statNum { font-family: var(--font-sans); font-size: 40px; line-height: 1; letter-spacing: -0.02em; font-weight: 700; color: #fff; }
 .live { color: #4CAF7D !important; }
 .statLabel { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #4A6F8C; }
 

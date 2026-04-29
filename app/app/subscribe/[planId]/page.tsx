@@ -210,7 +210,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
   if (isLoading) {
     return (
       <div style={pageWrap}>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>Loading plan…</p>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--fg-muted)" }}>Loading plan…</p>
       </div>
     );
   }
@@ -219,8 +219,8 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
     return (
       <div style={pageWrap}>
         <div style={{ textAlign: "center" }}>
-          <p style={{ fontFamily: "var(--font-heading)", fontSize: 20, fontWeight: 600, color: "#fff", margin: "0 0 6px" }}>Plan not found</p>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)", margin: 0 }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, color: "#fff", margin: "0 0 6px" }}>Plan not found</p>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--fg-muted)", margin: 0 }}>
             This plan doesn&apos;t exist or is no longer active.
           </p>
         </div>
@@ -241,10 +241,10 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
               <path d="M5 13l4 4L19 7" stroke="#4CAF7D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: 22, fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
             Streaming started
           </h1>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", margin: "0 0 6px" }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--fg-muted)", margin: "0 0 6px" }}>
             You&apos;re charged <span style={{ color: "#fff" }}>${ratePerSecond.toFixed(6)}/s</span>.
             Cancel anytime — unused deposit returns instantly.
           </p>
@@ -253,14 +253,14 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
           </p>
           {successUrl ? (
             <div>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: "0 0 10px" }}>
+              <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: "0 0 10px" }}>
                 Redirecting to merchant in <span style={{ color: "#fff", fontFamily: "var(--font-mono)" }}>{countdown}s</span>…
               </p>
               <button
                 onClick={() => router.push(successUrl)}
                 style={{
                   width: "100%", background: "var(--cta)", border: "none", borderRadius: 10,
-                  padding: "10px 0", fontFamily: "var(--font-heading)", fontSize: 13,
+                  padding: "10px 0", fontFamily: "var(--font-sans)", fontSize: 13,
                   fontWeight: 500, color: "#fff", cursor: "pointer",
                 }}
               >
@@ -271,7 +271,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
             <Link href="/account" style={{
               display: "block", background: "var(--elevated)",
               border: "1px solid var(--border)", borderRadius: 10,
-              padding: "10px 0", fontFamily: "var(--font-heading)",
+              padding: "10px 0", fontFamily: "var(--font-sans)",
               fontSize: 13, fontWeight: 500, color: "var(--fg2)", textDecoration: "none",
             }}>
               Manage subscription →
@@ -293,11 +293,11 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
         </p>
 
         {/* Price hero */}
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: 38, fontWeight: 700, color: "#fff", margin: "0 0 4px", letterSpacing: "-0.03em", lineHeight: 1 }}>
+        <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 38, fontWeight: 700, color: "#fff", margin: "0 0 4px", letterSpacing: "-0.03em", lineHeight: 1 }}>
           ${displayPrice.toFixed(unit === "/hr" ? 4 : 2)}
           <span style={{ fontSize: 16, fontWeight: 400, color: "var(--fg-muted)" }}>{unit}</span>
         </h1>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", margin: "0 0 20px", lineHeight: 1.5 }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--fg-muted)", margin: "0 0 20px", lineHeight: 1.5 }}>
           Streaming at <span style={{ color: "var(--fg2)" }}>${ratePerSecond.toFixed(6)}/s</span>
           {" · "}cancel anytime
           {" · "}refund unused time instantly
@@ -306,7 +306,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
         <div style={{ height: 1, background: "var(--border)", margin: "0 0 22px" }} />
 
         {/* Runway selector */}
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 500, color: "var(--fg2)", margin: "0 0 10px" }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 500, color: "var(--fg2)", margin: "0 0 10px" }}>
           How much to deposit?
         </p>
         <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
@@ -335,13 +335,13 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
                 }}
               >
                 <p style={{
-                  fontFamily: "var(--font-heading)", fontSize: 13, fontWeight: 600,
+                  fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 600,
                   color: active ? "var(--cta)" : hinted ? "var(--success)" : "#fff",
                   margin: "0 0 3px",
                 }}>
                   ${o.cost.toFixed(2)}
                 </p>
-                <p style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--fg-muted)", margin: "0 0 2px" }}>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--fg-muted)", margin: "0 0 2px" }}>
                   {o.label}
                 </p>
                 <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", margin: 0 }}>
@@ -359,7 +359,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
           display: "flex", gap: 10, alignItems: "flex-start",
         }}>
           <span style={{ color: "var(--cta)", fontSize: 15, lineHeight: 1, flexShrink: 0 }}>ⓘ</span>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-muted)", margin: 0, lineHeight: 1.55 }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: 0, lineHeight: 1.55 }}>
             You&apos;re only charged for time you use. Cancel early and your unused deposit returns to your wallet instantly — no waiting, no forms.
           </p>
         </div>
@@ -370,14 +370,14 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
             background: "rgba(224,85,85,0.08)", border: "1px solid rgba(224,85,85,0.25)",
             borderRadius: 8, padding: "10px 14px", marginBottom: 14,
           }}>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--error)", margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--error)", margin: 0, lineHeight: 1.5 }}>
               {balanceHint}
               {cheapest && !canAfford && (
                 <button
                   onClick={() => setRunway(cheapest.key)}
                   style={{
                     background: "none", border: "none", cursor: "pointer",
-                    color: "var(--success)", fontFamily: "var(--font-body)",
+                    color: "var(--success)", fontFamily: "var(--font-sans)",
                     fontSize: 12, fontWeight: 500, padding: "0 0 0 6px", textDecoration: "underline",
                   }}
                 >
@@ -391,7 +391,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
         {/* CTA */}
         {!isConnected ? (
           <div style={{ textAlign: "center" }}>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", margin: "0 0 12px" }}>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--fg-muted)", margin: "0 0 12px" }}>
               Connect your wallet to subscribe
             </p>
             <div style={{ display: "flex", justifyContent: "center" }}>
@@ -406,7 +406,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
               width: "100%",
               background: !canAfford ? "var(--elevated)" : step !== "idle" ? "rgba(56,152,236,0.5)" : "var(--cta)",
               border: "none", borderRadius: 10, padding: "13px 0",
-              fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 500,
+              fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 500,
               color: !canAfford ? "var(--fg-subtle)" : "#fff",
               cursor: !canAfford || step !== "idle" ? "not-allowed" : "pointer",
               transition: "background 0.15s",
@@ -422,7 +422,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
         )}
 
         {error && (
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--error)", textAlign: "center", margin: "10px 0 0" }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--error)", textAlign: "center", margin: "10px 0 0" }}>
             {error}
           </p>
         )}
@@ -437,7 +437,7 @@ export default function SubscribePage({ params }: { params: Promise<{ planId: st
     <Suspense fallback={
       <div style={pageWrap}>
         <div style={card}>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--fg-muted)" }}>Loading plan…</p>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--fg-muted)" }}>Loading plan…</p>
         </div>
       </div>
     }>

@@ -293,7 +293,7 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <p
               style={{
-                fontFamily: "var(--font-heading)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 14,
                 fontWeight: 500,
                 color: "#fff",
@@ -316,7 +316,7 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
           </p>
           <p
             style={{
-              fontFamily: "var(--font-body)",
+              fontFamily: "var(--font-sans)",
               fontSize: 11,
               color: "var(--fg-muted)",
               margin: "4px 0 0",
@@ -345,7 +345,7 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
               border: "none",
               borderRadius: 8,
               padding: "9px 14px",
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 12,
               fontWeight: 500,
               color: liveClaimable > 0.0001 ? "#fff" : "var(--fg-subtle)",
@@ -363,7 +363,7 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
               border: "1px solid var(--border)",
               borderRadius: 8,
               padding: "7px 14px",
-              fontFamily: "var(--font-body)",
+              fontFamily: "var(--font-sans)",
               fontSize: 11,
               color: expanded ? "#fff" : "var(--fg-muted)",
               cursor: "pointer",
@@ -495,7 +495,7 @@ function FilterBar({
                 ? "1px solid rgba(56,152,236,0.6)"
                 : "1px solid var(--border)",
               background: active ? "rgba(56,152,236,0.12)" : "var(--surface)",
-              fontFamily: "var(--font-body)",
+              fontFamily: "var(--font-sans)",
               fontSize: 12,
               fontWeight: 500,
               color: active ? "var(--cta, #3898EC)" : "var(--fg-muted)",
@@ -644,7 +644,7 @@ export default function StreamsPage() {
           <SectionLabel>Streams · Merchant</SectionLabel>
           <h1
             style={{
-              fontFamily: "var(--font-heading)",
+              fontFamily: "var(--font-sans)",
               fontSize: 28,
               fontWeight: 600,
               color: "#fff",
@@ -734,7 +734,7 @@ export default function StreamsPage() {
               ? "// no streams yet"
               : `// no ${filter} streams`}
           </p>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--fg-muted)", margin: "8px 0 0" }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--fg-muted)", margin: "8px 0 0" }}>
             {filter === "all"
               ? "Share a checkout link from your Plans page to receive your first stream."
               : "Try a different filter to see more results."}

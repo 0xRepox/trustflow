@@ -17,15 +17,16 @@
   --border-strong: rgba(172,198,233,0.30);
   --border-vivid:  rgba(56,152,236,0.35);
   --shadow-card:   0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
-  --font-heading:  'Space Grotesk', Arial, sans-serif;
-  --font-body:     'DM Sans', Arial, sans-serif;
-  --font-mono:     'Space Mono', 'Courier New', monospace;
+  --font-display:  var(--font-display), 'Arial Black', sans-serif;
+  --font-heading:  var(--font-sans), Arial, sans-serif;
+  --font-body:     var(--font-sans), Arial, sans-serif;
+  --font-mono:     var(--font-mono), 'Courier New', monospace;
 }
 
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--fg1);
-  --font-sans: var(--font-body);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 }
 
@@ -34,8 +35,9 @@
 html, body {
   background: var(--bg);
   color: var(--fg1);
-  font-family: var(--font-body);
+  font-family: var(--font-sans), Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
 }
 
