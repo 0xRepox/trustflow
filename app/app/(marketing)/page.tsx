@@ -19,11 +19,11 @@ function fmtElapsed(sec: number) {
 interface LedgerEntry { label: string; amt: string; warn?: boolean }
 
 const COMPARE_ROWS = [
+  { criterion: "Cancel day 3 of 30", hint: "what do you get back?", legacy: "Nothing", modern: "27 days, instant" },
+  { criterion: "Refund speed", hint: "time to wallet", legacy: "5-10 biz days", modern: "< 1 second" },
+  { criterion: "Usage tracking", hint: "billing resolution", legacy: "Monthly cycle", modern: "Per-second" },
   { criterion: "Transaction fee", hint: "per charge", legacy: "2.9% + $0.30", modern: "~$0.01 gas" },
-  { criterion: "Refund on cancel", hint: "for unused time", legacy: "5-10 biz days", modern: "< 1 second" },
-  { criterion: "Chargeback risk", hint: "merchant exposure", legacy: "$20 fee + reversal", modern: "Impossible by design" },
-  { criterion: "Viable monthly price", hint: "fees eat margin", legacy: "~$5.00 minimum", modern: "$0.01 minimum" },
-  { criterion: "Billing granularity", hint: "resolution", legacy: "Monthly cycle", modern: "Per-second" },
+  { criterion: "Chargeback risk", hint: "merchant exposure", legacy: "$20 fee + reversal", modern: "Impossible" },
 ];
 
 export default function LandingPage() {
@@ -118,14 +118,14 @@ export default function LandingPage() {
           <span className={s.tag}>Live on Arc Testnet · Chain 5042002</span>
 
           <h1 className={s.heroTitle}>
-            Subscriptions that settle every second,<br />
-            <span className={s.heroAccent}>not every 30 days.</span>
+            You paid for a month.<br />
+            <span className={s.heroAccent}>You used 3 days.</span>
           </h1>
 
           <p className={s.heroSub}>
-            A subscription protocol built on <strong>Arc</strong> that replaces 30-day billing cycles with
-            continuous USDC streams. Subscribers pay only for time consumed. Merchants receive revenue every second.
-            Cancel at 13 seconds? You get refunded for the other 2,591,987.
+            Traditional billing keeps the rest. <strong>TrustFlow refunds it</strong> — instantly, to the second.
+            Subscribers deposit a buffer, streams track usage in real time, and cancelling returns exactly what wasn&apos;t consumed.
+            No support tickets. No waiting. No rounding.
           </p>
 
           <div className={s.heroCtas}>
@@ -177,13 +177,13 @@ export default function LandingPage() {
 
         {/* Comparison */}
         <section id="compare" className={s.section}>
-          <div className={s.sectionLabel}>// 01 · The math</div>
+          <div className={s.sectionLabel}>// 01 · The problem</div>
           <h2 className={s.sectionTitle}>
-            Payment processors got greedy. <em>We got precise.</em>
+            Cancel on day 3. <em>Get day 4–30 back.</em>
           </h2>
           <p className={s.sectionIntro}>
-            Every number below is a real constraint of how each rail operates today. TrustFlow doesn&apos;t beat Stripe by a little.
-            It removes the failure modes entirely.
+            Every subscription you&apos;ve ever cancelled early paid the provider for time they never delivered.
+            TrustFlow makes that impossible — usage is tracked to the second, and the contract enforces the refund automatically.
           </p>
 
           <div className={`${s.compare} ${s.reveal}`}>
@@ -212,10 +212,10 @@ export default function LandingPage() {
         {/* How it works */}
         <section id="how" className={s.section}>
           <div className={s.sectionLabel}>// 02 · Mechanics</div>
-          <h2 className={s.sectionTitle}>Four steps. <em>Zero middlemen.</em></h2>
+          <h2 className={s.sectionTitle}>How the refund <em>actually works.</em></h2>
           <p className={s.sectionIntro}>
-            Every operation happens onchain on Arc. No payment processor. No hidden batch windows.
-            No &ldquo;we&apos;ll get back to you in 5–7 business days.&rdquo;
+            Every operation is onchain on Arc. Usage is computed from <code>(rate × elapsed)</code> — no off-chain scheduler,
+            no batch window, no support queue. Cancel anytime and the contract does the math.
           </p>
 
           <div className={s.steps}>
@@ -305,10 +305,10 @@ export default function LandingPage() {
         {/* CTA block */}
         <section className={s.section}>
           <div className={`${s.ctaBlock} ${s.reveal}`}>
-            <h2>Built for <em>builders</em>.<br />Open for testnet.</h2>
+            <h2>Fair billing,<br /><em>enforced by code.</em></h2>
             <p>
-              Contracts are verified on arcscan. Faucet-friendly. Bug reports welcome.
-              Ship a subscription in an afternoon, not a sprint.
+              No policy. No support ticket. No waiting period.
+              The contract refunds exactly what wasn&apos;t used — the moment you cancel.
             </p>
             <div className={s.ctaBtns}>
               <WalletButton />
