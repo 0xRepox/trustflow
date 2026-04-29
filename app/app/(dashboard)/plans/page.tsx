@@ -860,27 +860,22 @@ export default function PlansPage() {
                 textAlign: "center",
               }}
             >
-              <p
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                  color: "var(--fg-subtle)",
-                  margin: 0,
-                  letterSpacing: "0.05em",
-                }}
-              >
-                // no plans yet
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", margin: "0 0 20px", letterSpacing: "0.08em" }}>
+                // get started in 3 steps
               </p>
-              <p
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: 13,
-                  color: "var(--fg-muted)",
-                  margin: "8px 0 0",
-                }}
-              >
-                Fill the form on the left to create your first plan.
-              </p>
+              {[
+                { n: "01", title: "Create a plan", body: "Set a name and monthly rate using the form. Takes one onchain transaction." },
+                { n: "02", title: "Share the link", body: "Copy the checkout link and paste it anywhere — your site, a tweet, a DM." },
+                { n: "03", title: "Watch it stream", body: "Every subscriber deposits a buffer. Revenue flows to you per second, claimable anytime." },
+              ].map(step => (
+                <div key={step.n} style={{ display: "flex", gap: 14, textAlign: "left", padding: "14px 0", borderBottom: "1px solid var(--border)" }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--label)", flexShrink: 0, paddingTop: 2 }}>{step.n}</span>
+                  <div>
+                    <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 600, color: "#fff", margin: "0 0 4px" }}>{step.title}</p>
+                    <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: 0, lineHeight: 1.5 }}>{step.body}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 

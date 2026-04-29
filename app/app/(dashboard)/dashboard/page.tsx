@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/envio";
-import { ConnectPrompt } from "@/components/ConnectPrompt";
+import { DemoOverview } from "@/components/DemoOverview";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_IN_MONTH = 86400 * 30;
@@ -701,7 +701,7 @@ export default function OverviewPage() {
   }, [streams, disputes]);
 
   if (!isConnected) {
-    return <ConnectPrompt context="merchant" />;
+    return <DemoOverview />;
   }
 
   return (

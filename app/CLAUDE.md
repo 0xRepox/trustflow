@@ -11,7 +11,7 @@ Precise · Trustworthy · Technical
 ### Aesthetic Direction
 - **Theme**: Dark mode only. Background `#08111C` navy, not charcoal/black.
 - **Accent colors**: `#3898EC` blue (CTAs, active states), `#4CAF7D` green (live/streaming indicators), `#C9893A` amber (mono labels)
-- **Typography**: Space Grotesk (headings), DM Sans (body), Space Mono (code/labels)
+- **Typography**: Syne (display/hero headlines), Inter (all UI + body), JetBrains Mono (code/labels)
 - **No grid backgrounds** on the landing page — use noise texture overlay (SVG feTurbulence, ~3% opacity) for subtle depth
 - **References**: Stripe-level polish, but onchain/terminal aesthetic
 - **Anti-references**: No bright/neon crypto colors, no gradients that look "DeFi generic"

@@ -113,7 +113,12 @@
   margin-bottom: 40px; font-weight: 300; line-height: 1.6;
 }
 .heroSub strong { color: #fff; font-weight: 500; }
-.heroCtas { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.heroCtas { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.heroSubLink {
+  font-family: var(--font-sans); font-size: 14px; color: rgba(172,198,233,0.45);
+  text-decoration: none; transition: color .2s;
+}
+.heroSubLink:hover { color: rgba(172,198,233,0.85); }
 
 /* Buttons */
 .btn {

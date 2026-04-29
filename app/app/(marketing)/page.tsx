@@ -130,9 +130,9 @@ export default function LandingPage() {
 
           <div className={s.heroCtas}>
             <Link href="/dashboard" className={`${s.btn} ${s.btnPrimary}`}>
-              Start streaming <span className={s.arr}>→</span>
+              Try it on testnet <span className={s.arr}>→</span>
             </Link>
-            <a href="#how" className={`${s.btn} ${s.btnGhost}`}>See how it works</a>
+            <a href="#how" className={s.heroSubLink}>How it works ↓</a>
           </div>
 
           {/* Live counter stage */}
@@ -279,25 +279,23 @@ export default function LandingPage() {
             <pre className={s.apiTerminal}><span className={s.apiPrompt}>$</span> curl https://api.trustflow.xyz/check \{"\n"}    <span className={s.apiParam}>-d</span> <span className={s.apiString}>&quot;planId=42&quot;</span> \{"\n"}    <span className={s.apiParam}>-d</span> <span className={s.apiString}>&quot;address=0xC8B1...44aA&quot;</span>{"\n\n"}<span className={s.apiComment}># ← response</span>{"\n"}{"{"}{"\n"}  <span className={s.apiKey}>&quot;active&quot;</span>: <span className={s.apiString}>true</span>,{"\n"}  <span className={s.apiKey}>&quot;streamId&quot;</span>: <span className={s.apiString}>&quot;0x3e…b7&quot;</span>,{"\n"}  <span className={s.apiKey}>&quot;rate&quot;</span>: <span className={s.apiString}>&quot;9000000&quot;</span>, <span className={s.apiComment}>// per month</span>{"\n"}  <span className={s.apiKey}>&quot;consumed&quot;</span>: <span className={s.apiString}>&quot;412336&quot;</span>,{"\n"}  <span className={s.apiKey}>&quot;remaining&quot;</span>: <span className={s.apiString}>&quot;8587664&quot;</span>,{"\n"}  <span className={s.apiKey}>&quot;canceledAt&quot;</span>: <span className={s.apiString}>null</span>{"\n"}{"}"}</pre>
           </div>
 
-          {/* Stats */}
+          {/* Honest pre-launch callouts */}
           <div className={`${s.stats} ${s.reveal}`}>
             <div className={s.stat}>
-              <div className={`${s.statNum} ${s.live}`}>
-                {statTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <div className={s.statLabel}>USDC streamed · testnet</div>
+              <div className={s.statNum}>Testnet</div>
+              <div className={s.statLabel}>Live on Arc · Chain 5042002</div>
             </div>
             <div className={s.stat}>
-              <div className={s.statNum}>1.3s</div>
-              <div className={s.statLabel}>Avg. cancel → refund</div>
+              <div className={s.statNum}>&lt; 1s</div>
+              <div className={s.statLabel}>Cancel → refund speed</div>
             </div>
             <div className={s.stat}>
               <div className={s.statNum}>$0.01</div>
               <div className={s.statLabel}>Cost per stream op</div>
             </div>
             <div className={s.stat}>
-              <div className={s.statNum}>0</div>
-              <div className={s.statLabel}>Chargebacks. Ever.</div>
+              <div className={s.statNum}>Open</div>
+              <div className={s.statLabel}>Source · MIT licensed</div>
             </div>
           </div>
         </section>
@@ -311,20 +309,23 @@ export default function LandingPage() {
               The contract refunds exactly what wasn&apos;t used — the moment you cancel.
             </p>
             <div className={s.ctaBtns}>
-              <WalletButton />
-              <Link href="/docs" className={`${s.btn} ${s.btnGhost}`}>Read the docs</Link>
-            </div>
+            <Link href="/dashboard" className={`${s.btn} ${s.btnPrimary}`}>
+              Launch the app <span className={s.arr}>→</span>
+            </Link>
+            <Link href="https://github.com/0xRepox/trustflow" className={`${s.btn} ${s.btnGhost}`} target="_blank" rel="noopener">
+              View on GitHub
+            </Link>
+          </div>
           </div>
         </section>
 
         {/* Footer */}
         <footer className={s.footer}>
-          <div>TrustFlow · Built on Arc · Testnet</div>
+          <div>TrustFlow · Built on Arc · Testnet · Open source</div>
           <div>
-            <Link href="https://github.com" className={s.footerLink}>GitHub</Link>
+            <Link href="https://github.com/0xRepox/trustflow" className={s.footerLink} target="_blank" rel="noopener">GitHub</Link>
             <Link href="/docs" className={s.footerLink}>Docs</Link>
-            <Link href="https://twitter.com" className={s.footerLink}>Twitter</Link>
-            <Link href="https://discord.com" className={s.footerLink}>Discord</Link>
+            <Link href="https://testnet.arcscan.app/address/0x276Ad3A0c2A96d2C135736c6Bde315Ff7d9F6648" className={s.footerLink} target="_blank" rel="noopener">Explorer</Link>
           </div>
         </footer>
 
