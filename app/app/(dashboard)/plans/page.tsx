@@ -566,7 +566,6 @@ export default function PlansPage() {
   const [planName, setPlanName] = useState("");
   const [planNames, setPlanNames] = useState<Record<string, string>>({});
   const [successUrls, setSuccessUrls] = useState<Record<string, string>>({});
-  const [txStatus, setTxStatus] = useState<string | null>(null);
 
   useEffect(() => {
     setPlanNames(loadNames());
@@ -634,7 +633,7 @@ export default function PlansPage() {
     const token = getPlanToken(planId);
     const base = `${window.location.origin}/subscribe/${token}`;
     const link = successUrl ? `${base}?success=${encodeURIComponent(successUrl)}` : base;
-    navigator.clipboard.writeText(link);
+    navigator.clipboard.writeText(link).then(() => toast('Checkout link copied!', 'success'));
   }
 
   function handleSetSuccessUrl(planId: string, url: string) {
@@ -833,21 +832,6 @@ export default function PlansPage() {
           >
             {isPending ? "Waiting…" : "Create plan"}
           </button>
-          {txStatus && (
-            <p
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 11,
-                color: txStatus.startsWith("Error")
-                  ? "var(--error, #FF6B4A)"
-                  : "var(--success, #5AF0B8)",
-                marginTop: 10,
-                textAlign: "center",
-              }}
-            >
-              {txStatus}
-            </p>
-          )}
         </div>
 
         {/* Plan list */}

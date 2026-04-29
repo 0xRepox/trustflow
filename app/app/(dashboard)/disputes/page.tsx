@@ -347,8 +347,8 @@ function DisputeCard({
 export default function DisputesPage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
+  const { toast, dismiss } = useToast();
   const [evidenceInputs, setEvidenceInputs] = useState<Record<string, string>>({});
-  const [txStatus, setTxStatus] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const { data: plans } = useQuery({
@@ -481,30 +481,6 @@ export default function DisputesPage() {
           </div>
         )}
       </div>
-
-      {/* TX status banner */}
-      {txStatus && (
-        <div
-          style={{
-            padding: "10px 14px",
-            background: txStatus.startsWith("Error")
-              ? "rgba(255,107,74,0.1)"
-              : "rgba(56,152,236,0.08)",
-            border: `1px solid ${
-              txStatus.startsWith("Error") ? "rgba(255,107,74,0.3)" : "rgba(56,152,236,0.25)"
-            }`,
-            borderRadius: 8,
-            marginBottom: 16,
-            fontFamily: "var(--font-mono)",
-            fontSize: 12,
-            color: txStatus.startsWith("Error")
-              ? "var(--error, #FF6B4A)"
-              : "var(--cta, #3898EC)",
-          }}
-        >
-          {txStatus}
-        </div>
-      )}
 
       {/* Open disputes */}
       {open.length > 0 && (

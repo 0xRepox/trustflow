@@ -167,7 +167,7 @@ function StreamTicker({
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+      <div className="stat-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
         <div>
           <p style={{ ...labelMono, marginBottom: 3 }}>Consumed</p>
           <p
@@ -287,7 +287,7 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
         }}
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1.8fr 180px", gap: 20, alignItems: "center", paddingLeft: 10 }}>
+      <div className="stream-inner-grid" style={{ display: "grid", gridTemplateColumns: "1.3fr 1.8fr 180px", gap: 20, alignItems: "center", paddingLeft: 10 }}>
         {/* Left: identity */}
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
@@ -532,8 +532,8 @@ function FilterBar({
 export default function StreamsPage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
+  const { toast, dismiss } = useToast();
   const [filter, setFilter] = useState<Filter>("all");
-  const [txStatus, setTxStatus] = useState<string | null>(null);
 
   const { data: plans } = useQuery({
     queryKey: ["plans", address],
@@ -610,7 +610,7 @@ export default function StreamsPage() {
   }, [classified, planMap, now]);
 
   async function handleClaim(streamId: string) {
-    setTxStatus(`Claiming stream #${streamId}…`);
+    const tid = toast('Claiming stream #' + streamId + '…', 'loading', -1);
     try {
       await writeContractAsync({
         address: ADDRESSES.StreamManager,
@@ -618,10 +618,12 @@ export default function StreamsPage() {
         functionName: "claim",
         args: [BigInt(streamId)],
       });
-      setTxStatus(`Stream #${streamId} claimed.`);
+      dismiss(tid);
+      toast('Stream #' + streamId + ' claimed — revenue transferred.', 'success');
       refetch();
     } catch (e) {
-      setTxStatus(`Error: ${e instanceof Error ? e.message : "unknown"}`);
+      dismiss(tid);
+      toast(e instanceof Error ? e.message : 'Transaction failed', 'error');
     }
   }
 
