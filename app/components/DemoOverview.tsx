@@ -48,6 +48,18 @@ export function DemoOverview() {
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <style>{`
+        .demo-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .demo-hero-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+        .demo-stream-row { display: grid; grid-template-columns: 1fr 100px 100px 120px 80px; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: center; }
+        @media (max-width: 768px) {
+          .demo-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .demo-hero-metrics { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+          .demo-stream-row { grid-template-columns: 1fr 80px 80px !important; }
+          .demo-stream-runway { display: none; }
+          .demo-stream-badge { display: none; }
+        }
+      `}</style>
       {/* Demo banner */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -96,8 +108,7 @@ export function DemoOverview() {
           margin: "8px 0", letterSpacing: "-0.03em", lineHeight: 1 }}>
           ${liveNum}
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0,
-          marginTop: 22, paddingTop: 18, borderTop: "1px solid var(--border)" }}>
+        <div className="demo-hero-metrics">
           {[
             ["Per hour", `$${(totalRate * 3600).toFixed(4)}`],
             ["Per day", `$${(totalRate * 86400).toFixed(2)}`],
@@ -118,7 +129,7 @@ export function DemoOverview() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
+      <div className="demo-stat-grid">
         {[
           { label: "Total deposited", value: "$183.00", sub: "3 streams total" },
           { label: "Currently streaming", value: "3", sub: "active now", live: true },
@@ -153,12 +164,13 @@ export function DemoOverview() {
             const consumed = Math.min((s.rate / (30 * 86400)) * elapsed, s.deposited);
             const pct = (consumed / s.deposited) * 100;
             return (
-              <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 120px 80px",
-                gap: 16, padding: "12px 0", borderBottom: "1px solid var(--border)", alignItems: "center" }}>
+              <div key={s.id} className="demo-stream-row">
                 <div>
-                  <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "#fff", margin: 0 }}>{s.plan}</p>
-                  <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", margin: "2px 0 0" }}>
+                  <p style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "#fff", margin: 0 }}>
                     0x7A3f…9E2c
+                  </p>
+                  <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--fg-subtle)", margin: "2px 0 0" }}>
+                    {s.plan}
                   </p>
                 </div>
                 <div>
@@ -173,14 +185,14 @@ export function DemoOverview() {
                     ${consumed.toFixed(2)}
                   </p>
                 </div>
-                <div>
+                <div className="demo-stream-runway">
                   <p style={{ ...labelMono, marginBottom: 5 }}>Runway</p>
                   <div style={{ height: 4, borderRadius: 2, background: "var(--elevated)" }}>
                     <div style={{ height: "100%", width: `${pct}%`, borderRadius: 2,
                       background: "linear-gradient(90deg, #4CAF7D, #3898EC)" }} />
                   </div>
                 </div>
-                <div style={{ opacity: 0.4, textAlign: "right" }}>
+                <div className="demo-stream-badge" style={{ opacity: 0.4, textAlign: "right" }}>
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)" }}>
                     demo
                   </span>

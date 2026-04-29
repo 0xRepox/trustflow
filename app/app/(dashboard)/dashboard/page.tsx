@@ -712,6 +712,14 @@ export default function OverviewPage() {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(0.85); }
         }
+        .dash-stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 18px; }
+        .dash-chart-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px; margin-bottom: 18px; }
+        .dash-bottom-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+        @media (max-width: 768px) {
+          .dash-stat-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .dash-chart-grid { grid-template-columns: 1fr !important; }
+          .dash-bottom-grid { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
       {/* Page header */}
@@ -757,14 +765,7 @@ export default function OverviewPage() {
       {/* ============================================================ */}
       {/* ROW 2: Four stat cards — compact, high-density               */}
       {/* ============================================================ */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 12,
-          marginBottom: 18,
-        }}
-      >
+      <div className="dash-stat-grid">
         <StatCard
           label="Total deposited"
           value={`$${metrics.totalDeposited.toFixed(2)}`}
@@ -793,14 +794,7 @@ export default function OverviewPage() {
       {/* ============================================================ */}
       {/* ROW 3: Revenue chart + Activity feed                         */}
       {/* ============================================================ */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1.5fr 1fr",
-          gap: 12,
-          marginBottom: 18,
-        }}
-      >
+      <div className="dash-chart-grid">
         <div style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
             <div>
@@ -835,7 +829,7 @@ export default function OverviewPage() {
       {/* ============================================================ */}
       {/* ROW 4: Revenue by plan + Stream status                       */}
       {/* ============================================================ */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12 }}>
+      <div className="dash-bottom-grid">
         <div style={cardStyle}>
           <SectionLabel>Breakdown</SectionLabel>
           <p

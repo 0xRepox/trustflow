@@ -231,6 +231,7 @@ function PlanCard({
   streams,
   name,
   successUrl,
+  period,
   onDeactivate,
   onCopyLink,
   onSetSuccessUrl,
@@ -239,6 +240,7 @@ function PlanCard({
   streams: any[];
   name?: string;
   successUrl?: string;
+  period?: string;
   onDeactivate: (id: string) => void;
   onCopyLink: (id: string, successUrl?: string) => void;
   onSetSuccessUrl: (id: string, url: string) => void;
@@ -370,6 +372,7 @@ function PlanCard({
           >
             ${monthly.toFixed(2)}/mo · {activeStreams.length} active subscriber
             {activeStreams.length !== 1 ? "s" : ""}
+            {period && ` · billed ${PERIOD_LABELS[period] ?? period}`}
           </p>
         </div>
 
@@ -523,6 +526,7 @@ function PlanCard({
 const NAMES_KEY = "trustflow_plan_names";
 const REDIRECTS_KEY = "trustflow_plan_redirects";
 const TOKENS_KEY = "trustflow_plan_tokens";
+const PERIODS_KEY = "trustflow_plan_periods";
 
 function loadNames(): Record<string, string> {
   try { return JSON.parse(localStorage.getItem(NAMES_KEY) ?? "{}"); } catch { return {}; }
@@ -530,6 +534,13 @@ function loadNames(): Record<string, string> {
 function saveName(planId: string, name: string) {
   const names = loadNames();
   localStorage.setItem(NAMES_KEY, JSON.stringify({ ...names, [planId]: name }));
+}
+function loadPeriods(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(PERIODS_KEY) ?? "{}"); } catch { return {}; }
+}
+function savePeriod(planId: string, p: string) {
+  const periods = loadPeriods();
+  localStorage.setItem(PERIODS_KEY, JSON.stringify({ ...periods, [planId]: p }));
 }
 function loadRedirects(): Record<string, string> {
   try { return JSON.parse(localStorage.getItem(REDIRECTS_KEY) ?? "{}"); } catch { return {}; }
@@ -566,10 +577,12 @@ export default function PlansPage() {
   const [planName, setPlanName] = useState("");
   const [planNames, setPlanNames] = useState<Record<string, string>>({});
   const [successUrls, setSuccessUrls] = useState<Record<string, string>>({});
+  const [planPeriods, setPlanPeriods] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setPlanNames(loadNames());
     setSuccessUrls(loadRedirects());
+    setPlanPeriods(loadPeriods());
   }, []);
 
   const amountNum = useMemo(() => parseFloat(amount) || 0, [amount]);
@@ -600,9 +613,13 @@ export default function PlansPage() {
       // Save name locally — contract doesn't store metadata
       const newPlans = await refetch();
       const latestPlan = newPlans.data?.[newPlans.data.length - 1];
-      if (latestPlan && planName.trim()) {
-        saveName(String(latestPlan.id), planName.trim());
-        setPlanNames(loadNames());
+      if (latestPlan) {
+        if (planName.trim()) {
+          saveName(String(latestPlan.id), planName.trim());
+          setPlanNames(loadNames());
+        }
+        savePeriod(String(latestPlan.id), period);
+        setPlanPeriods(loadPeriods());
       }
       setTxStatus("Plan created!");
       setAmount("");
@@ -863,13 +880,14 @@ export default function PlansPage() {
             </div>
           )}
 
-          {plans?.map((plan: any) => (
+          {[...(plans ?? [])].sort((a: any, b: any) => Number(b.active) - Number(a.active)).map((plan: any) => (
             <PlanCard
               key={plan.id}
               plan={plan}
               streams={streams ?? []}
               name={planNames[String(plan.id)]}
               successUrl={successUrls[String(plan.id)]}
+              period={planPeriods[String(plan.id)]}
               onDeactivate={handleDeactivate}
               onCopyLink={handleCopyLink}
               onSetSuccessUrl={handleSetSuccessUrl}

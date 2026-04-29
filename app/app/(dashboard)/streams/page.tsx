@@ -293,14 +293,14 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <p
               style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: 14,
+                fontFamily: "var(--font-mono)",
+                fontSize: 13,
                 fontWeight: 500,
                 color: "#fff",
                 margin: 0,
               }}
             >
-              Stream #{stream.id}
+              {subscriberShort}
             </p>
             <StatusChip status={status} live={status === "streaming"} />
           </div>
@@ -312,7 +312,7 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
               margin: 0,
             }}
           >
-            {subscriberShort} · Plan #{stream.planId}
+            {plan?.id ? `Plan #${stream.planId}` : `Plan #${stream.planId}`}
           </p>
           <p
             style={{
