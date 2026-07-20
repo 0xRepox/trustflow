@@ -6,7 +6,7 @@ import { useAccount } from "wagmi";
 import { useBlock } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { WalletButton } from "@/components/WalletButton";
-import { getDisputesByMerchant, getStreamsByPlanIds, getPlansByOwner } from "@/lib/envio";
+import { getDisputesByMerchant, getStreamsByPlanIds, getPlansByOwner } from "@/lib/indexer";
 
 const NAV = [
   { href: "/dashboard", label: "Overview" },

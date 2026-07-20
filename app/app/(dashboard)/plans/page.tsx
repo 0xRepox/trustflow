@@ -3,9 +3,10 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { getPlansByOwner, getStreamsByPlanIds } from "@/lib/envio";
+import { getPlansByOwner, getStreamsByPlanIds } from "@/lib/indexer";
 import { ADDRESSES, PLAN_REGISTRY_ABI } from "@/lib/contracts";
 import { ConnectPrompt } from "@/components/ConnectPrompt";
+import { useToast } from "@/components/Toast";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS: Record<string, number> = {
@@ -100,7 +101,29 @@ function LivePulse({ color = "var(--success, #5AF0B8)" }: { color?: string }) {
 // ============================================================================
 function RatePreview({ amount, period }: { amount: number; period: string }) {
   if (!amount || amount <= 0) return null;
-  const monthly = periodToMonthly(amount, period);
+
+  // Show what the plan will ACTUALLY charge. ratePerSecond is a whole number of
+  // USDC micro-units, so the requested price floors — $30/mo stores as 11 wei/s,
+  // which bills $28.51. Deriving the breakdown from the stored rate keeps the
+  // preview honest rather than echoing back what was typed.
+  const rateWei = rateWeiFromPeriod(amount, period);
+  const monthly = rateToMonthly(rateWei.toString());
+  const requestedMonthly = periodToMonthly(amount, period);
+  const driftPercent = requestedMonthly > 0
+    ? Math.abs((monthly - requestedMonthly) / requestedMonthly) * 100
+    : 0;
+
+  if (rateWei === 0n) {
+    return (
+      <div style={{ background: "rgba(224,85,85,0.08)", borderRadius: 8, padding: "12px 14px", marginTop: 12, border: "1px solid rgba(224,85,85,0.25)" }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--error, #FF6B4A)", margin: 0 }}>
+          Too low to bill per second — this rounds to zero and the plan cannot be created.
+          The minimum is 1 USDC micro-unit per second (about $2.59/month).
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -161,8 +184,21 @@ function RatePreview({ amount, period }: { amount: number; period: string }) {
           margin: "10px 0 0",
         }}
       >
-        {rateWeiFromPeriod(amount, period).toString()} USDC wei/s
+        {rateWei.toString()} USDC wei/s
       </p>
+      {driftPercent >= 0.5 && (
+        <p
+          style={{
+            fontFamily: "var(--font-sans)",
+            fontSize: 11,
+            color: "var(--label, #C9893A)",
+            margin: "6px 0 0",
+          }}
+        >
+          Per-second billing rounds down: this charges ${monthly.toFixed(2)}/month,
+          not ${requestedMonthly.toFixed(2)}. Adjust the amount to close the gap.
+        </p>
+      )}
     </div>
   );
 }
@@ -569,6 +605,7 @@ function decodePlanToken(token: string): string {
 export default function PlansPage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
+  const { toast, dismiss } = useToast();
 
   const [amount, setAmount] = useState("");
   const [period, setPeriod] = useState("monthly");
@@ -602,8 +639,9 @@ export default function PlansPage() {
 
   async function handleCreate() {
     if (!amountNum || rateWei === 0n) return;
+    let tid: string | undefined;
     try {
-      setTxStatus("Sending transaction…");
+      tid = toast("Creating plan…", "loading", -1);
       const result = await writeContractAsync({
         address: ADDRESSES.PlanRegistry,
         abi: PLAN_REGISTRY_ABI,
@@ -621,27 +659,32 @@ export default function PlansPage() {
         savePeriod(String(latestPlan.id), period);
         setPlanPeriods(loadPeriods());
       }
-      setTxStatus("Plan created!");
+      dismiss(tid);
+      toast("Plan created.", "success");
       setAmount("");
       setPlanName("");
     } catch (e) {
-      setTxStatus(`Error: ${e instanceof Error ? e.message : "unknown"}`);
+      if (tid) dismiss(tid);
+      toast(e instanceof Error ? e.message : "Transaction failed", "error");
     }
   }
 
   async function handleDeactivate(planId: string) {
+    let tid: string | undefined;
     try {
-      setTxStatus("Deactivating…");
+      tid = toast("Deactivating plan #" + planId + "…", "loading", -1);
       await writeContractAsync({
         address: ADDRESSES.PlanRegistry,
         abi: PLAN_REGISTRY_ABI,
         functionName: "deactivatePlan",
         args: [BigInt(planId)],
       });
-      setTxStatus("Plan deactivated.");
+      dismiss(tid);
+      toast("Plan #" + planId + " deactivated.", "success");
       refetch();
     } catch (e) {
-      setTxStatus(`Error: ${e instanceof Error ? e.message : "unknown"}`);
+      if (tid) dismiss(tid);
+      toast(e instanceof Error ? e.message : "Transaction failed", "error");
     }
   }
 

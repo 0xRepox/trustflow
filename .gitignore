@@ -7,8 +7,10 @@ out/
 /broadcast/*/31337/
 /broadcast/**/dry-run/
 
-# Dotenv file
+# Dotenv file — real secrets ignored, templates tracked
 .env*
+!.env.example
+!**/.env.example
 
 # Internal docs — not for deployment
 brand/
@@ -20,6 +22,17 @@ TrustFlow Design System/
 
 # Node
 node_modules/
+
+# Indexer (Ponder) — local db + codegen, rebuilt by `pnpm codegen`
+.ponder/
+indexer/generated/
+
+# Next.js
+.next/
+*.tsbuildinfo
+
+# Stray runtime logs
+logs-*.json
 
 # Coverage
 lcov.info

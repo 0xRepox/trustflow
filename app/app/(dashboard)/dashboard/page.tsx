@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/envio";
+import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/indexer";
 import { DemoOverview } from "@/components/DemoOverview";
 
 const USDC_DECIMALS = 1_000_000;

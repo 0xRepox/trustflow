@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getActiveStream } from "@/lib/envio";
+import { getActiveStream } from "@/lib/indexer";
 
 export async function GET(req: NextRequest) {
   const planId = req.nextUrl.searchParams.get("planId");

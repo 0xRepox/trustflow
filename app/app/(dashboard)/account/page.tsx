@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getStreamsByPayer, getPlanById, getDisputesBySubscriber,
   type Stream, type Plan, type Dispute,
-} from "@/lib/envio";
+} from "@/lib/indexer";
 import { ADDRESSES, STREAM_MANAGER_ABI, USDC_ABI, DISPUTE_RESOLVER_ABI } from "@/lib/contracts";
 import { WalletButton } from "@/components/WalletButton";
 

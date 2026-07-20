@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { getDisputesByMerchant, getStreamsByPlanIds, getPlansByOwner } from "@/lib/envio";
+import { getDisputesByMerchant, getStreamsByPlanIds, getPlansByOwner } from "@/lib/indexer";
 const NAV = [
   {
     href: "/dashboard", label: "Overview",

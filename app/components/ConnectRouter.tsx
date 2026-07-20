@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useAccount } from "wagmi";
 import { useRouter, usePathname } from "next/navigation";
-import { getPlansByOwner, getStreamsByPayer } from "@/lib/envio";
+import { getPlansByOwner, getStreamsByPayer } from "@/lib/indexer";
 
 export function ConnectRouter() {
   const { address, isConnected } = useAccount();

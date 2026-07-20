@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/envio";
+import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/indexer";
 import { ADDRESSES, DISPUTE_RESOLVER_ABI } from "@/lib/contracts";
 import { keccak256, toBytes } from "viem";
 import { ConnectPrompt } from "@/components/ConnectPrompt";
+import { useToast } from "@/components/Toast";
 
 const USDC_DECIMALS = 1_000_000;
 
@@ -372,9 +373,10 @@ export default function DisputesPage() {
   async function handleRespond(disputeId: string) {
     const evidence = evidenceInputs[disputeId];
     if (!evidence) return;
+    let tid: string | undefined;
     try {
       setActiveId(disputeId);
-      setTxStatus("Submitting evidence…");
+      tid = toast("Submitting evidence…", "loading", -1);
       const hash = keccak256(toBytes(evidence));
       await writeContractAsync({
         address: ADDRESSES.DisputeResolver,
@@ -382,29 +384,34 @@ export default function DisputesPage() {
         functionName: "respondToDispute",
         args: [BigInt(disputeId), hash],
       });
-      setTxStatus("Response submitted!");
+      dismiss(tid);
+      toast("Evidence submitted for dispute #" + disputeId + ".", "success");
       refetch();
     } catch (e) {
-      setTxStatus(`Error: ${e instanceof Error ? e.message : "unknown"}`);
+      if (tid) dismiss(tid);
+      toast(e instanceof Error ? e.message : "Transaction failed", "error");
     } finally {
       setActiveId(null);
     }
   }
 
   async function handleDefaultSettle(disputeId: string) {
+    let tid: string | undefined;
     try {
       setActiveId(disputeId);
-      setTxStatus("Settling…");
+      tid = toast("Settling dispute #" + disputeId + "…", "loading", -1);
       await writeContractAsync({
         address: ADDRESSES.DisputeResolver,
         abi: DISPUTE_RESOLVER_ABI,
         functionName: "defaultSettle",
         args: [BigInt(disputeId)],
       });
-      setTxStatus("Settled!");
+      dismiss(tid);
+      toast("Dispute #" + disputeId + " settled — funds returned.", "success");
       refetch();
     } catch (e) {
-      setTxStatus(`Error: ${e instanceof Error ? e.message : "unknown"}`);
+      if (tid) dismiss(tid);
+      toast(e instanceof Error ? e.message : "Transaction failed", "error");
     } finally {
       setActiveId(null);
     }

@@ -4,7 +4,7 @@ import { use, useState, useMemo, useEffect, Suspense } from "react";
 import { useAccount, useWriteContract, useReadContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useRouter } from "next/navigation";
-import { getPlanById } from "@/lib/envio";
+import { getPlanById } from "@/lib/indexer";
 import { ADDRESSES, STREAM_MANAGER_ABI, USDC_ABI } from "@/lib/contracts";
 import { WalletButton } from "@/components/WalletButton";
 import Link from "next/link";

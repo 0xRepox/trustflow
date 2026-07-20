@@ -3,9 +3,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { getPlansByOwner, getStreamsByPlanIds, type Plan } from "@/lib/envio";
+import { getPlansByOwner, getStreamsByPlanIds, type Plan } from "@/lib/indexer";
 import { ADDRESSES, STREAM_MANAGER_ABI } from "@/lib/contracts";
 import { ConnectPrompt } from "@/components/ConnectPrompt";
+import { useToast } from "@/components/Toast";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_IN_MONTH = 86400 * 30;
@@ -692,24 +693,6 @@ export default function StreamsPage() {
           </div>
         )}
       </div>
-
-      {/* TX status banner */}
-      {txStatus && (
-        <div
-          style={{
-            padding: "10px 14px",
-            background: txStatus.startsWith("Error") ? "rgba(255,107,74,0.1)" : "rgba(56,152,236,0.08)",
-            border: `1px solid ${txStatus.startsWith("Error") ? "rgba(255,107,74,0.3)" : "rgba(56,152,236,0.25)"}`,
-            borderRadius: 8,
-            marginBottom: 16,
-            fontFamily: "var(--font-mono)",
-            fontSize: 12,
-            color: txStatus.startsWith("Error") ? "var(--error, #FF6B4A)" : "var(--cta, #3898EC)",
-          }}
-        >
-          {txStatus}
-        </div>
-      )}
 
       {/* Filters */}
       <FilterBar current={filter} counts={counts} onChange={setFilter} />

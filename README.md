@@ -58,9 +58,21 @@ DisputeResolver
 | Layer | Tech |
 |---|---|
 | Contracts | Solidity 0.8.24, Foundry |
-| Indexer | Envio HyperIndex (Railway) |
-| Frontend | Next.js 15, wagmi v2, viem, React Query |
+| Indexer | Ponder (Railway) |
+| Frontend | Next.js 16, wagmi v3, viem, React Query |
+| Agent | Node 20, viem — autonomous subscriber |
 | Chain | Arc Testnet — EVM, chain ID 5042002 |
+
+## Layout
+
+```
+src/       Solidity contracts
+test/      Foundry unit, fuzz and invariant tests
+script/    deploy + seed scripts
+indexer/   Ponder indexer — events → GraphQL
+app/       Next.js dashboard and checkout
+agent/     autonomous subscriber agent
+```
 
 ---
 
@@ -79,13 +91,24 @@ forge script script/DeployMonth2.s.sol --rpc-url arc_testnet --broadcast --slow 
 
 ### Indexer
 
-Requires Docker.
+No Docker required — Ponder runs an embedded database in development.
 
 ```bash
 cd indexer
-pnpm install
-pnpm codegen   # regenerate types after changing config.yaml or schema.graphql
-pnpm dev       # Postgres + Hasura + indexer at localhost:8080
+npm install
+npm run dev    # GraphQL at localhost:42069
+```
+
+First sync backfills from block 37,600,000. On the public RPC that takes hours;
+set `PONDER_RPC_URL` to a dedicated Arc endpoint before deploying.
+
+### Agent
+
+```bash
+cd agent
+npm install
+cp .env.example .env   # set AGENT_PRIVATE_KEY + PLAN_ID
+npm run dev
 ```
 
 ### Frontend
@@ -96,4 +119,5 @@ npm install
 npm run dev    # localhost:3000
 ```
 
-Copy `.env.local` and set `NEXT_PUBLIC_ENVIO_URL`. Points to Railway by default.
+Copy `.env.local` and set `NEXT_PUBLIC_INDEXER_URL` to your indexer's GraphQL
+endpoint. Defaults to `localhost:42069` for local development.
