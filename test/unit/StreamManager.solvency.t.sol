@@ -40,11 +40,7 @@ contract StreamManagerSolvencyTest is BaseTest {
         vm.prank(merchant);
         manager.claim(aliceStream);
 
-        assertEq(
-            usdc.balanceOf(merchant) - merchantBefore,
-            5_000,
-            "merchant claimed time accrued after cancellation"
-        );
+        assertEq(usdc.balanceOf(merchant) - merchantBefore, 5_000, "merchant claimed time accrued after cancellation");
     }
 
     /// Funds released by a dispute verdict must not remain claimable afterwards.
@@ -72,11 +68,7 @@ contract StreamManagerSolvencyTest is BaseTest {
 
         // Merchant is owed exactly what the stream consumed — the disputed
         // portion was already delivered by the verdict.
-        assertEq(
-            usdc.balanceOf(merchant) - merchantBefore,
-            100_000,
-            "disputed amount paid out twice"
-        );
+        assertEq(usdc.balanceOf(merchant) - merchantBefore, 100_000, "disputed amount paid out twice");
     }
 
     /// Nothing either party does may pull more out of a stream than was put in.

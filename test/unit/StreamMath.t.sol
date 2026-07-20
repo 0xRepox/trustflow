@@ -45,12 +45,10 @@ contract StreamMathTest is Test {
         assertEq(remaining, 0);
     }
 
-    function test_consumedPlusRemainingEqualsDeposited(
-        uint128 rate,
-        uint64 start,
-        uint64 elapsed,
-        uint128 deposited
-    ) public pure {
+    function test_consumedPlusRemainingEqualsDeposited(uint128 rate, uint64 start, uint64 elapsed, uint128 deposited)
+        public
+        pure
+    {
         vm.assume(rate > 0);
         vm.assume(deposited > 0);
         vm.assume(uint256(start) + uint256(elapsed) <= type(uint64).max);
@@ -60,12 +58,10 @@ contract StreamMathTest is Test {
         assertEq(consumed + remaining, deposited);
     }
 
-    function test_consumedNeverExceedsDeposited(
-        uint128 rate,
-        uint64 start,
-        uint64 elapsed,
-        uint128 deposited
-    ) public pure {
+    function test_consumedNeverExceedsDeposited(uint128 rate, uint64 start, uint64 elapsed, uint128 deposited)
+        public
+        pure
+    {
         vm.assume(rate > 0);
         vm.assume(deposited > 0);
         vm.assume(uint256(start) + uint256(elapsed) <= type(uint64).max);

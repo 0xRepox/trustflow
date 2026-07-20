@@ -268,12 +268,7 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
             effectiveNow = uint64(block.timestamp);
         }
 
-        return StreamMath.computeConsumed(
-            stream.ratePerSecond,
-            stream.startTimestamp,
-            effectiveNow,
-            stream.deposited
-        );
+        return StreamMath.computeConsumed(stream.ratePerSecond, stream.startTimestamp, effectiveNow, stream.deposited);
     }
 
     function _safeTransferOrPause(uint256 streamId, address to, uint128 amount) internal returns (bool) {
@@ -292,10 +287,7 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
         ok; // silence unused var
     }
 
-    function _applyDailyCap(uint256 streamId, uint128 claimable, uint128 dailyCap)
-        internal
-        returns (uint128 capped)
-    {
+    function _applyDailyCap(uint256 streamId, uint128 claimable, uint128 dailyCap) internal returns (uint128 capped) {
         uint256 windowStart = _lastClaimWindowStart[streamId];
         if (block.timestamp >= windowStart + 86400) {
             _lastClaimWindowStart[streamId] = block.timestamp;

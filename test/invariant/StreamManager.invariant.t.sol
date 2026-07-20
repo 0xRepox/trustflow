@@ -18,8 +18,13 @@ contract StreamManagerHandler is Test {
 
     uint256[] private _streamIds;
 
-    function streamIds(uint256 i) public view returns (uint256) { return _streamIds[i]; }
-    function streamIds_length() public view returns (uint256) { return _streamIds.length; }
+    function streamIds(uint256 i) public view returns (uint256) {
+        return _streamIds[i];
+    }
+
+    function streamIds_length() public view returns (uint256) {
+        return _streamIds.length;
+    }
     uint256 public planId;
 
     uint256 public totalDeposited;

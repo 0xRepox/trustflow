@@ -41,7 +41,10 @@ contract StreamManagerFuzzTest is BaseTest {
         uint256 managerBalance = usdc.balanceOf(address(manager));
 
         // Conservation: refund + merchantClaim + remaining-in-manager == deposit
-        assertEq(aliceGained + merchantGained + managerBalance, uint256(deposit) + managerBalance - (uint256(deposit) - aliceGained - merchantGained));
+        assertEq(
+            aliceGained + merchantGained + managerBalance,
+            uint256(deposit) + managerBalance - (uint256(deposit) - aliceGained - merchantGained)
+        );
         // Simpler: alice gained + merchant gained <= deposit
         assertLe(aliceGained + merchantGained, deposit);
     }

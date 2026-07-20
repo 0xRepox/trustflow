@@ -28,7 +28,9 @@ interface IDisputeResolver {
         Verdict verdict;
     }
 
-    event DisputeOpened(uint256 indexed disputeId, uint256 indexed streamId, address indexed subscriber, uint128 frozenAmount);
+    event DisputeOpened(
+        uint256 indexed disputeId, uint256 indexed streamId, address indexed subscriber, uint128 frozenAmount
+    );
     event DisputeResponded(uint256 indexed disputeId, bytes32 evidenceHash);
     event DisputeSettled(uint256 indexed disputeId, Verdict verdict, uint128 toSubscriber, uint128 toMerchant);
 
