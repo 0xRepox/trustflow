@@ -222,7 +222,15 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
     {
         Stream storage stream = _streams[streamId];
         if (stream.payer == address(0)) revert Errors.InvalidStream();
+
+        // Settling delivers the frozen amount to one or both parties, so it must
+        // also be booked as claimed. Unfreezing alone would return it to
+        // `consumed - claimed - frozen` and let the merchant collect it a second
+        // time. Safe against the invariant: `amount` was bounded by available
+        // balance when frozen, and `consumed` only grows.
         stream.frozen -= amount;
+        stream.claimed += amount;
+
         if (toSubscriber > 0) {
             _safeTransferOrSkip(stream.payer, toSubscriber);
         }
@@ -246,7 +254,20 @@ contract StreamManager is IStreamManager, ReentrancyGuard, Ownable {
 
     function _computeConsumed(uint256 streamId) internal view returns (uint256 consumed, uint256 remaining) {
         Stream storage stream = _streams[streamId];
-        uint64 effectiveNow = stream.status == StreamStatus.Paused ? stream.pausedAt : uint64(block.timestamp);
+
+        // The clock must stop whenever the stream stops. A cancelled stream has
+        // already refunded its unconsumed balance to the payer, so letting it
+        // keep accruing would let the merchant claim time that was refunded —
+        // paid for out of other streams' deposits.
+        uint64 effectiveNow;
+        if (stream.status == StreamStatus.Paused) {
+            effectiveNow = stream.pausedAt;
+        } else if (stream.status == StreamStatus.Cancelled) {
+            effectiveNow = stream.cancelledAt;
+        } else {
+            effectiveNow = uint64(block.timestamp);
+        }
+
         return StreamMath.computeConsumed(
             stream.ratePerSecond,
             stream.startTimestamp,

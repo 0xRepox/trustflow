@@ -126,6 +126,25 @@ contract StreamManagerInvariantTest is Test {
         }
     }
 
+    /// @dev The contract must hold at least what every stream is still owed.
+    ///      Derived from stream state rather than transfer deltas, so an overdraw
+    ///      that drains a sibling stream's deposit shows up as a shortfall.
+    ///      An active stream still owes its whole unclaimed deposit; a cancelled
+    ///      one has refunded the remainder and owes only unclaimed consumption.
+    function invariant_contractIsSolvent() public view {
+        StreamManager mgr = handler.manager();
+        uint256 len = handler.streamIds_length();
+        uint256 owed;
+
+        for (uint256 i = 0; i < len; i++) {
+            IStreamManager.Stream memory s = mgr.getStream(handler.streamIds(i));
+            uint256 basis = s.status == IStreamManager.StreamStatus.Cancelled ? s.consumed : s.deposited;
+            owed += basis - s.claimed;
+        }
+
+        assertGe(handler.usdc().balanceOf(address(mgr)), owed, "contract cannot cover what streams are owed");
+    }
+
     /// @dev For each stream: claimed <= consumed
     function invariant_claimedLeqConsumed() public view {
         StreamManager mgr = handler.manager();
