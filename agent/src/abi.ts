@@ -2,6 +2,17 @@
 
 export const STREAM_MANAGER_ABI = [
   {
+    type: "event",
+    name: "StreamCreated",
+    inputs: [
+      { name: "streamId", type: "uint256", indexed: true },
+      { name: "planId", type: "uint256", indexed: true },
+      { name: "payer", type: "address", indexed: true },
+      { name: "deposit", type: "uint128", indexed: false },
+    ],
+    anonymous: false,
+  },
+  {
     type: "function",
     name: "createStream",
     inputs: [

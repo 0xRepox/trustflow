@@ -4,16 +4,22 @@ import { arcTestnet, type AgentConfig } from "./config.js";
 
 export interface AgentClients {
   publicClient: ReturnType<typeof createPublicClient>;
-  walletClient: ReturnType<typeof createWalletClient>;
+  /** Present only in local mode; Circle mode reads on-chain but signs via CLI. */
+  walletClient?: ReturnType<typeof createWalletClient>;
   address: Address;
 }
 
 export function createClients(config: AgentConfig): AgentClients {
-  const account = privateKeyToAccount(config.privateKey);
   const transport = http(config.rpcUrl);
+  const publicClient = createPublicClient({ chain: arcTestnet, transport });
 
+  if (config.walletMode === "circle") {
+    return { publicClient, address: config.circleWalletAddress! };
+  }
+
+  const account = privateKeyToAccount(config.privateKey!);
   return {
-    publicClient: createPublicClient({ chain: arcTestnet, transport }),
+    publicClient,
     walletClient: createWalletClient({ account, chain: arcTestnet, transport }),
     address: account.address,
   };

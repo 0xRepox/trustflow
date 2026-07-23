@@ -19,9 +19,24 @@ export const ADDRESSES = {
   USDC: "0x3600000000000000000000000000000000000000",
 } as const satisfies Record<string, Address>;
 
+/** Block StreamManager was deployed at — floor for event scans. */
+export const DEPLOY_BLOCK = 53_293_655n;
+
+/**
+ * How the agent signs. `circle` routes writes through a Circle Agent Wallet
+ * (MPC, policy-enforced, the process never holds the key) and is the intended
+ * production path. `local` uses a raw private key for dev and tests.
+ */
+export type WalletMode = "circle" | "local";
+
 export interface AgentConfig {
-  /** Private key of the agent's own wallet. Never a human's key. */
-  privateKey: `0x${string}`;
+  walletMode: WalletMode;
+  /** Raw key — local mode only. Never a human's key. */
+  privateKey?: `0x${string}`;
+  /** Circle Agent Wallet address — circle mode only. */
+  circleWalletAddress?: `0x${string}`;
+  /** Circle chain identifier, e.g. ARC-TESTNET. */
+  circleChain: string;
   rpcUrl: string;
   /** Plan the agent subscribes to. */
   planId: bigint;
@@ -50,8 +65,23 @@ function numeric(name: string, fallback: number): number {
 }
 
 export function loadConfig(): AgentConfig {
-  const privateKey = required("AGENT_PRIVATE_KEY");
-  if (!/^0x[0-9a-fA-F]{64}$/.test(privateKey)) {
+  const circleWalletAddress = process.env.CIRCLE_WALLET_ADDRESS;
+  const privateKey = process.env.AGENT_PRIVATE_KEY;
+
+  // Exactly one signing path. Both set is ambiguous; neither leaves no signer.
+  if (circleWalletAddress && privateKey) {
+    throw new Error("Set CIRCLE_WALLET_ADDRESS or AGENT_PRIVATE_KEY, not both");
+  }
+  if (!circleWalletAddress && !privateKey) {
+    throw new Error("Set CIRCLE_WALLET_ADDRESS (production) or AGENT_PRIVATE_KEY (local dev)");
+  }
+
+  const walletMode: WalletMode = circleWalletAddress ? "circle" : "local";
+
+  if (walletMode === "circle" && !/^0x[0-9a-fA-F]{40}$/.test(circleWalletAddress!)) {
+    throw new Error("CIRCLE_WALLET_ADDRESS must be a 0x-prefixed 20-byte address");
+  }
+  if (walletMode === "local" && !/^0x[0-9a-fA-F]{64}$/.test(privateKey!)) {
     throw new Error("AGENT_PRIVATE_KEY must be a 0x-prefixed 32-byte hex string");
   }
 
@@ -62,7 +92,10 @@ export function loadConfig(): AgentConfig {
   }
 
   return {
-    privateKey: privateKey as `0x${string}`,
+    walletMode,
+    privateKey: privateKey as `0x${string}` | undefined,
+    circleWalletAddress: circleWalletAddress as `0x${string}` | undefined,
+    circleChain: process.env.CIRCLE_CHAIN ?? "ARC-TESTNET",
     rpcUrl: process.env.ARC_RPC_URL ?? arcTestnet.rpcUrls.default.http[0],
     planId: BigInt(required("PLAN_ID")),
     minRunwaySeconds,
