@@ -16,20 +16,20 @@ export default createConfig({
     PlanRegistry: {
       chain: "arcTestnet",
       abi: PlanRegistryAbi,
-      address: "0x276Ad3A0c2A96d2C135736c6Bde315Ff7d9F6648",
-      startBlock: 37600000,
+      address: "0xe1deB4a0504f2Baf27D2C225B3807a5743113A73",
+      startBlock: 53293655,
     },
     StreamManager: {
       chain: "arcTestnet",
       abi: StreamManagerAbi,
-      address: "0xb4cC364d19eb4473852316Ec7B8bcc6D87EF3954",
-      startBlock: 37600000,
+      address: "0xf576f7aF812298B95bB440d6718A8b1d96d54395",
+      startBlock: 53293655,
     },
     DisputeResolver: {
       chain: "arcTestnet",
       abi: DisputeResolverAbi,
-      address: "0xc2fd9616d9d8Af35a6D89290bed4838Da3F5083d",
-      startBlock: 37600000,
+      address: "0xF87B65f0bFe749b0BDd0834D3a808B04c241714F",
+      startBlock: 53293655,
     },
   },
 });

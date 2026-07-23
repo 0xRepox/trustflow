@@ -1,9 +1,9 @@
 import { type Address } from "viem";
 
 export const ADDRESSES = {
-  PlanRegistry: "0x276Ad3A0c2A96d2C135736c6Bde315Ff7d9F6648" as Address,
-  StreamManager: "0xb4cC364d19eb4473852316Ec7B8bcc6D87EF3954" as Address,
-  DisputeResolver: "0xc2fd9616d9d8Af35a6D89290bed4838Da3F5083d" as Address,
+  PlanRegistry: "0xe1deB4a0504f2Baf27D2C225B3807a5743113A73" as Address,
+  StreamManager: "0xf576f7aF812298B95bB440d6718A8b1d96d54395" as Address,
+  DisputeResolver: "0xF87B65f0bFe749b0BDd0834D3a808B04c241714F" as Address,
   USDC: "0x3600000000000000000000000000000000000000" as Address,
 } as const;
 

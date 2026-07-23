@@ -325,7 +325,7 @@ export default function LandingPage() {
           <div>
             <Link href="https://github.com/0xRepox/trustflow" className={s.footerLink} target="_blank" rel="noopener">GitHub</Link>
             <Link href="/docs" className={s.footerLink}>Docs</Link>
-            <Link href="https://testnet.arcscan.app/address/0x276Ad3A0c2A96d2C135736c6Bde315Ff7d9F6648" className={s.footerLink} target="_blank" rel="noopener">Explorer</Link>
+            <Link href="https://testnet.arcscan.app/address/0xe1deB4a0504f2Baf27D2C225B3807a5743113A73" className={s.footerLink} target="_blank" rel="noopener">Explorer</Link>
           </div>
         </footer>
 
