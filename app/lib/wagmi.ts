@@ -14,13 +14,17 @@ export const arcTestnet = defineChain({
   },
 });
 
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!;
+// Only wire WalletConnect when a real project id is present. An empty or
+// placeholder id makes the connector throw on init and takes the whole app
+// down, so injected (browser-extension) wallets must keep working without it.
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+const hasWalletConnect = !!projectId && projectId !== "your_project_id_here";
 
 export const wagmiConfig = createConfig({
   chains: [arcTestnet],
   connectors: [
     injected(),
-    walletConnect({ projectId }),
+    ...(hasWalletConnect ? [walletConnect({ projectId })] : []),
   ],
   transports: {
     [arcTestnet.id]: http("https://rpc.testnet.arc.network"),
