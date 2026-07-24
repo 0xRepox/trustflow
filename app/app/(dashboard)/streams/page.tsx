@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds, type Plan } from "@/lib/indexer";
 import { ADDRESSES, STREAM_MANAGER_ABI } from "@/lib/contracts";
 import { ConnectPrompt } from "@/components/ConnectPrompt";
 import { useToast } from "@/components/Toast";
+import { waitForIndexerUpdate } from "@/lib/waitForIndexer";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_IN_MONTH = 86400 * 30;
@@ -534,6 +535,7 @@ export default function StreamsPage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const { toast, dismiss } = useToast();
+  const publicClient = usePublicClient();
   const [filter, setFilter] = useState<Filter>("all");
 
   const { data: plans } = useQuery({
@@ -613,15 +615,21 @@ export default function StreamsPage() {
   async function handleClaim(streamId: string) {
     const tid = toast('Claiming stream #' + streamId + '…', 'loading', -1);
     try {
-      await writeContractAsync({
+      const before = streams?.find((s) => s.id === streamId)?.claimed;
+      const hash = await writeContractAsync({
         address: ADDRESSES.StreamManager,
         abi: STREAM_MANAGER_ABI,
         functionName: "claim",
         args: [BigInt(streamId)],
       });
+      await waitForIndexerUpdate(
+        publicClient!,
+        hash,
+        refetch,
+        (data) => data?.find((s) => s.id === streamId)?.claimed !== before,
+      );
       dismiss(tid);
       toast('Stream #' + streamId + ' claimed — revenue transferred.', 'success');
-      refetch();
     } catch (e) {
       dismiss(tid);
       toast(e instanceof Error ? e.message : 'Transaction failed', 'error');

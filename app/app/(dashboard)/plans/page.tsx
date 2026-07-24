@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds } from "@/lib/indexer";
 import { ADDRESSES, PLAN_REGISTRY_ABI } from "@/lib/contracts";
 import { ConnectPrompt } from "@/components/ConnectPrompt";
 import { useToast } from "@/components/Toast";
+import { waitForIndexerUpdate } from "@/lib/waitForIndexer";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS: Record<string, number> = {
@@ -606,6 +607,7 @@ export default function PlansPage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
   const { toast, dismiss } = useToast();
+  const publicClient = usePublicClient();
 
   const [amount, setAmount] = useState("");
   const [period, setPeriod] = useState("monthly");
@@ -642,15 +644,24 @@ export default function PlansPage() {
     let tid: string | undefined;
     try {
       tid = toast("Creating plan…", "loading", -1);
-      const result = await writeContractAsync({
+      const previousCount = plans?.length ?? 0;
+      const hash = await writeContractAsync({
         address: ADDRESSES.PlanRegistry,
         abi: PLAN_REGISTRY_ABI,
         functionName: "createPlan",
         args: [rateWei, Number(grace) * 86400, Number(policy)],
       });
+      // Wait for the tx to mine and the indexer to catch up — refetching
+      // immediately after submission catches neither, and the new plan
+      // silently wouldn't show up until something else triggered a reload.
+      const newPlans = await waitForIndexerUpdate(
+        publicClient!,
+        hash,
+        refetch,
+        (data) => (data?.length ?? 0) > previousCount,
+      );
       // Save name locally — contract doesn't store metadata
-      const newPlans = await refetch();
-      const latestPlan = newPlans.data?.[newPlans.data.length - 1];
+      const latestPlan = newPlans?.[newPlans.length - 1];
       if (latestPlan) {
         if (planName.trim()) {
           saveName(String(latestPlan.id), planName.trim());
@@ -673,15 +684,20 @@ export default function PlansPage() {
     let tid: string | undefined;
     try {
       tid = toast("Deactivating plan #" + planId + "…", "loading", -1);
-      await writeContractAsync({
+      const hash = await writeContractAsync({
         address: ADDRESSES.PlanRegistry,
         abi: PLAN_REGISTRY_ABI,
         functionName: "deactivatePlan",
         args: [BigInt(planId)],
       });
+      await waitForIndexerUpdate(
+        publicClient!,
+        hash,
+        refetch,
+        (data) => data?.find((p: any) => String(p.id) === planId)?.active === false,
+      );
       dismiss(tid);
       toast("Plan #" + planId + " deactivated.", "success");
-      refetch();
     } catch (e) {
       if (tid) dismiss(tid);
       toast(e instanceof Error ? e.message : "Transaction failed", "error");

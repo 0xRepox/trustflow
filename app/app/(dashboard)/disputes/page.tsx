@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { getPlansByOwner, getStreamsByPlanIds, getDisputesByMerchant } from "@/lib/indexer";
 import { ADDRESSES, DISPUTE_RESOLVER_ABI } from "@/lib/contracts";
 import { keccak256, toBytes } from "viem";
 import { ConnectPrompt } from "@/components/ConnectPrompt";
 import { useToast } from "@/components/Toast";
+import { waitForIndexerUpdate } from "@/lib/waitForIndexer";
 
 const USDC_DECIMALS = 1_000_000;
 
@@ -349,6 +350,7 @@ export default function DisputesPage() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
   const { toast, dismiss } = useToast();
+  const publicClient = usePublicClient();
   const [evidenceInputs, setEvidenceInputs] = useState<Record<string, string>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -377,16 +379,21 @@ export default function DisputesPage() {
     try {
       setActiveId(disputeId);
       tid = toast("Submitting evidence…", "loading", -1);
-      const hash = keccak256(toBytes(evidence));
-      await writeContractAsync({
+      const evidenceHash = keccak256(toBytes(evidence));
+      const txHash = await writeContractAsync({
         address: ADDRESSES.DisputeResolver,
         abi: DISPUTE_RESOLVER_ABI,
         functionName: "respondToDispute",
-        args: [BigInt(disputeId), hash],
+        args: [BigInt(disputeId), evidenceHash],
       });
+      await waitForIndexerUpdate(
+        publicClient!,
+        txHash,
+        refetch,
+        (data) => data?.find((d) => d.id === disputeId)?.status === "Responded",
+      );
       dismiss(tid);
       toast("Evidence submitted for dispute #" + disputeId + ".", "success");
-      refetch();
     } catch (e) {
       if (tid) dismiss(tid);
       toast(e instanceof Error ? e.message : "Transaction failed", "error");
@@ -400,15 +407,20 @@ export default function DisputesPage() {
     try {
       setActiveId(disputeId);
       tid = toast("Settling dispute #" + disputeId + "…", "loading", -1);
-      await writeContractAsync({
+      const txHash = await writeContractAsync({
         address: ADDRESSES.DisputeResolver,
         abi: DISPUTE_RESOLVER_ABI,
         functionName: "defaultSettle",
         args: [BigInt(disputeId)],
       });
+      await waitForIndexerUpdate(
+        publicClient!,
+        txHash,
+        refetch,
+        (data) => data?.find((d) => d.id === disputeId)?.status === "Settled",
+      );
       dismiss(tid);
       toast("Dispute #" + disputeId + " settled — funds returned.", "success");
-      refetch();
     } catch (e) {
       if (tid) dismiss(tid);
       toast(e instanceof Error ? e.message : "Transaction failed", "error");
