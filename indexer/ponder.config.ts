@@ -24,19 +24,40 @@ export default createConfig({
       chain: "arcTestnet",
       abi: PlanRegistryAbi,
       address: "0xe1deB4a0504f2Baf27D2C225B3807a5743113A73",
-      startBlock: 53293655,
+      // Scanning from the deploy block (53293655) meant backfilling ~86k
+      // largely-empty blocks, fanned out across 3 contracts x several event
+      // topics, which reliably tripped the public RPC's requests-per-second
+      // throttle regardless of range size. Confirmed via direct eth_getLogs
+      // scans that the only event in that whole range is the one plan
+      // created at block 53379879 (PlanRegistry only; Stream/Dispute have
+      // none). Starting close to it cuts the backfill to nearly zero.
+      startBlock: 53379800,
     },
     StreamManager: {
       chain: "arcTestnet",
       abi: StreamManagerAbi,
       address: "0xf576f7aF812298B95bB440d6718A8b1d96d54395",
-      startBlock: 53293655,
+      // Scanning from the deploy block (53293655) meant backfilling ~86k
+      // largely-empty blocks, fanned out across 3 contracts x several event
+      // topics, which reliably tripped the public RPC's requests-per-second
+      // throttle regardless of range size. Confirmed via direct eth_getLogs
+      // scans that the only event in that whole range is the one plan
+      // created at block 53379879 (PlanRegistry only; Stream/Dispute have
+      // none). Starting close to it cuts the backfill to nearly zero.
+      startBlock: 53379800,
     },
     DisputeResolver: {
       chain: "arcTestnet",
       abi: DisputeResolverAbi,
       address: "0xF87B65f0bFe749b0BDd0834D3a808B04c241714F",
-      startBlock: 53293655,
+      // Scanning from the deploy block (53293655) meant backfilling ~86k
+      // largely-empty blocks, fanned out across 3 contracts x several event
+      // topics, which reliably tripped the public RPC's requests-per-second
+      // throttle regardless of range size. Confirmed via direct eth_getLogs
+      // scans that the only event in that whole range is the one plan
+      // created at block 53379879 (PlanRegistry only; Stream/Dispute have
+      // none). Starting close to it cuts the backfill to nearly zero.
+      startBlock: 53379800,
     },
   },
 });
