@@ -1,5 +1,5 @@
 import { createConfig } from "ponder";
-import { http } from "viem";
+import { fallback, http } from "viem";
 
 import PlanRegistryAbi from "./abis/PlanRegistry.json";
 import StreamManagerAbi from "./abis/StreamManager.json";
@@ -15,7 +15,20 @@ export default createConfig({
       // Alchemy's free tier proved unable to sustain a real backfill here:
       // the public endpoint throttled on request volume regardless of range
       // size, and Alchemy's free tier caps eth_getLogs at 10 blocks/call.
-      rpc: http(process.env.PONDER_RPC_URL ?? "https://testnet.arcscan.app/api/eth-rpc"),
+      //
+      // But Blockscout hard-rejects the bare `eth_getLogs({ blockHash })`
+      // call Ponder issues once realtime sync catches up to the tip (it
+      // requires an address or topics filter: "Must supply one of address
+      // and topics") — not a timeout, an immediate JSON-RPC error, so it
+      // retries forever and permanently stalls new-block sync. The public
+      // RPC answers that exact call fine, and at realtime cadence (one
+      // query per new block) its throttling isn't the problem it is for a
+      // wide historical backfill. Fall back to it for whatever shape
+      // Blockscout can't serve.
+      rpc: fallback([
+        http(process.env.PONDER_RPC_URL ?? "https://testnet.arcscan.app/api/eth-rpc"),
+        http("https://rpc.testnet.arc.network"),
+      ]),
       // Without an explicit range, Ponder chunks conservatively and can issue
       // hundreds of small requests even against a provider that tolerates a
       // huge range in one call, burning through Blockscout's fairly tight
