@@ -1,6 +1,8 @@
 # TrustFlow
 
-Per-second USDC subscription billing built on Arc. Merchants set a streaming rate; subscribers deposit a runway and pay only for time consumed. Cancel anytime — unused funds return instantly, no forms, no waiting.
+Per-second USDC subscription billing on Arc. A provider sets a streaming rate; a subscriber deposits a runway and pays only for the time consumed. Cancel anytime — unused funds return instantly, no forms, no waiting.
+
+The subscriber can be a person **or an autonomous agent**. TrustFlow is the continuous-consumption counterpart to per-request agent payments (x402): an agent on a Circle Agent Wallet opens, funds, and cancels its own stream, and can freeze payment onchain when a service underdelivers — recourse without a human in the loop. See [`agent/`](./agent).
 
 **Live app:** [app-omega-two-83.vercel.app](https://app-omega-two-83.vercel.app)
 
@@ -26,6 +28,8 @@ Chain ID `5042002` · Explorer: [testnet.arcscan.app](https://testnet.arcscan.ap
 **Subscribers** deposit a buffer — 1 week, 1 month, or 3 months of runway. The deposit drains second-by-second to the merchant. Cancel anytime; the unspent portion returns instantly via Arc's sub-second finality.
 
 **Disputes** freeze the contested amount onchain. The merchant has 7 days to submit an evidence hash. An arbitrator settles — Subscriber, Merchant, or 50/50 Split. If the merchant doesn't respond, the subscriber wins by default and the frozen funds return automatically.
+
+**Agents** drive the whole subscriber side unattended. Running on a Circle Agent Wallet (MPC key shares never touch the agent; every spend is policy-bounded), an agent opens a stream, tops up its own runway, cancels when the work is done, and opens a dispute if the service degrades — all with no human signing once the wallet is funded.
 
 ---
 

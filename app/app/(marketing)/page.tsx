@@ -105,7 +105,7 @@ export default function LandingPage() {
           </Link>
           <ul className={s.navLinks}>
             <li><a href="#how" className={s.navLink}>How it works</a></li>
-            <li><a href="#compare" className={s.navLink}>Why Arc</a></li>
+            <li><a href="#agents" className={s.navLink}>For agents</a></li>
             <li><a href="#integrate" className={s.navLink}>Integrate</a></li>
             <li><Link href="/docs" className={s.navLink}>Docs</Link></li>
             <li><Link href="/dashboard" className={s.navCta}>Launch app →</Link></li>
@@ -123,9 +123,10 @@ export default function LandingPage() {
           </h1>
 
           <p className={s.heroSub}>
-            Traditional billing keeps the rest. <strong>TrustFlow refunds it</strong> — instantly, to the second.
-            Subscribers deposit a buffer, streams track usage in real time, and cancelling returns exactly what wasn&apos;t consumed.
-            No support tickets. No waiting. No rounding.
+            <strong>TrustFlow is per-second USDC subscription billing on Arc.</strong> Subscribers deposit a
+            buffer, streams meter usage in real time, and cancelling returns exactly what wasn&apos;t consumed —
+            instantly, to the second. No support tickets. No waiting. No rounding. And a stream can be driven by
+            a person or an autonomous agent.
           </p>
 
           <div className={s.heroCtas}>
@@ -261,9 +262,52 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* For agents */}
+        <section id="agents" className={s.section}>
+          <div className={s.sectionLabel}>// 03 · For agents</div>
+          <h2 className={s.sectionTitle}>Agents can&apos;t hold credit cards. <em>They can hold a stream.</em></h2>
+          <p className={s.sectionIntro}>
+            Autonomous agents buy APIs, compute, and data continuously. Prepaid credits strand capital;
+            per-request payments (x402) can&apos;t meter a six-hour job or a live feed. TrustFlow is the
+            continuous counterpart — a stream an agent opens, funds, and cancels itself, with no human in the loop.
+          </p>
+
+          <div className={s.steps}>
+            <div className={`${s.step} ${s.reveal}`}>
+              <div className={s.stepNum}>AGENT / 01</div>
+              <div className={s.stepBody}>
+                <h3>Runs its own lifecycle.</h3>
+                <p>Opens a stream, watches its runway, tops up before it expires, and cancels when the job is done. One human funds the wallet once; the agent signs everything after.</p>
+              </div>
+              <pre className={s.stepCode}><span className={s.comment}>// the agent, unattended</span>{"\n"}<span className={s.kw}>while</span> (working) {"{"}{"\n"}{"  "}runway = getBalance(streamId){"\n"}{"  "}<span className={s.kw}>if</span> (runway {"<"} floor) topUp(streamId){"\n"}{"}"}{"\n"}cancel(streamId) <span className={s.comment}>// refund is instant</span>
+</pre>
+            </div>
+
+            <div className={`${s.step} ${s.reveal}`}>
+              <div className={s.stepNum}>AGENT / 02</div>
+              <div className={s.stepBody}>
+                <h3>Spends within a Circle policy.</h3>
+                <p>The wallet is a Circle Agent Wallet. MPC key shares never touch the agent, and every transfer is bounded by the policy you set — that policy is the budget you hand it.</p>
+              </div>
+              <pre className={s.stepCode}><span className={s.comment}>// key never enters the agent</span>{"\n"}<span className={s.kw}>circle</span> wallet execute \{"\n"}{"  "}<span className={s.str}>&quot;createStream(uint256,uint128)&quot;</span> \{"\n"}{"  "}planId buffer <span className={s.comment}>// policy-checked, then signed</span>
+</pre>
+            </div>
+
+            <div className={`${s.step} ${s.reveal}`}>
+              <div className={s.stepNum}>AGENT / 03</div>
+              <div className={s.stepBody}>
+                <h3>Has recourse, on its own.</h3>
+                <p>If service degrades, the agent freezes payment and commits evidence onchain — a chargeback without a card network. It doesn&apos;t need a human to notice.</p>
+              </div>
+              <pre className={s.stepCode}><span className={s.comment}>// bad service? freeze + escalate</span>{"\n"}<span className={s.kw}>DisputeResolver</span>.openDispute(streamId, amt){"\n"}<span className={s.comment}>// → funds frozen onchain</span>{"\n"}<span className={s.comment}>// → merchant has 7 days to respond</span>
+</pre>
+            </div>
+          </div>
+        </section>
+
         {/* API / Integration */}
         <section id="integrate" className={s.section}>
-          <div className={s.sectionLabel}>// 03 · Integration</div>
+          <div className={s.sectionLabel}>// 04 · Integration</div>
           <h2 className={s.sectionTitle}>Gate any endpoint. <em>One request.</em></h2>
           <p className={s.sectionIntro}>
             Drop this into any backend. Returns <code>active: true</code> when the caller has a live stream.
