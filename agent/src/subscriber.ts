@@ -146,14 +146,7 @@ export class SubscriberAgent {
    * on-chain — a cancelled stream is not adopted.
    */
   async adoptExistingStream(): Promise<void> {
-    const logs = await this.clients.publicClient.getContractEvents({
-      address: ADDRESSES.StreamManager,
-      abi: STREAM_MANAGER_ABI,
-      eventName: "StreamCreated",
-      args: { payer: this.executor.address },
-      fromBlock: this.deployBlock,
-      toBlock: "latest",
-    });
+    const logs = await this.scanStreamCreatedLogs();
 
     // Newest first — prefer the most recent still-live stream.
     for (const log of [...logs].reverse()) {
@@ -171,6 +164,36 @@ export class SubscriberAgent {
         return;
       }
     }
+  }
+
+  /**
+   * A single eth_getLogs call spanning deploy-to-tip breaks once enough blocks
+   * have passed — most RPCs (including Arc's public endpoint) cap the range
+   * per call, and the cap only gets tighter to trip as the deployment ages.
+   * Chunk the scan so restart recovery works against whatever RPC is
+   * configured rather than assuming a provider that tolerates a wide range.
+   * Sequential, not parallel — a startup-time scan can afford a few seconds
+   * more latency, and firing many chunks at once is exactly the pattern that
+   * trips a provider's requests-per-second limit instead of its range cap.
+   */
+  private async scanStreamCreatedLogs() {
+    const CHUNK = 9_000n; // under the tightest observed per-call cap (10,000)
+    const latest = await this.clients.publicClient.getBlockNumber();
+
+    const chunks = [];
+    for (let from = this.deployBlock; from <= latest; from += CHUNK + 1n) {
+      const to = from + CHUNK > latest ? latest : from + CHUNK;
+      const chunk = await this.clients.publicClient.getContractEvents({
+        address: ADDRESSES.StreamManager,
+        abi: STREAM_MANAGER_ABI,
+        eventName: "StreamCreated",
+        args: { payer: this.executor.address },
+        fromBlock: from,
+        toBlock: to,
+      });
+      chunks.push(chunk);
+    }
+    return chunks.flat();
   }
 
   /** Reads the plan so deposits are sized from the real on-chain rate. */
