@@ -10,6 +10,12 @@ export default createConfig({
     arcTestnet: {
       id: 5042002,
       rpc: http(process.env.PONDER_RPC_URL ?? "https://rpc.testnet.arc.network"),
+      // The public Arc RPC rate-limits aggressively — it crash-looped the
+      // indexer during backfill. Poll gently and cap the getLogs window so we
+      // stay under its ceiling. A dedicated PONDER_RPC_URL removes the need for
+      // this, but these keep it alive on the free endpoint.
+      pollingInterval: 10_000,
+      ethGetLogsBlockRange: 1_000,
     },
   },
   contracts: {
