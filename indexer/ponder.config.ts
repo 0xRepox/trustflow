@@ -16,6 +16,12 @@ export default createConfig({
       // the public endpoint throttled on request volume regardless of range
       // size, and Alchemy's free tier caps eth_getLogs at 10 blocks/call.
       rpc: http(process.env.PONDER_RPC_URL ?? "https://testnet.arcscan.app/api/eth-rpc"),
+      // Without an explicit range, Ponder chunks conservatively and can issue
+      // hundreds of small requests even against a provider that tolerates a
+      // huge range in one call, burning through Blockscout's fairly tight
+      // request quota before the backfill ever finishes. Confirmed directly
+      // that a single call spanning the whole deploy-to-tip range succeeds.
+      ethGetLogsBlockRange: 200_000,
     },
   },
   contracts: {
