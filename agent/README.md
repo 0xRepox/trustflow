@@ -52,12 +52,28 @@ adoptStream   on start, resume an existing live stream if one exists
 openStream    approve USDC, deposit a runway, start consuming
 monitor       read position each tick, compute remaining runway
 topUp         restore runway to target before it expires
-assessService detect degradation → freeze funds → open dispute   (TODO)
-cancelStream  stop, reclaim the unspent deposit instantly        (TODO)
+assessService detect degradation → freeze funds → open dispute
+cancelStream  stop, reclaim the unspent deposit instantly
 ```
 
 State is read fresh from chain every tick, so a restart adopts the existing
 stream rather than opening a duplicate.
+
+### Recourse
+
+Each tick, if `SERVICE_HEALTH_URL` is set, the agent polls it. A non-2xx
+response or a timeout counts as degraded. On the first unhealthy check it
+freezes what's accrued and unclaimed — approves the one-day bond, then calls
+`DisputeResolver.openDispute` for the available amount — no human decides to
+dispute, the agent does. It won't stack a second dispute while one is already
+frozen on the stream, and does nothing at all if the URL is unset: there's no
+default remote to check, so assessment is opt-in rather than guessing at one.
+
+`cancelStream()` is exposed for a caller to invoke once its work is done —
+the agent doesn't infer task completion on its own, that's outside a generic
+subscriber's scope. It refuses (rather than reverting on-chain) if a dispute
+is still frozen on the stream, since `StreamManager.cancel` requires
+`frozen == 0`.
 
 ## Run
 
@@ -72,6 +88,7 @@ npm run dev
 ```bash
 npx tsx src/runway.test.ts     # funding decision self-check
 npx tsx src/executor.test.ts   # Circle CLI command construction
+npx tsx src/dispute.test.ts    # dispute amount / bond math
 npm run typecheck
 ```
 
@@ -79,9 +96,10 @@ npm run typecheck
 
 Implemented: dual-mode wallet (Circle CLI + raw key), config validation, chain
 clients, runway maths, the poll loop, `openStream`, `adoptExistingStream`,
-`topUp`.
+`topUp`, `assessService`, `cancelStream`.
 
-The live Circle path can't run in CI — it needs an authenticated wallet — so the
-command construction is covered by `executor.test.ts` instead. Stubbed
-(`TODO` in `subscriber.ts`): `cancelStream`, and `assessService`, the dispute
-trigger that is the differentiator — build it next.
+The live Circle path can't run in CI — it needs an authenticated wallet — so
+the command construction is covered by `executor.test.ts` instead. Same for
+`assessService`'s on-chain leg; the dispute/bond math it depends on is
+covered by `dispute.test.ts`. Neither has been run end-to-end against a real
+Circle Agent Wallet yet — do that before demoing it.

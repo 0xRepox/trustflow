@@ -1,9 +1,11 @@
 import { parseEventLogs } from "viem";
 import { ADDRESSES, type AgentConfig } from "./config.js";
-import { PLAN_REGISTRY_ABI, STREAM_MANAGER_ABI, StreamStatus } from "./abi.js";
+import { ERC20_ABI, PLAN_REGISTRY_ABI, STREAM_MANAGER_ABI, StreamStatus } from "./abi.js";
 import { decide } from "./runway.js";
+import { computeAvailableToDispute, computeDisputeBond } from "./dispute.js";
 import type { AgentClients } from "./client.js";
 import type { Executor } from "./executor.js";
+import type { HealthCheck } from "./health.js";
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
@@ -27,6 +29,8 @@ export class SubscriberAgent {
     private readonly executor: Executor,
     /** Block to scan from when recovering an existing stream. */
     private readonly deployBlock: bigint,
+    /** Unset means the agent never assesses or disputes — nothing to check. */
+    private readonly healthCheck?: HealthCheck,
   ) {}
 
   stop(): void {
@@ -69,6 +73,10 @@ export class SubscriberAgent {
       console.log(`stream ${this.streamId} cancelled — nothing left to manage`);
       this.stop();
       return;
+    }
+
+    if (this.healthCheck) {
+      await this.assessService(stream);
     }
 
     const [usable] = await this.clients.publicClient.readContract({
@@ -177,6 +185,91 @@ export class SubscriberAgent {
     return plan.ratePerSecond;
   }
 
-  // TODO: cancelStream() — cancel and reconcile the refund
-  // TODO: assessService() — the differentiator: detect degradation, openDispute
+  /**
+   * Stop and reclaim the unconsumed deposit. Reverts on-chain if a dispute is
+   * still frozen on the stream — checked first so that reads as a clear log
+   * line instead of a thrown revert.
+   */
+  async cancelStream(): Promise<void> {
+    if (this.streamId === null) throw new Error("no stream to cancel");
+
+    const stream = await this.clients.publicClient.readContract({
+      address: ADDRESSES.StreamManager,
+      abi: STREAM_MANAGER_ABI,
+      functionName: "getStream",
+      args: [this.streamId],
+    });
+
+    if (stream.frozen > 0n) {
+      console.log(`stream ${this.streamId} has an active dispute — cannot cancel until it settles`);
+      return;
+    }
+
+    const before = await this.clients.publicClient.readContract({
+      address: ADDRESSES.USDC,
+      abi: ERC20_ABI,
+      functionName: "balanceOf",
+      args: [this.executor.address],
+    });
+
+    const hash = await this.executor.execute({
+      contract: ADDRESSES.StreamManager,
+      signature: "cancel(uint256)",
+      args: [this.streamId],
+    });
+    await this.clients.publicClient.waitForTransactionReceipt({ hash });
+
+    const after = await this.clients.publicClient.readContract({
+      address: ADDRESSES.USDC,
+      abi: ERC20_ABI,
+      functionName: "balanceOf",
+      args: [this.executor.address],
+    });
+
+    console.log(`cancelled stream ${this.streamId} — refunded ${after - before}`);
+    this.stop();
+  }
+
+  /**
+   * The differentiator: check the service the stream is paying for, and if
+   * it's degraded, freeze the accrued-but-unclaimed balance ourselves instead
+   * of waiting for a human to notice. Skips quietly if a dispute is already
+   * open on this stream, so a bad tick can't stack duplicate freezes.
+   */
+  private async assessService(stream: {
+    consumed: bigint;
+    claimed: bigint;
+    frozen: bigint;
+    ratePerSecond: bigint;
+  }): Promise<void> {
+    if (this.streamId === null || !this.healthCheck) return;
+    if (stream.frozen > 0n) return;
+
+    const healthy = await this.healthCheck.check();
+    if (healthy) return;
+
+    const amount = computeAvailableToDispute(stream);
+    if (amount === 0n) {
+      console.log(`service unhealthy on stream ${this.streamId} but nothing accrued yet to dispute`);
+      return;
+    }
+
+    const bond = computeDisputeBond(stream.ratePerSecond);
+    console.log(`service degraded — opening dispute on stream ${this.streamId} for ${amount} (bond ${bond})`);
+
+    await this.executor.execute({
+      contract: ADDRESSES.USDC,
+      signature: "approve(address,uint256)",
+      args: [ADDRESSES.DisputeResolver, bond],
+    });
+
+    const hash = await this.executor.execute({
+      contract: ADDRESSES.DisputeResolver,
+      signature: "openDispute(uint256,uint128)",
+      args: [this.streamId, amount],
+    });
+    await this.clients.publicClient.waitForTransactionReceipt({ hash });
+
+    console.log(`dispute opened on stream ${this.streamId}`);
+  }
 }

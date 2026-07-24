@@ -46,6 +46,13 @@ export interface AgentConfig {
   targetRunwaySeconds: number;
   /** How often the agent re-evaluates its position. */
   pollIntervalMs: number;
+  /**
+   * URL the agent polls to judge whether the service it's paying for is
+   * still behaving. Unset means no assessment runs — the agent never
+   * disputes without something concrete to check.
+   */
+  serviceHealthUrl?: string;
+  serviceHealthTimeoutMs: number;
 }
 
 function required(name: string): string {
@@ -101,5 +108,7 @@ export function loadConfig(): AgentConfig {
     minRunwaySeconds,
     targetRunwaySeconds,
     pollIntervalMs: numeric("POLL_INTERVAL_MS", 15_000),
+    serviceHealthUrl: process.env.SERVICE_HEALTH_URL || undefined,
+    serviceHealthTimeoutMs: numeric("SERVICE_HEALTH_TIMEOUT_MS", 5_000),
   };
 }

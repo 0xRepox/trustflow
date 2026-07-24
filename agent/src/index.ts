@@ -1,6 +1,7 @@
 import { loadConfig, DEPLOY_BLOCK } from "./config.js";
 import { createClients } from "./client.js";
 import { createExecutor } from "./executor.js";
+import { HttpHealthCheck } from "./health.js";
 import { SubscriberAgent } from "./subscriber.js";
 
 /**
@@ -18,7 +19,14 @@ async function main(): Promise<void> {
 
   console.log(`agent ${executor.address} (${config.walletMode}) watching plan ${config.planId}`);
 
-  const agent = new SubscriberAgent(config, clients, executor, DEPLOY_BLOCK);
+  const healthCheck = config.serviceHealthUrl
+    ? new HttpHealthCheck(config.serviceHealthUrl, config.serviceHealthTimeoutMs)
+    : undefined;
+  if (!healthCheck) {
+    console.log("no SERVICE_HEALTH_URL configured — the agent will not assess or dispute");
+  }
+
+  const agent = new SubscriberAgent(config, clients, executor, DEPLOY_BLOCK, healthCheck);
 
   const shutdown = (signal: string): void => {
     console.log(`\n${signal} received — stopping agent`);
