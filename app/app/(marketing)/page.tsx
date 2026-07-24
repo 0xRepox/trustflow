@@ -5,6 +5,7 @@ import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { WalletButton } from "@/components/WalletButton";
+import { AetherParticles } from "@/components/AetherParticles";
 import s from "./landing.module.css";
 
 const MONTHLY_RATE = 9.0;
@@ -115,6 +116,8 @@ export default function LandingPage() {
 
         {/* Hero */}
         <section className={s.hero}>
+          <AetherParticles />
+          <div className={s.heroContent}>
           <span className={s.tag}>Live on Arc Testnet · Chain 5042002</span>
 
           <h1 className={s.heroTitle}>
@@ -173,6 +176,7 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </section>
 

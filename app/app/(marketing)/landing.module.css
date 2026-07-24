@@ -75,7 +75,8 @@
 .navCta:hover { background: #5AABF0; transform: translateY(-1px); }
 
 /* Hero */
-.hero { padding: 96px 0 80px; }
+.hero { position: relative; padding: 96px 0 80px; overflow: hidden; }
+.heroContent { position: relative; z-index: 1; }
 .tag {
   display: inline-flex; align-items: center; gap: 8px;
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
