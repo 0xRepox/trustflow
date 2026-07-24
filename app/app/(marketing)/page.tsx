@@ -113,11 +113,13 @@ export default function LandingPage() {
           </ul>
           <Link href="/dashboard" className={`${s.navCta} ${s.navMobile}`}>Launch app →</Link>
         </nav>
+      </div>
 
-        {/* Hero */}
-        <section className={s.hero}>
-          <AetherParticles />
-          <div className={s.heroContent}>
+      {/* Hero — full-bleed so the particle field reaches the viewport edge
+          instead of stopping at the 1280px content column */}
+      <section className={s.hero}>
+        <AetherParticles />
+        <div className={`${s.wrap} ${s.heroContent}`}>
           <span className={s.tag}>Live on Arc Testnet · Chain 5042002</span>
 
           <h1 className={s.heroTitle}>
@@ -177,8 +179,10 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          </div>
-        </section>
+        </div>
+      </section>
+
+      <div className={s.wrap}>
 
         {/* Comparison */}
         <section id="compare" className={s.section}>
