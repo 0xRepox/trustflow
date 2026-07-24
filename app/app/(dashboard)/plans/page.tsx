@@ -284,7 +284,10 @@ function PlanCard({
 }) {
   const monthly = rateToMonthly(plan.ratePerSecond);
   const planStreams = streams.filter((s: any) => s.planId === plan.id);
-  const activeStreams = planStreams.filter((s: any) => !s.canceledAt && !s.disputed);
+  // ratePerSecond lives on the Plan, not the Stream; the indexer's field is
+  // cancelledAt (not canceledAt) and there's no `disputed` boolean on Stream —
+  // status is "Disputed" instead. Same field names as streams/page.tsx.
+  const activeStreams = planStreams.filter((s: any) => !s.cancelledAt && s.status !== "Cancelled" && s.status !== "Disputed");
 
   const ratePerSecond = (Number(plan.ratePerSecond) / USDC_DECIMALS) * activeStreams.length;
 
@@ -292,12 +295,12 @@ function PlanCard({
   const [liveEarned, setLiveEarned] = useState(0);
   useEffect(() => {
     if (activeStreams.length === 0) return;
+    const rate = Number(plan.ratePerSecond ?? 0) / USDC_DECIMALS;
     const computed = () => {
       let total = 0;
       activeStreams.forEach((s: any) => {
-        const rate = Number(s.ratePerSecond ?? 0) / USDC_DECIMALS;
         const deposited = Number(s.deposited ?? 0) / USDC_DECIMALS;
-        const startedAt = Number(s.startedAt ?? 0);
+        const startedAt = Number(s.createdAt ?? 0);
         total += Math.min(rate * (Date.now() / 1000 - startedAt), deposited);
       });
       setLiveEarned(total);

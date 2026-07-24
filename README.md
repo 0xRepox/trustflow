@@ -4,7 +4,7 @@ Per-second USDC subscription billing on Arc. A provider sets a streaming rate; a
 
 The subscriber can be a person **or an autonomous agent**. TrustFlow is the continuous-consumption counterpart to per-request agent payments (x402): an agent on a Circle Agent Wallet opens, funds, and cancels its own stream, and can freeze payment onchain when a service underdelivers — recourse without a human in the loop. See [`agent/`](./agent).
 
-**Live app:** [app-omega-two-83.vercel.app](https://app-omega-two-83.vercel.app)
+**Live app:** [trustflowonarc.vercel.app](https://trustflowonarc.vercel.app)
 
 ---
 
