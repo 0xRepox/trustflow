@@ -10,13 +10,13 @@ export default createConfig({
     arcTestnet: {
       id: 5042002,
       rpc: http(process.env.PONDER_RPC_URL ?? "https://rpc.testnet.arc.network"),
-      // Alchemy's Arc free tier caps eth_getLogs at a 10-block range and
-      // errors (not truncates) on anything wider, which crash-looped the
-      // indexer. Ponder can auto-negotiate this from the error message, but
-      // Alchemy already told us the exact ceiling, so pin it rather than
-      // depend on that parsing working for this provider's error format.
-      pollingInterval: 2_000,
-      ethGetLogsBlockRange: 10,
+      // The Arc public RPC allows a 10,000-block eth_getLogs range (confirmed
+      // directly), unlike Alchemy's free tier (10-block cap, unusable for a
+      // backfill this wide). Its earlier crash was a requests-per-second
+      // throttle tripped by many small-range calls, so fewer, larger calls
+      // avoid it rather than provoke it. Stay safely under the 10k ceiling.
+      pollingInterval: 5_000,
+      ethGetLogsBlockRange: 5_000,
     },
   },
   contracts: {
