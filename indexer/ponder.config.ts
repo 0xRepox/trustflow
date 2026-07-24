@@ -25,39 +25,29 @@ export default createConfig({
       abi: PlanRegistryAbi,
       address: "0xe1deB4a0504f2Baf27D2C225B3807a5743113A73",
       // Scanning from the deploy block (53293655) meant backfilling ~86k
-      // largely-empty blocks, fanned out across 3 contracts x several event
-      // topics, which reliably tripped the public RPC's requests-per-second
-      // throttle regardless of range size. Confirmed via direct eth_getLogs
-      // scans that the only event in that whole range is the one plan
-      // created at block 53379879 (PlanRegistry only; Stream/Dispute have
-      // none). Starting close to it cuts the backfill to nearly zero.
+      // largely-empty blocks, which reliably tripped the public RPC's
+      // requests-per-second throttle. The one plan created in that range
+      // (block 53379879) is already indexed from here; leave this alone.
       startBlock: 53379800,
     },
     StreamManager: {
       chain: "arcTestnet",
       abi: StreamManagerAbi,
       address: "0xf576f7aF812298B95bB440d6718A8b1d96d54395",
-      // Scanning from the deploy block (53293655) meant backfilling ~86k
-      // largely-empty blocks, fanned out across 3 contracts x several event
-      // topics, which reliably tripped the public RPC's requests-per-second
-      // throttle regardless of range size. Confirmed via direct eth_getLogs
-      // scans that the only event in that whole range is the one plan
-      // created at block 53379879 (PlanRegistry only; Stream/Dispute have
-      // none). Starting close to it cuts the backfill to nearly zero.
-      startBlock: 53379800,
+      // While PlanRegistry's window stayed tiny, the gap between it and "now"
+      // kept growing as real chain time passed, and the indexer never caught
+      // up to the first stream (confirmed on-chain at block 53407885) at
+      // 10 blocks/call on Alchemy's free tier. Jumping just ahead of it
+      // avoids re-crawling the dead gap in between.
+      startBlock: 53407800,
     },
     DisputeResolver: {
       chain: "arcTestnet",
       abi: DisputeResolverAbi,
       address: "0xF87B65f0bFe749b0BDd0834D3a808B04c241714F",
-      // Scanning from the deploy block (53293655) meant backfilling ~86k
-      // largely-empty blocks, fanned out across 3 contracts x several event
-      // topics, which reliably tripped the public RPC's requests-per-second
-      // throttle regardless of range size. Confirmed via direct eth_getLogs
-      // scans that the only event in that whole range is the one plan
-      // created at block 53379879 (PlanRegistry only; Stream/Dispute have
-      // none). Starting close to it cuts the backfill to nearly zero.
-      startBlock: 53379800,
+      // No events yet; start alongside StreamManager so a dispute opened
+      // around the same time as the stream isn't missed.
+      startBlock: 53407800,
     },
   },
 });
