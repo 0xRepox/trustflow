@@ -90,7 +90,7 @@ forge test
 forge coverage
 
 cp .env.example .env   # set PRIVATE_KEY + ARC_TESTNET_RPC_URL
-forge script script/DeployMonth2.s.sol --rpc-url arc_testnet --broadcast --slow -vvvv
+forge script script/Deploy.s.sol --rpc-url arc_testnet --broadcast --slow -vvvv
 ```
 
 ### Indexer
@@ -103,8 +103,14 @@ npm install
 npm run dev    # GraphQL at localhost:42069
 ```
 
-First sync backfills from block 37,600,000. On the public RPC that takes hours;
-set `PONDER_RPC_URL` to a dedicated Arc endpoint before deploying.
+First sync backfills from the deploy block (`53293655`). The public Arc RPC
+throttles on requests/sec and Alchemy's free tier caps `eth_getLogs` at 10
+blocks — neither can sustain a real backfill. Set `PONDER_RPC_URL` to Arc's
+Blockscout eth-rpc proxy instead
+(`https://testnet.arcscan.app/api/eth-rpc?apikey=<key>`), which serves the
+whole historical range in one call. `ethGetLogsBlockRange` is pinned to
+`200_000` in `ponder.config.ts` to match — without it Ponder chunks
+conservatively even against a provider that doesn't need it.
 
 ### Agent
 

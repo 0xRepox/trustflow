@@ -301,9 +301,9 @@ export default function LandingPage() {
               <div className={s.stepNum}>AGENT / 03</div>
               <div className={s.stepBody}>
                 <h3>Has recourse, on its own.</h3>
-                <p>If service degrades, the agent freezes payment and commits evidence onchain — a chargeback without a card network. It doesn&apos;t need a human to notice.</p>
+                <p>If service degrades, the agent freezes payment and commits evidence onchain — a chargeback without a card network. It doesn&apos;t need a human to notice. The agent only opens the case: an arbitrator settles it, or the subscriber wins by default if the merchant never responds.</p>
               </div>
-              <pre className={s.stepCode}><span className={s.comment}>// bad service? freeze + escalate</span>{"\n"}<span className={s.kw}>DisputeResolver</span>.openDispute(streamId, amt){"\n"}<span className={s.comment}>// → funds frozen onchain</span>{"\n"}<span className={s.comment}>// → merchant has 7 days to respond</span>
+              <pre className={s.stepCode}><span className={s.comment}>// bad service? freeze + escalate</span>{"\n"}<span className={s.kw}>DisputeResolver</span>.openDispute(streamId, amt){"\n"}<span className={s.comment}>// → funds frozen onchain</span>{"\n"}<span className={s.comment}>// → merchant has 7 days to respond</span>{"\n"}<span className={s.comment}>// → arbitrator settles, or subscriber wins by default</span>
 </pre>
             </div>
           </div>
