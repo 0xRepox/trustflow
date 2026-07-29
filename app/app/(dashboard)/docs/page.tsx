@@ -53,28 +53,46 @@ export default function DocsPage() {
           Pass their wallet address and your plan ID:
         </p>
         <CodeBlock code={`// Node.js / TypeScript
-const res = await fetch(
-  "${BASE_URL}/api/check-subscription?planId=1&address=0xUSER_WALLET"
-);
-const { active, stream } = await res.json();
+const res = await fetch("${BASE_URL}/api/check", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ planId: "1", address: "0xUSER_WALLET" }),
+});
+const { active, remaining } = await res.json();
 
 if (!active) {
   return res.status(403).json({ error: "No active subscription" });
 }
 
-// stream.remaining — USDC left in deposit
-// stream.createdAt  — Unix timestamp of subscription start`} />
+// remaining — USDC micro-units left unconsumed in the deposit`} />
+      </Section>
+
+      <Section title="4. Let Subscribers Manage Their Own Billing">
+        <p className="text-sm text-gray-400">
+          TrustFlow ships a hosted subscriber billing page — the same pattern as a
+          Stripe Customer Portal. Point your users at their subscription and they can
+          view consumption, top up, cancel for an instant proportional refund, or
+          open a dispute, without you building any of that UI yourself:
+        </p>
+        <CodeBlock lang="html" code={`<a href="${BASE_URL}/account">
+  Manage subscription
+</a>`} />
+        <p className="text-sm text-gray-400">
+          The page reads whichever wallet is connected, so a subscriber sees only
+          their own streams across every merchant they've subscribed to — not just
+          yours.
+        </p>
       </Section>
 
       <Section title="API Reference">
         <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden text-sm">
           <div className="border-b border-gray-800 px-4 py-3 flex items-center gap-2">
-            <span className="bg-green-700 text-green-200 text-xs px-2 py-0.5 rounded font-mono">GET</span>
-            <code className="text-gray-300">/api/check-subscription</code>
+            <span className="bg-blue-700 text-blue-200 text-xs px-2 py-0.5 rounded font-mono">POST</span>
+            <code className="text-gray-300">/api/check</code>
           </div>
           <div className="px-4 py-3 space-y-3">
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Query params</p>
+              <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Body (form-encoded or JSON)</p>
               <table className="w-full text-xs">
                 <tbody className="divide-y divide-gray-800">
                   <tr>
@@ -92,15 +110,16 @@ if (!active) {
               <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Response</p>
               <CodeBlock lang="json" code={`{
   "active": true,
-  "stream": {
-    "id": "3",
-    "planId": "1",
-    "deposited": 29.99,
-    "consumed": 1.23,
-    "remaining": 28.76,
-    "createdAt": 1713484800
-  }
+  "streamId": "3",
+  "rate": "9000000",
+  "consumed": "412336",
+  "remaining": "8587664",
+  "canceledAt": null
 }`} />
+              <p className="text-gray-500 text-xs mt-2">
+                consumed / remaining / rate are USDC micro-units (1,000,000 = 1 USDC),
+                computed live from onchain state at request time — not a cached snapshot.
+              </p>
             </div>
           </div>
         </div>
