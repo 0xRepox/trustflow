@@ -1,7 +1,18 @@
 import type { Hash } from "viem";
 
+interface TransactionReceipt {
+  status: "success" | "reverted";
+}
+
 interface MinimalPublicClient {
-  waitForTransactionReceipt(args: { hash: Hash }): Promise<unknown>;
+  waitForTransactionReceipt(args: { hash: Hash }): Promise<TransactionReceipt>;
+}
+
+export class TransactionRevertedError extends Error {
+  constructor(hash: Hash) {
+    super(`Transaction reverted onchain: ${hash}`);
+    this.name = "TransactionRevertedError";
+  }
 }
 
 /**
@@ -11,6 +22,11 @@ interface MinimalPublicClient {
  * state silently doesn't show up until something else happens to trigger a
  * later refetch (a page reload). Wait for the receipt, then poll the indexer
  * until the change is actually visible or attempts run out.
+ *
+ * `waitForTransactionReceipt` resolves normally for a reverted transaction —
+ * it does not throw — so every caller must check `receipt.status` itself or
+ * a revert reads as silent success once the receipt resolves. Throwing here
+ * means every call site's existing catch block already handles it correctly.
  */
 export async function waitForIndexerUpdate<T>(
   publicClient: MinimalPublicClient,
@@ -19,7 +35,10 @@ export async function waitForIndexerUpdate<T>(
   isUpdated: (data: T | undefined) => boolean,
   options?: { maxAttempts?: number; delayMs?: number },
 ): Promise<T | undefined> {
-  await publicClient.waitForTransactionReceipt({ hash });
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status === "reverted") {
+    throw new TransactionRevertedError(hash);
+  }
 
   const maxAttempts = options?.maxAttempts ?? 8;
   const delayMs = options?.delayMs ?? 1_500;

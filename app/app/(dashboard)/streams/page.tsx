@@ -12,6 +12,23 @@ import { waitForIndexerUpdate } from "@/lib/waitForIndexer";
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_IN_MONTH = 86400 * 30;
 
+/**
+ * Mirrors StreamManager's own accrual math so the UI can tell, after a claim,
+ * whether the contract's daily claim cap silently truncated it. The contract
+ * caps rather than reverts on a partial claim — `stream.claimed` only moves
+ * by the capped amount — so without this check a capped claim looks
+ * identical to a full one in the success toast.
+ */
+function computeLiveClaimable(stream: { deposited?: string; claimed?: string; createdAt?: number }, plan: Plan | null): number {
+  if (!plan) return 0;
+  const rate = Number(plan.ratePerSecond) / USDC_DECIMALS;
+  const deposited = Number(stream.deposited ?? 0) / USDC_DECIMALS;
+  const claimed = Number(stream.claimed ?? 0) / USDC_DECIMALS;
+  const startedAt = Number(stream.createdAt ?? 0);
+  const consumed = Math.min(rate * (Date.now() / 1000 - startedAt), deposited);
+  return Math.max(0, consumed - claimed);
+}
+
 // ============================================================================
 // Shared tokens (match Overview + Plans pages)
 // ============================================================================
@@ -615,21 +632,39 @@ export default function StreamsPage() {
   async function handleClaim(streamId: string) {
     const tid = toast('Claiming stream #' + streamId + '…', 'loading', -1);
     try {
-      const before = streams?.find((s) => s.id === streamId)?.claimed;
+      const streamBefore = streams?.find((s) => s.id === streamId);
+      const claimedBefore = streamBefore?.claimed;
+      const expected = streamBefore ? computeLiveClaimable(streamBefore, planMap[streamBefore.planId] ?? null) : 0;
       const hash = await writeContractAsync({
         address: ADDRESSES.StreamManager,
         abi: STREAM_MANAGER_ABI,
         functionName: "claim",
         args: [BigInt(streamId)],
       });
-      await waitForIndexerUpdate(
+      const updated = await waitForIndexerUpdate(
         publicClient!,
         hash,
         refetch,
-        (data) => data?.find((s) => s.id === streamId)?.claimed !== before,
+        (data) => data?.find((s) => s.id === streamId)?.claimed !== claimedBefore,
       );
       dismiss(tid);
-      toast('Stream #' + streamId + ' claimed — revenue transferred.', 'success');
+
+      const streamAfter = updated?.find((s) => s.id === streamId);
+      const actualDelta = streamAfter && claimedBefore !== undefined
+        ? (Number(streamAfter.claimed) - Number(claimedBefore)) / USDC_DECIMALS
+        : null;
+
+      // The contract's daily claim cap truncates silently — claimed moves by
+      // less than what was available, with no revert to signal it. Report
+      // that honestly instead of a flat "claimed" that implies it's all in.
+      if (actualDelta !== null && expected > 0.005 && actualDelta < expected - 0.01) {
+        toast(
+          `Claimed $${actualDelta.toFixed(4)} of $${expected.toFixed(4)} available — the rest is capped by the daily claim limit and unlocks as the window rolls over.`,
+          'success',
+        );
+      } else {
+        toast('Stream #' + streamId + ' claimed — revenue transferred.', 'success');
+      }
     } catch (e) {
       dismiss(tid);
       toast(e instanceof Error ? e.message : 'Transaction failed', 'error');
