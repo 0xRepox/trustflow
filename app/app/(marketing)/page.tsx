@@ -234,8 +234,11 @@ export default function LandingPage() {
                 <h3>Merchant defines the plan.</h3>
                 <p>Set the rate, grace period, and cancellation terms. The plan lives as a single onchain record anyone can subscribe to.</p>
               </div>
+              <div className={s.stepTerminal}>
+                <div className={s.stepTermHeader}><div className={s.dots}><span /><span /><span /></div></div>
               <pre className={s.stepCode}><span className={s.comment}>// one transaction, one source of truth</span>{"\n"}<span className={s.kw}>PlanRegistry</span>.createPlan({"{"}{"\n"}{"  "}name:      <span className={s.str}>&quot;Pro API&quot;</span>,{"\n"}{"  "}rate:      <span className={s.val}>9_000000</span>, <span className={s.comment}>// $9/mo in 6-dec USDC</span>{"\n"}{"  "}grace:     <span className={s.val}>86400</span>,   <span className={s.comment}>// 1 day</span>{"\n"}{"  "}dispute:   <span className={s.str}>&quot;agent+panel&quot;</span>{"\n"}{"}"})
 </pre>
+              </div>
             </div>
 
             <div className={`${s.step} ${s.reveal}`}>
@@ -244,8 +247,11 @@ export default function LandingPage() {
                 <h3>Subscriber opens a stream.</h3>
                 <p>Approve a bounded USDC allowance. Deposit a small buffer (1 week is typical). The stream begins ticking in the same block.</p>
               </div>
+              <div className={s.stepTerminal}>
+                <div className={s.stepTermHeader}><div className={s.dots}><span /><span /><span /></div></div>
               <pre className={s.stepCode}><span className={s.comment}>// 2 txs · ~$0.02 total gas on Arc</span>{"\n"}<span className={s.kw}>USDC</span>.approve(streamManager, buffer){"\n"}<span className={s.kw}>StreamManager</span>.createStream(planId, buffer){"\n"}<span className={s.comment}>// → streamId · status: STREAMING</span>
 </pre>
+              </div>
             </div>
 
             <div className={`${s.step} ${s.reveal}`}>
@@ -254,8 +260,11 @@ export default function LandingPage() {
                 <h3>Value flows, per second.</h3>
                 <p>No cron job. No off-chain scheduler. Consumed balance is computed on-demand from <code>(rate × elapsed)</code>. Merchant can claim accrued revenue anytime.</p>
               </div>
+              <div className={s.stepTerminal}>
+                <div className={s.stepTermHeader}><div className={s.dots}><span /><span /><span /></div></div>
               <pre className={s.stepCode}><span className={s.comment}>// merchant claims what&apos;s earned so far</span>{"\n"}<span className={s.kw}>StreamManager</span>.claim(streamId){"\n"}<span className={s.comment}>// → transfers accrued USDC to merchant</span>{"\n"}<span className={s.comment}>// → stream continues uninterrupted</span>
 </pre>
+              </div>
             </div>
 
             <div className={`${s.step} ${s.reveal}`}>
@@ -264,8 +273,11 @@ export default function LandingPage() {
                 <h3>Cancel. Refund. Sub-second.</h3>
                 <p>Subscriber hits cancel. Unused buffer returns to their wallet in the same transaction. Arc&apos;s deterministic finality means the refund is final before the next heartbeat.</p>
               </div>
+              <div className={s.stepTerminal}>
+                <div className={s.stepTermHeader}><div className={s.dots}><span /><span /><span /></div></div>
               <pre className={s.stepCode}><span className={s.comment}>// one call · final in &lt; 1 second</span>{"\n"}<span className={s.kw}>StreamManager</span>.cancel(streamId){"\n"}<span className={s.comment}>// → consumed stays with merchant</span>{"\n"}<span className={s.comment}>// → unused returns to subscriber</span>
 </pre>
+              </div>
             </div>
           </div>
         </section>
@@ -287,8 +299,11 @@ export default function LandingPage() {
                 <h3>Runs its own lifecycle.</h3>
                 <p>Opens a stream, watches its runway, tops up before it expires, and cancels when the job is done. One human funds the wallet once; the agent signs everything after.</p>
               </div>
+              <div className={s.stepTerminal}>
+                <div className={s.stepTermHeader}><div className={s.dots}><span /><span /><span /></div></div>
               <pre className={s.stepCode}><span className={s.comment}>// the agent, unattended</span>{"\n"}<span className={s.kw}>while</span> (working) {"{"}{"\n"}{"  "}runway = getBalance(streamId){"\n"}{"  "}<span className={s.kw}>if</span> (runway {"<"} floor) topUp(streamId){"\n"}{"}"}{"\n"}cancel(streamId) <span className={s.comment}>// refund is instant</span>
 </pre>
+              </div>
             </div>
 
             <div className={`${s.step} ${s.reveal}`}>
@@ -297,8 +312,11 @@ export default function LandingPage() {
                 <h3>Spends within a Circle policy.</h3>
                 <p>The wallet is a Circle Agent Wallet. MPC key shares never touch the agent, and every transfer is bounded by the policy you set — that policy is the budget you hand it.</p>
               </div>
+              <div className={s.stepTerminal}>
+                <div className={s.stepTermHeader}><div className={s.dots}><span /><span /><span /></div></div>
               <pre className={s.stepCode}><span className={s.comment}>// key never enters the agent</span>{"\n"}<span className={s.kw}>circle</span> wallet execute \{"\n"}{"  "}<span className={s.str}>&quot;createStream(uint256,uint128)&quot;</span> \{"\n"}{"  "}planId buffer <span className={s.comment}>// policy-checked, then signed</span>
 </pre>
+              </div>
             </div>
 
             <div className={`${s.step} ${s.reveal}`}>
@@ -307,8 +325,11 @@ export default function LandingPage() {
                 <h3>Has recourse, on its own.</h3>
                 <p>If service degrades, the agent freezes payment and commits evidence onchain — a chargeback without a card network. It doesn&apos;t need a human to notice. The agent only opens the case: an arbitrator settles it, or the subscriber wins by default if the merchant never responds.</p>
               </div>
+              <div className={s.stepTerminal}>
+                <div className={s.stepTermHeader}><div className={s.dots}><span /><span /><span /></div></div>
               <pre className={s.stepCode}><span className={s.comment}>// bad service? freeze + escalate</span>{"\n"}<span className={s.kw}>DisputeResolver</span>.openDispute(streamId, amt){"\n"}<span className={s.comment}>// → funds frozen onchain</span>{"\n"}<span className={s.comment}>// → merchant has 7 days to respond</span>{"\n"}<span className={s.comment}>// → arbitrator settles, or subscriber wins by default</span>
 </pre>
+              </div>
             </div>
           </div>
         </section>
