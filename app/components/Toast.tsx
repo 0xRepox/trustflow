@@ -41,6 +41,7 @@ function ToastItem({ t, onDismiss }: { t: Toast; onDismiss: () => void }) {
 
   return (
     <div
+      role={t.type === "error" ? "alert" : "status"}
       style={{
         display: "flex", alignItems: "center", gap: 10,
         padding: "12px 16px",
@@ -53,7 +54,7 @@ function ToastItem({ t, onDismiss }: { t: Toast; onDismiss: () => void }) {
         animation: "toastIn 0.2s ease-out",
       }}
     >
-      <span style={{
+      <span aria-hidden="true" style={{
         fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 700,
         color: c.iconColor, flexShrink: 0, width: 16, textAlign: "center",
       }}>
@@ -66,6 +67,7 @@ function ToastItem({ t, onDismiss }: { t: Toast; onDismiss: () => void }) {
       </span>
       <button
         onClick={onDismiss}
+        aria-label="Dismiss notification"
         style={{
           background: "none", border: "none", cursor: "pointer",
           color: "rgba(172,198,233,0.4)", fontSize: 16, lineHeight: 1,
