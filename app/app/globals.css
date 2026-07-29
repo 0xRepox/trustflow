@@ -7,7 +7,7 @@
   --fg1:           #FFFFFF;
   --fg2:           #ACC6E9;
   --fg-muted:      #7A9FC4;
-  --fg-subtle:     #4A6F8C;
+  --fg-subtle:     #5C82A3; /* was #4A6F8C — that failed WCAG AA (3.56:1) against --bg; this passes (4.68:1) */
   --cta:           #3898EC;
   --cta-hover:     #5AABF0;
   --label:         #C9893A;
@@ -31,6 +31,20 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Visible keyboard focus everywhere. Several inputs set `outline: none`
+   inline with no replacement — box-shadow sidesteps that entirely since
+   it's a different property, so this applies regardless. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--cta);
+  border-radius: 4px;
+}
 
 html, body {
   background: var(--bg);

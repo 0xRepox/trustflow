@@ -347,7 +347,7 @@ export default function LandingPage() {
             <div className={s.termHeader}>
               <div className={s.dots}><span /><span /><span /></div>
               <div>curl · terminal</div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#4A6F8C" }}>HTTP/1.1</div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#5C82A3" }}>HTTP/1.1</div>
             </div>
             <pre className={s.apiTerminal}><span className={s.apiPrompt}>$</span> curl https://trustflowonarc.vercel.app/api/check \{"\n"}    <span className={s.apiParam}>-d</span> <span className={s.apiString}>&quot;planId=42&quot;</span> \{"\n"}    <span className={s.apiParam}>-d</span> <span className={s.apiString}>&quot;address=0xC8B1...44aA&quot;</span>{"\n\n"}<span className={s.apiComment}># ← response</span>{"\n"}{"{"}{"\n"}  <span className={s.apiKey}>&quot;active&quot;</span>: <span className={s.apiString}>true</span>,{"\n"}  <span className={s.apiKey}>&quot;streamId&quot;</span>: <span className={s.apiString}>&quot;0x3e…b7&quot;</span>,{"\n"}  <span className={s.apiKey}>&quot;rate&quot;</span>: <span className={s.apiString}>&quot;9000000&quot;</span>, <span className={s.apiComment}>// per month</span>{"\n"}  <span className={s.apiKey}>&quot;consumed&quot;</span>: <span className={s.apiString}>&quot;412336&quot;</span>,{"\n"}  <span className={s.apiKey}>&quot;remaining&quot;</span>: <span className={s.apiString}>&quot;8587664&quot;</span>,{"\n"}  <span className={s.apiKey}>&quot;canceledAt&quot;</span>: <span className={s.apiString}>null</span>{"\n"}{"}"}</pre>
           </div>

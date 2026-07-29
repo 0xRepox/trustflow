@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Syne, Inter, JetBrains_Mono } from "next/font/google";
+import { Syne, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
@@ -10,7 +10,10 @@ const syne = Syne({
   display: "swap",
 });
 
-const inter = Inter({
+// Inter is the most overused body font on the web — IBM Plex Sans keeps the
+// same clean small-size legibility but reads as a deliberate, technical
+// choice rather than the default, matching the brand's precise/technical tone.
+const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-sans",
@@ -43,7 +46,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${syne.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${syne.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable}`}>
       <body style={{ background: "var(--bg)", color: "var(--fg1)", fontFamily: "var(--font-sans)", margin: 0 }}>
         <Providers>
           {children}
