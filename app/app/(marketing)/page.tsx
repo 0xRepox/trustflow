@@ -128,10 +128,10 @@ export default function LandingPage() {
           </h1>
 
           <p className={s.heroSub}>
-            <strong>TrustFlow is per-second USDC subscription billing on Arc.</strong> Subscribers deposit a
-            buffer, streams meter usage in real time, and cancelling returns exactly what wasn&apos;t consumed —
-            instantly, to the second. No support tickets. No waiting. No rounding. And a stream can be driven by
-            a person or an autonomous agent.
+            <strong>TrustFlow is per-second USDC subscription billing on Arc.</strong> A subscriber deposits a
+            buffer, the balance drains to the merchant every second it&apos;s used, and cancelling instantly
+            refunds whatever wasn&apos;t consumed — no support ticket, no waiting, no rounding. The subscriber
+            can be a person or an autonomous agent.
           </p>
 
           <div className={s.heroCtas}>
