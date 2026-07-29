@@ -8,6 +8,7 @@ import { ADDRESSES, PLAN_REGISTRY_ABI } from "@/lib/contracts";
 import { ConnectPrompt } from "@/components/ConnectPrompt";
 import { useToast } from "@/components/Toast";
 import { waitForIndexerUpdate } from "@/lib/waitForIndexer";
+import { getErrorMessage } from "@/lib/errors";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS: Record<string, number> = {
@@ -28,17 +29,31 @@ function periodToMonthly(amount: number, period: string) {
 }
 
 function rateWeiFromPeriod(amount: number, period: string): bigint {
-  // ratePerSecond is an integer, so the exact price rarely divides evenly
-  // into per-second µUSDC. Round to the NEAREST integer rather than always
-  // floor (merchant systematically undercharged) or always ceil (subscriber
-  // systematically overcharged, sometimes by a lot at low price points) —
-  // nearest halves the worst-case drift and doesn't structurally favor
-  // either side.
+  // Nearest-integer default for callers that just need a sane single rate
+  // (e.g. before the merchant has typed anything). Where precision matters
+  // — the actual create-plan flow — use exactRateCandidates below instead
+  // and let the merchant pick, rather than silently approximating.
   return BigInt(Math.round((amount * USDC_DECIMALS) / SECONDS[period]));
 }
 
 function rateToMonthly(rateWei: string) {
   return (Number(rateWei) / USDC_DECIMALS) * SECONDS.monthly;
+}
+
+/**
+ * ratePerSecond is an integer, so a typed price rarely divides evenly into
+ * per-second µUSDC — any single rounding rule (floor, ceil, nearest) always
+ * produces an approximation of what was typed, favoring one party or the
+ * other by construction. Instead of picking a rounding rule, surface the
+ * two real, exact rates nearest the target and let the merchant choose one
+ * directly — whichever they pick has zero drift, because it's no longer an
+ * approximation of anything, just the price.
+ */
+function exactRateCandidates(amount: number, period: string): { lower: bigint; upper: bigint; exact: boolean } {
+  const raw = (amount * USDC_DECIMALS) / SECONDS[period];
+  const lower = BigInt(Math.floor(raw));
+  const exact = Number.isInteger(raw);
+  return { lower, upper: exact ? lower : lower + 1n, exact };
 }
 
 // ============================================================================
@@ -106,21 +121,58 @@ function LivePulse({ color = "var(--success, #5AF0B8)" }: { color?: string }) {
 // ============================================================================
 // Billing breakdown preview
 // ============================================================================
-function RatePreview({ amount, period }: { amount: number; period: string }) {
+function RateOptionCard({ label, rateWei, selected, onSelect }: {
+  label?: string; rateWei: bigint; selected: boolean; onSelect: () => void;
+}) {
+  const monthly = rateToMonthly(rateWei.toString());
+  return (
+    <button
+      onClick={onSelect}
+      style={{
+        display: "block",
+        width: "100%",
+        textAlign: "left",
+        background: selected ? "rgba(56,152,236,0.1)" : "var(--elevated)",
+        border: selected ? "1px solid rgba(56,152,236,0.6)" : "1px solid var(--border)",
+        borderRadius: 8,
+        padding: "10px 12px",
+        cursor: "pointer",
+        transition: "all 0.15s",
+      }}
+    >
+      {label && (
+        <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: selected ? "var(--cta, #3898EC)" : "var(--fg-subtle)", margin: "0 0 4px" }}>
+          {label}
+        </p>
+      )}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+        {[
+          ["Hourly", `$${(monthly / 720).toFixed(4)}`],
+          ["Daily", `$${(monthly / 30).toFixed(2)}`],
+          ["Weekly", `$${(monthly / 4.33).toFixed(2)}`],
+          ["Monthly", `$${monthly.toFixed(2)}`],
+        ].map(([l, v]) => (
+          <div key={l} style={{ textAlign: "center" }}>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 10, color: "var(--fg-muted)", margin: 0 }}>{l}</p>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500, color: "#fff", margin: "2px 0 0", fontVariantNumeric: "tabular-nums" }}>{v}</p>
+          </div>
+        ))}
+      </div>
+      <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-subtle)", margin: "8px 0 0" }}>
+        {rateWei.toString()} USDC wei/s
+      </p>
+    </button>
+  );
+}
+
+function RatePreview({ amount, period, selectedRateWei, onSelectRateWei }: {
+  amount: number; period: string; selectedRateWei: bigint | null; onSelectRateWei: (rate: bigint) => void;
+}) {
   if (!amount || amount <= 0) return null;
 
-  // Show what the plan will ACTUALLY charge. ratePerSecond is a whole number of
-  // USDC micro-units, so the requested price floors — $30/mo stores as 11 wei/s,
-  // which bills $28.51. Deriving the breakdown from the stored rate keeps the
-  // preview honest rather than echoing back what was typed.
-  const rateWei = rateWeiFromPeriod(amount, period);
-  const monthly = rateToMonthly(rateWei.toString());
-  const requestedMonthly = periodToMonthly(amount, period);
-  const driftPercent = requestedMonthly > 0
-    ? Math.abs((monthly - requestedMonthly) / requestedMonthly) * 100
-    : 0;
+  const { lower, upper, exact } = exactRateCandidates(amount, period);
 
-  if (rateWei === 0n) {
+  if (lower === 0n && upper === 0n) {
     return (
       <div style={{ background: "rgba(224,85,85,0.08)", borderRadius: 8, padding: "12px 14px", marginTop: 12, border: "1px solid rgba(224,85,85,0.25)" }}>
         <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--error, #FF6B4A)", margin: 0 }}>
@@ -131,81 +183,33 @@ function RatePreview({ amount, period }: { amount: number; period: string }) {
     );
   }
 
-  return (
-    <div
-      style={{
-        background: "rgba(22,47,74,0.6)",
-        borderRadius: 8,
-        padding: "12px 14px",
-        marginTop: 12,
-        border: "1px solid var(--border)",
-      }}
-    >
-      <SectionLabel>Billing breakdown</SectionLabel>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginTop: 10 }}>
-        {[
-          ["Hourly", `$${(monthly / 720).toFixed(4)}`],
-          ["Daily", `$${(monthly / 30).toFixed(2)}`],
-          ["Weekly", `$${(monthly / 4.33).toFixed(2)}`],
-          ["Monthly", `$${monthly.toFixed(2)}`],
-        ].map(([l, v]) => (
-          <div
-            key={l}
-            style={{
-              background: "var(--elevated)",
-              borderRadius: 6,
-              padding: "8px 6px",
-              textAlign: "center",
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: 10,
-                color: "var(--fg-muted)",
-                margin: 0,
-              }}
-            >
-              {l}
-            </p>
-            <p
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: 12,
-                fontWeight: 500,
-                color: "#fff",
-                margin: "2px 0 0",
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {v}
-            </p>
-          </div>
-        ))}
+  if (exact) {
+    return (
+      <div style={{ marginTop: 12 }}>
+        <SectionLabel>Billing breakdown — exact, no rounding</SectionLabel>
+        <div style={{ marginTop: 8 }}>
+          <RateOptionCard rateWei={lower} selected onSelect={() => onSelectRateWei(lower)} />
+        </div>
       </div>
-      <p
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: 10,
-          color: "var(--fg-subtle)",
-          margin: "10px 0 0",
-        }}
-      >
-        {rateWei.toString()} USDC wei/s
+    );
+  }
+
+  // ratePerSecond is an integer, so this price has no exact per-second rate —
+  // any rounding rule is just an approximation, silently favoring whichever
+  // side the rule picks. Showing both real neighboring rates and letting the
+  // merchant choose means whatever they pick has zero drift, because it's no
+  // longer standing in for a different number.
+  return (
+    <div style={{ marginTop: 12 }}>
+      <SectionLabel>Pick the exact price — no rounding either way</SectionLabel>
+      <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--fg-subtle)", margin: "4px 0 10px" }}>
+        ${amount.toFixed(2)}/{PERIOD_LABELS[period].replace("per ", "")} isn't reachable exactly at per-second
+        resolution — these two are the nearest real prices.
       </p>
-      {driftPercent >= 0.5 && (
-        <p
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontSize: 11,
-            color: "var(--label, #C9893A)",
-            margin: "6px 0 0",
-          }}
-        >
-          Per-second billing rounds to the nearest whole µUSDC/s: this charges ${monthly.toFixed(2)}/month,
-          not ${requestedMonthly.toFixed(2)}. Adjust the amount to close the gap.
-        </p>
-      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <RateOptionCard label="Lower" rateWei={lower} selected={selectedRateWei === lower} onSelect={() => onSelectRateWei(lower)} />
+        <RateOptionCard label="Higher" rateWei={upper} selected={selectedRateWei === upper} onSelect={() => onSelectRateWei(upper)} />
+      </div>
     </div>
   );
 }
@@ -634,7 +638,23 @@ export default function PlansPage() {
   }, []);
 
   const amountNum = useMemo(() => parseFloat(amount) || 0, [amount]);
-  const rateWei = useMemo(() => rateWeiFromPeriod(amountNum, period), [amountNum, period]);
+
+  // The merchant picks one of the two exact nearby rates (see RatePreview) —
+  // reset the pick whenever the target price/period changes, since the
+  // candidates it was chosen from no longer apply.
+  const [chosenRateWei, setChosenRateWei] = useState<bigint | null>(null);
+  useEffect(() => {
+    setChosenRateWei(null);
+  }, [amountNum, period]);
+
+  const rateWei = useMemo(() => {
+    if (chosenRateWei !== null) return chosenRateWei;
+    const { lower, upper, exact } = exactRateCandidates(amountNum, period);
+    if (exact) return lower;
+    // No explicit pick yet — default to nearest so the button isn't blocked
+    // on a choice the merchant hasn't made, without silently favoring a side.
+    return rateWeiFromPeriod(amountNum, period) === lower ? lower : upper;
+  }, [chosenRateWei, amountNum, period]);
 
   const { data: plans, refetch } = useQuery({
     queryKey: ["plans", address],
@@ -685,7 +705,7 @@ export default function PlansPage() {
       setPlanName("");
     } catch (e) {
       if (tid) dismiss(tid);
-      toast(e instanceof Error ? e.message : "Transaction failed", "error");
+      toast(getErrorMessage(e), "error");
     }
   }
 
@@ -709,7 +729,7 @@ export default function PlansPage() {
       toast("Plan #" + planId + " deactivated.", "success");
     } catch (e) {
       if (tid) dismiss(tid);
-      toast(e instanceof Error ? e.message : "Transaction failed", "error");
+      toast(getErrorMessage(e), "error");
     }
   }
 
@@ -869,7 +889,7 @@ export default function PlansPage() {
             </div>
           </div>
 
-          <RatePreview amount={amountNum} period={period} />
+          <RatePreview amount={amountNum} period={period} selectedRateWei={chosenRateWei} onSelectRateWei={setChosenRateWei} />
 
           {/* Grace + policy */}
           <div style={{ display: "flex", gap: 10, margin: "14px 0" }}>

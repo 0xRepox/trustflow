@@ -9,6 +9,7 @@ import { keccak256, toBytes } from "viem";
 import { ConnectPrompt } from "@/components/ConnectPrompt";
 import { useToast } from "@/components/Toast";
 import { waitForIndexerUpdate } from "@/lib/waitForIndexer";
+import { getErrorMessage } from "@/lib/errors";
 
 const USDC_DECIMALS = 1_000_000;
 
@@ -396,7 +397,7 @@ export default function DisputesPage() {
       toast("Evidence submitted for dispute #" + disputeId + ".", "success");
     } catch (e) {
       if (tid) dismiss(tid);
-      toast(e instanceof Error ? e.message : "Transaction failed", "error");
+      toast(getErrorMessage(e), "error");
     } finally {
       setActiveId(null);
     }
@@ -423,7 +424,7 @@ export default function DisputesPage() {
       toast("Dispute #" + disputeId + " settled — funds returned.", "success");
     } catch (e) {
       if (tid) dismiss(tid);
-      toast(e instanceof Error ? e.message : "Transaction failed", "error");
+      toast(getErrorMessage(e), "error");
     } finally {
       setActiveId(null);
     }

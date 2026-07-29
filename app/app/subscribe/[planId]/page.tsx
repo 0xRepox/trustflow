@@ -8,6 +8,7 @@ import { getPlanById } from "@/lib/indexer";
 import { ADDRESSES, STREAM_MANAGER_ABI, USDC_ABI } from "@/lib/contracts";
 import { WalletButton } from "@/components/WalletButton";
 import Link from "next/link";
+import { getErrorMessage } from "@/lib/errors";
 
 function isSafeRedirectUrl(url: string): boolean {
   try {
@@ -201,7 +202,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
 
       setStep("done");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Transaction failed");
+      setError(getErrorMessage(e));
       setStep("idle");
     }
   }

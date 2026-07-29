@@ -162,6 +162,23 @@ export async function getDisputesBySubscriber(subscriberAddress: string): Promis
   return data.disputes.items;
 }
 
+export async function getClaimEventsByStreamIds(streamIds: string[]): Promise<ClaimEvent[]> {
+  if (streamIds.length === 0) return [];
+  const results = await Promise.all(
+    streamIds.map((streamId) =>
+      gql<{ claimEvents: { items: ClaimEvent[] } }>(
+        `query($streamId: String!) {
+          claimEvents(where: { streamId: $streamId }, orderBy: "timestamp", orderDirection: "asc", limit: 1000) {
+            items { id streamId merchant amount timestamp }
+          }
+        }`,
+        { streamId }
+      )
+    )
+  );
+  return results.flatMap((r) => r.claimEvents.items);
+}
+
 export async function getDisputesByMerchant(streamIds: string[]): Promise<Dispute[]> {
   if (streamIds.length === 0) return [];
   const results = await Promise.all(

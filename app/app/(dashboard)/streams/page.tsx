@@ -3,11 +3,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { getPlansByOwner, getStreamsByPlanIds, type Plan } from "@/lib/indexer";
+import { getPlansByOwner, getStreamsByPlanIds, getClaimEventsByStreamIds, type Plan, type ClaimEvent } from "@/lib/indexer";
 import { ADDRESSES, STREAM_MANAGER_ABI } from "@/lib/contracts";
 import { ConnectPrompt } from "@/components/ConnectPrompt";
 import { useToast } from "@/components/Toast";
 import { waitForIndexerUpdate } from "@/lib/waitForIndexer";
+import { getErrorMessage } from "@/lib/errors";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_IN_MONTH = 86400 * 30;
@@ -27,6 +28,37 @@ function computeLiveClaimable(stream: { deposited?: string; claimed?: string; cr
   const startedAt = Number(stream.createdAt ?? 0);
   const consumed = Math.min(rate * (Date.now() / 1000 - startedAt), deposited);
   return Math.max(0, consumed - claimed);
+}
+
+const DAILY_CAP_WINDOW_SECONDS = 86400;
+const DAILY_CAP_MULTIPLIER = 2;
+
+/**
+ * Mirrors StreamManager._applyDailyCap exactly by replaying claim history —
+ * the contract's rolling-window state (_lastClaimWindowStart, _claimedInWindow)
+ * isn't exposed by any view function, but it's fully reconstructable from the
+ * Claimed events the indexer already tracks. Without this, the Claim button
+ * offers the full accrued amount even when the cap is already exhausted for
+ * the current window, guaranteeing a revert on click.
+ */
+function computeDailyCapState(
+  claimEventsAsc: { amount: string; timestamp: number }[],
+  dailyCapRaw: number,
+  nowSeconds: number,
+): { remainingRaw: number; resetAt: number | null } {
+  let windowStart = 0;
+  let used = 0;
+  for (const ev of claimEventsAsc) {
+    if (ev.timestamp >= windowStart + DAILY_CAP_WINDOW_SECONDS) {
+      windowStart = ev.timestamp;
+      used = 0;
+    }
+    used += Number(ev.amount);
+  }
+  if (nowSeconds >= windowStart + DAILY_CAP_WINDOW_SECONDS) {
+    return { remainingRaw: dailyCapRaw, resetAt: null };
+  }
+  return { remainingRaw: Math.max(0, dailyCapRaw - used), resetAt: windowStart + DAILY_CAP_WINDOW_SECONDS };
 }
 
 // ============================================================================
@@ -237,7 +269,7 @@ function StreamTicker({
 // ============================================================================
 // Stream card (row)
 // ============================================================================
-function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null; onClaim: (id: string) => void }) {
+function StreamCard({ stream, plan, claimEvents, onClaim }: { stream: any; plan: Plan | null; claimEvents: ClaimEvent[]; onClaim: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   // ratePerSecond lives on the Plan, not the Stream
   const ratePerSecond = plan ? Number(plan.ratePerSecond) / USDC_DECIMALS : 0;
@@ -276,6 +308,22 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
     const interval = setInterval(tick, 500);
     return () => clearInterval(interval);
   }, [status, ratePerSecond, startedAt, deposited, claimed, stream.canceledAt]);
+
+  // How much can actually be claimed right now, not just what's accrued —
+  // the contract's daily cap can already be exhausted for this stream even
+  // though liveClaimable (accrued-but-unclaimed) is well above zero.
+  const [now, setNow] = useState(Date.now() / 1000);
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now() / 1000), 30_000);
+    return () => clearInterval(interval);
+  }, []);
+  const dailyCapRaw = plan ? Number(plan.ratePerSecond) * DAILY_CAP_WINDOW_SECONDS * DAILY_CAP_MULTIPLIER : 0;
+  const { remainingRaw: capRemainingRaw, resetAt: capResetAt } = useMemo(
+    () => computeDailyCapState(claimEvents, dailyCapRaw, now),
+    [claimEvents, dailyCapRaw, now],
+  );
+  const claimableNow = Math.min(liveClaimable, capRemainingRaw / USDC_DECIMALS);
+  const capBlocking = liveClaimable > 0.0001 && claimableNow <= 0.0001;
 
   return (
     <div
@@ -358,23 +406,29 @@ function StreamCard({ stream, plan, onClaim }: { stream: any; plan: Plan | null;
         <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "stretch" }}>
           <button
             onClick={() => onClaim(stream.id)}
-            disabled={liveClaimable <= 0.0001}
+            disabled={claimableNow <= 0.0001}
+            title={capBlocking ? "Daily claim limit reached for this stream" : undefined}
             style={{
-              background: liveClaimable > 0.0001 ? "var(--cta, #3898EC)" : "var(--elevated)",
+              background: claimableNow > 0.0001 ? "var(--cta, #3898EC)" : "var(--elevated)",
               border: "none",
               borderRadius: 8,
               padding: "9px 14px",
               fontFamily: "var(--font-sans)",
               fontSize: 12,
               fontWeight: 500,
-              color: liveClaimable > 0.0001 ? "#fff" : "var(--fg-subtle)",
-              cursor: liveClaimable > 0.0001 ? "pointer" : "not-allowed",
+              color: claimableNow > 0.0001 ? "#fff" : "var(--fg-subtle)",
+              cursor: claimableNow > 0.0001 ? "pointer" : "not-allowed",
               transition: "background 0.15s",
               fontVariantNumeric: "tabular-nums",
             }}
           >
-            Claim ${liveClaimable.toFixed(2)}
+            {capBlocking ? "Daily limit reached" : `Claim $${claimableNow.toFixed(2)}`}
           </button>
+          {capBlocking && capResetAt && (
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 10, color: "var(--label, #C9893A)", margin: 0, textAlign: "center" }}>
+              ${liveClaimable.toFixed(2)} accrued · resets {new Date(capResetAt * 1000).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+            </p>
+          )}
           <button
             onClick={() => setExpanded((v) => !v)}
             style={{
@@ -572,6 +626,20 @@ export default function StreamsPage() {
     enabled: !!plans?.length,
   });
 
+  const { data: claimEvents, refetch: refetchClaimEvents } = useQuery({
+    queryKey: ["claimEvents", streams?.map((s) => s.id)],
+    queryFn: () => getClaimEventsByStreamIds(streams!.map((s) => s.id)),
+    enabled: !!streams?.length,
+  });
+
+  const claimEventsByStream = useMemo(() => {
+    const map: Record<string, ClaimEvent[]> = {};
+    (claimEvents ?? []).forEach((ev) => {
+      (map[ev.streamId] ??= []).push(ev);
+    });
+    return map;
+  }, [claimEvents]);
+
   // Classify streams — use Envio field names (createdAt, cancelledAt, payer)
   const classified = useMemo(() => {
     if (!streams) return [];
@@ -647,6 +715,7 @@ export default function StreamsPage() {
         refetch,
         (data) => data?.find((s) => s.id === streamId)?.claimed !== claimedBefore,
       );
+      refetchClaimEvents();
       dismiss(tid);
 
       const streamAfter = updated?.find((s) => s.id === streamId);
@@ -667,7 +736,7 @@ export default function StreamsPage() {
       }
     } catch (e) {
       dismiss(tid);
-      toast(e instanceof Error ? e.message : 'Transaction failed', 'error');
+      toast(getErrorMessage(e), 'error');
     }
   }
 
@@ -771,7 +840,7 @@ export default function StreamsPage() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {filtered.map((stream: any) => (
-            <StreamCard key={stream.id} stream={stream} plan={planMap[stream.planId] ?? null} onClaim={handleClaim} />
+            <StreamCard key={stream.id} stream={stream} plan={planMap[stream.planId] ?? null} claimEvents={claimEventsByStream[stream.id] ?? []} onClaim={handleClaim} />
           ))}
         </div>
       )}

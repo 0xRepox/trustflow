@@ -9,6 +9,7 @@ import {
 } from "@/lib/indexer";
 import { ADDRESSES, STREAM_MANAGER_ABI, USDC_ABI, DISPUTE_RESOLVER_ABI } from "@/lib/contracts";
 import { WalletButton } from "@/components/WalletButton";
+import { getErrorMessage } from "@/lib/errors";
 
 const USDC_DECIMALS = 1_000_000;
 const SECONDS_PER_MONTH = 86400 * 30;
@@ -59,51 +60,101 @@ function ConsumptionBar({ consumed, deposited, pct }: { consumed: number; deposi
   );
 }
 
+// Presets expressed as a fraction of the monthly rate (30-day month), same
+// approximation used elsewhere in the app (periodToMonthly).
+const TOPUP_PRESETS: { label: string; monthsEquivalent: number }[] = [
+  { label: "1 day", monthsEquivalent: 1 / 30 },
+  { label: "1 week", monthsEquivalent: 7 / 30 },
+  { label: "1mo", monthsEquivalent: 1 },
+  { label: "3mo", monthsEquivalent: 3 },
+  { label: "6mo", monthsEquivalent: 6 },
+];
+
 function TopUpPanel({ monthly, onConfirm, onClose, isActing }: {
   monthly: number;
   onConfirm: (amount: number) => void;
   onClose: () => void;
   isActing: boolean;
 }) {
-  const [months, setMonths] = useState(1);
-  const amount = monthly * months;
+  const [selectedPreset, setSelectedPreset] = useState<number | null>(2); // "1mo"
+  const [customValue, setCustomValue] = useState("");
+  const isCustom = selectedPreset === null;
+  const amount = isCustom ? (parseFloat(customValue) || 0) : monthly * TOPUP_PRESETS[selectedPreset].monthsEquivalent;
+
   return (
     <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 16px" }}>
       <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500, color: "var(--fg2)", margin: "0 0 10px" }}>
         Add deposit
       </p>
-      <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-        {[1, 3, 6].map((m) => (
+      <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+        {TOPUP_PRESETS.map((p, i) => (
           <button
-            key={m}
-            onClick={() => setMonths(m)}
+            key={p.label}
+            onClick={() => setSelectedPreset(i)}
             style={{
-              flex: 1, padding: "8px 4px", borderRadius: 8, cursor: "pointer",
-              border: months === m ? "1px solid rgba(56,152,236,0.6)" : "1px solid var(--border)",
-              background: months === m ? "rgba(56,152,236,0.1)" : "var(--elevated)",
+              flex: "1 0 auto", padding: "8px 10px", borderRadius: 8, cursor: "pointer",
+              border: selectedPreset === i ? "1px solid rgba(56,152,236,0.6)" : "1px solid var(--border)",
+              background: selectedPreset === i ? "rgba(56,152,236,0.1)" : "var(--elevated)",
               fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 600,
-              color: months === m ? "var(--cta)" : "var(--fg2)",
+              color: selectedPreset === i ? "var(--cta)" : "var(--fg2)",
             }}
           >
-            {m}mo
+            {p.label}
           </button>
         ))}
+        <button
+          onClick={() => setSelectedPreset(null)}
+          style={{
+            flex: "1 0 auto", padding: "8px 10px", borderRadius: 8, cursor: "pointer",
+            border: isCustom ? "1px solid rgba(56,152,236,0.6)" : "1px solid var(--border)",
+            background: isCustom ? "rgba(56,152,236,0.1)" : "var(--elevated)",
+            fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 600,
+            color: isCustom ? "var(--cta)" : "var(--fg2)",
+          }}
+        >
+          Custom
+        </button>
       </div>
-      <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: "0 0 12px" }}>
-        Adding <span style={{ color: "#fff", fontWeight: 500 }}>${amount.toFixed(2)} USDC</span>
-      </p>
+      {isCustom ? (
+        <div style={{ position: "relative", marginBottom: 12 }}>
+          <span style={{
+            position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
+            fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--fg-muted)",
+          }}>$</span>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={customValue}
+            onChange={(e) => setCustomValue(e.target.value)}
+            placeholder="Amount in USDC"
+            autoFocus
+            style={{
+              width: "100%", boxSizing: "border-box",
+              background: "var(--elevated)", border: "1px solid var(--border)",
+              borderRadius: 8, padding: "8px 10px 8px 22px",
+              fontFamily: "var(--font-mono)", fontSize: 12, color: "#fff",
+              outline: "none",
+            }}
+          />
+        </div>
+      ) : (
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: "0 0 12px" }}>
+          Adding <span style={{ color: "#fff", fontWeight: 500 }}>${amount.toFixed(2)} USDC</span>
+        </p>
+      )}
       <div style={{ display: "flex", gap: 8 }}>
         <button
           onClick={() => onConfirm(amount)}
-          disabled={isActing}
+          disabled={isActing || amount <= 0}
           style={{
             flex: 1, padding: "9px 0", borderRadius: 8, border: "none",
-            background: isActing ? "rgba(56,152,236,0.4)" : "var(--cta)",
+            background: isActing || amount <= 0 ? "rgba(56,152,236,0.4)" : "var(--cta)",
             fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500,
-            color: "#fff", cursor: isActing ? "not-allowed" : "pointer",
+            color: "#fff", cursor: isActing || amount <= 0 ? "not-allowed" : "pointer",
           }}
         >
-          {isActing ? "Confirming…" : "Confirm top-up"}
+          {isActing ? "Confirming…" : `Confirm top-up${isCustom && amount > 0 ? ` — $${amount.toFixed(2)}` : ""}`}
         </button>
         <button
           onClick={onClose}
@@ -372,7 +423,7 @@ export default function AccountPage() {
       setTxStatus("Stream cancelled. Unspent USDC returned to your wallet.");
       refetch();
     } catch (e) {
-      setTxError(e instanceof Error ? e.message : "Transaction failed");
+      setTxError(getErrorMessage(e));
       setTxStatus(null);
     } finally { setActingId(null); }
   }
@@ -394,7 +445,7 @@ export default function AccountPage() {
       setTxStatus("Top-up complete!");
       refetch();
     } catch (e) {
-      setTxError(e instanceof Error ? e.message : "Transaction failed");
+      setTxError(getErrorMessage(e));
       setTxStatus(null);
     } finally { setActingId(null); }
   }
@@ -422,7 +473,7 @@ export default function AccountPage() {
       setTxStatus("Dispute opened. Merchant has 7 days to respond.");
       refetch(); refetchDisputes();
     } catch (e) {
-      setTxError(e instanceof Error ? e.message : "Transaction failed");
+      setTxError(getErrorMessage(e));
       setTxStatus(null);
     } finally { setActingId(null); }
   }
