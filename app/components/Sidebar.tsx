@@ -43,6 +43,15 @@ const NAV = [
     ),
   },
   {
+    href: "/account", label: "My Subscriptions",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.8"/>
+        <path d="M4.5 20c1.4-3.6 4.5-5.5 7.5-5.5s6.1 1.9 7.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
     href: "/docs", label: "Docs",
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
