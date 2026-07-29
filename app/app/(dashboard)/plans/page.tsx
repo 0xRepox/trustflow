@@ -28,7 +28,12 @@ function periodToMonthly(amount: number, period: string) {
 }
 
 function rateWeiFromPeriod(amount: number, period: string): bigint {
-  return BigInt(Math.floor((amount * USDC_DECIMALS) / SECONDS[period]));
+  // Round the rate UP, not down. ratePerSecond is an integer, so the exact
+  // price rarely divides evenly into per-second µUSDC — flooring means the
+  // merchant collects less than they typed, forever, on every subscriber.
+  // Ceiling means the merchant always collects at least what they asked
+  // for; the subscriber pays a sub-cent-per-month difference at worst.
+  return BigInt(Math.ceil((amount * USDC_DECIMALS) / SECONDS[period]));
 }
 
 function rateToMonthly(rateWei: string) {
@@ -196,7 +201,7 @@ function RatePreview({ amount, period }: { amount: number; period: string }) {
             margin: "6px 0 0",
           }}
         >
-          Per-second billing rounds down: this charges ${monthly.toFixed(2)}/month,
+          Per-second billing rounds up in your favor: this charges ${monthly.toFixed(2)}/month,
           not ${requestedMonthly.toFixed(2)}. Adjust the amount to close the gap.
         </p>
       )}
