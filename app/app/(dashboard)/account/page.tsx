@@ -92,7 +92,7 @@ function TopUpPanel({ monthly, onConfirm, onClose, isActing }: {
             key={p.label}
             onClick={() => setSelectedPreset(i)}
             style={{
-              flex: "1 0 auto", padding: "8px 10px", borderRadius: 8, cursor: "pointer",
+              flex: "1 0 auto", padding: "12px 10px", borderRadius: 8, cursor: "pointer",
               border: selectedPreset === i ? "1px solid rgba(56,152,236,0.6)" : "1px solid var(--border)",
               background: selectedPreset === i ? "rgba(56,152,236,0.1)" : "var(--elevated)",
               fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 600,
@@ -105,7 +105,7 @@ function TopUpPanel({ monthly, onConfirm, onClose, isActing }: {
         <button
           onClick={() => setSelectedPreset(null)}
           style={{
-            flex: "1 0 auto", padding: "8px 10px", borderRadius: 8, cursor: "pointer",
+            flex: "1 0 auto", padding: "12px 10px", borderRadius: 8, cursor: "pointer",
             border: isCustom ? "1px solid rgba(56,152,236,0.6)" : "1px solid var(--border)",
             background: isCustom ? "rgba(56,152,236,0.1)" : "var(--elevated)",
             fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 600,
@@ -148,7 +148,7 @@ function TopUpPanel({ monthly, onConfirm, onClose, isActing }: {
           onClick={() => onConfirm(amount)}
           disabled={isActing || amount <= 0}
           style={{
-            flex: 1, padding: "9px 0", borderRadius: 8, border: "none",
+            flex: 1, padding: "13px 0", borderRadius: 8, border: "none",
             background: isActing || amount <= 0 ? "rgba(56,152,236,0.4)" : "var(--cta)",
             fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500,
             color: "#fff", cursor: isActing || amount <= 0 ? "not-allowed" : "pointer",
@@ -159,7 +159,7 @@ function TopUpPanel({ monthly, onConfirm, onClose, isActing }: {
         <button
           onClick={onClose}
           style={{
-            padding: "9px 14px", borderRadius: 8, border: "1px solid var(--border)",
+            padding: "13px 14px", borderRadius: 8, border: "1px solid var(--border)",
             background: "var(--elevated)", fontFamily: "var(--font-sans)", fontSize: 12,
             color: "var(--fg-muted)", cursor: "pointer",
           }}
@@ -226,7 +226,7 @@ function DisputePanel({ maxAmount, bondUsdc, onConfirm, onClose, isActing }: {
           onClick={() => onConfirm(parsed)}
           disabled={isActing || !valid}
           style={{
-            flex: 1, padding: "9px 0", borderRadius: 8, border: "none",
+            flex: 1, padding: "13px 0", borderRadius: 8, border: "none",
             background: !valid || isActing ? "var(--elevated)" : "rgba(201,137,58,0.85)",
             fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500,
             color: !valid || isActing ? "var(--fg-subtle)" : "#fff",
@@ -238,7 +238,7 @@ function DisputePanel({ maxAmount, bondUsdc, onConfirm, onClose, isActing }: {
         <button
           onClick={onClose}
           style={{
-            padding: "9px 14px", borderRadius: 8, border: "1px solid var(--border)",
+            padding: "13px 14px", borderRadius: 8, border: "1px solid var(--border)",
             background: "var(--elevated)", fontFamily: "var(--font-sans)", fontSize: 12,
             color: "var(--fg-muted)", cursor: "pointer",
           }}
@@ -547,7 +547,7 @@ export default function AccountPage() {
 }
 
 const actionBtn: React.CSSProperties = {
-  flex: 1, padding: "9px 0", borderRadius: 8,
+  flex: 1, padding: "13px 0", borderRadius: 8,
   border: "1px solid var(--border)", background: "var(--elevated)",
   fontFamily: "var(--font-sans)", fontSize: 12, fontWeight: 500,
   color: "var(--fg2)", cursor: "pointer", transition: "border-color 0.15s",

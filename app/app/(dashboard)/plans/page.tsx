@@ -145,7 +145,7 @@ function RateOptionCard({ label, rateWei, selected, onSelect }: {
           {label}
         </p>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+      <div className="plan-breakdown-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
         {[
           ["Hourly", `$${(monthly / 720).toFixed(4)}`],
           ["Daily", `$${(monthly / 30).toFixed(2)}`],
@@ -434,6 +434,7 @@ function PlanCard({
           {/* Live metrics row */}
           {activeStreams.length > 0 && (
             <div
+              className="stat-grid-3"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3, 1fr)",
@@ -759,6 +760,12 @@ export default function PlansPage() {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(0.85); }
         }
+        @media (max-width: 860px) {
+          .plans-main-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .stat-grid-3 { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
       {/* Header */}
@@ -795,6 +802,7 @@ export default function PlansPage() {
       </div>
 
       <div
+        className="plans-main-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "400px 1fr",
@@ -833,7 +841,7 @@ export default function PlansPage() {
           {/* Billing period selector */}
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>Billing period</label>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+            <div className="plan-breakdown-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
               {(["hourly", "daily", "weekly", "monthly"] as const).map((p) => (
                 <button
                   key={p}

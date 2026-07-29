@@ -412,7 +412,7 @@ function StreamCard({ stream, plan, claimEvents, onClaim }: { stream: any; plan:
               background: claimableNow > 0.0001 ? "var(--cta, #3898EC)" : "var(--elevated)",
               border: "none",
               borderRadius: 8,
-              padding: "9px 14px",
+              padding: "13px 14px",
               fontFamily: "var(--font-sans)",
               fontSize: 12,
               fontWeight: 500,
@@ -431,11 +431,12 @@ function StreamCard({ stream, plan, claimEvents, onClaim }: { stream: any; plan:
           )}
           <button
             onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
             style={{
               background: "transparent",
               border: "1px solid var(--border)",
               borderRadius: 8,
-              padding: "7px 14px",
+              padding: "12px 14px",
               fontFamily: "var(--font-sans)",
               fontSize: 11,
               color: expanded ? "#fff" : "var(--fg-muted)",
@@ -461,7 +462,7 @@ function StreamCard({ stream, plan, claimEvents, onClaim }: { stream: any; plan:
 
       {/* Inline expanded detail panel */}
       {expanded && (
-        <div style={{
+        <div className="stream-detail-grid" style={{
           marginTop: 14,
           paddingTop: 14,
           borderTop: "1px solid rgba(172,198,233,0.08)",
@@ -750,6 +751,12 @@ export default function StreamsPage() {
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(0.85); }
+        }
+        @media (max-width: 860px) {
+          .stream-detail-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .stat-grid-3 { grid-template-columns: 1fr !important; }
         }
       `}</style>
 

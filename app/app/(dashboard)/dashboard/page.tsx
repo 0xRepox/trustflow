@@ -231,8 +231,11 @@ function LiveStreamingHero({
         ${tickedAmount.toFixed(6)}
       </p>
 
-      {/* Grid of metrics */}
+      {/* Grid of metrics — .stat-grid-4 already exists in the dashboard
+          layout's global stylesheet with a 768px breakpoint, it just had
+          no element using it before. */}
       <div
+        className="stat-grid-4"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",

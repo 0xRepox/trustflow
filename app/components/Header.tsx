@@ -80,8 +80,11 @@ export function Header() {
         }}>TrustFlow</span>
       </Link>
 
-      {/* Nav links */}
-      <nav style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
+      {/* Nav links (desktop) — hidden on mobile via layout.tsx's .header-nav-links
+          rule; MobileNav renders the bottom tab bar instead. This className
+          existed in that stylesheet already but was never applied to any
+          element, so the rule was dead. */}
+      <nav className="header-nav-links" style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
         {NAV.map(({ href, label }) => {
           const active = pathname === href;
           const badge = label === "Disputes" && openDisputes > 0 ? openDisputes : null;
@@ -125,14 +128,18 @@ export function Header() {
         })}
       </nav>
 
-      {/* Right: chain info + wallet */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      {/* Right: chain info + wallet. marginLeft: auto pushes this to the far
+          edge on its own — it can't rely on the nav's flex:1 for spacing
+          since that nav (and its spacing) disappears on mobile. Chain info
+          itself hides on mobile via the existing (previously dead)
+          .hide-mobile rule — there's no room for it once the nav collapses. */}
+      <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0, marginLeft: "auto" }}>
+        <div className="hide-mobile" style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4CAF7D", boxShadow: "0 0 6px #4CAF7D", display: "inline-block" }} />
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#4CAF7D", letterSpacing: "0.06em" }}>Arc Testnet</span>
         </div>
         {block && (
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "rgba(172,198,233,0.3)", letterSpacing: "0.06em" }}>
+          <span className="hide-mobile" style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "rgba(172,198,233,0.3)", letterSpacing: "0.06em" }}>
             #{block.number.toLocaleString()}
           </span>
         )}
