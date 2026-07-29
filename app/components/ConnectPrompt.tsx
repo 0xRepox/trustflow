@@ -84,7 +84,7 @@ export function ConnectPrompt({
       {/* Feature highlights */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
+        gridTemplateColumns: "1fr",
         gap: 12,
         textAlign: "left",
       }}>
