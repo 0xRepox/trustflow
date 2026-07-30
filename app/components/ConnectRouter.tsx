@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useAccount } from "wagmi";
 import { useRouter, usePathname } from "next/navigation";
-import { getPlansByOwner, getStreamsByPayer } from "@/lib/indexer";
+import { getPlansByOwner } from "@/lib/indexer";
 
 export function ConnectRouter() {
   const { address, isConnected } = useAccount();
@@ -19,17 +19,11 @@ export function ConnectRouter() {
     didRoute.current = true;
 
     (async () => {
-      const [plans, streams] = await Promise.all([
-        getPlansByOwner(address),
-        getStreamsByPayer(address),
-      ]);
+      const plans = await getPlansByOwner(address);
+      const isMerchant = plans.length > 0;
 
-      const isMerchant   = plans.length > 0;
-      const isSubscriber = streams.length > 0;
-
-      if (isMerchant) return;                    // stay on /dashboard
-      if (isSubscriber) router.replace("/account"); // subscriber — show their subs
-      else router.replace("/plans");               // new user — onboard as merchant
+      if (isMerchant) return;          // stay on /dashboard
+      router.replace("/plans");        // new user — onboard as merchant
     })();
   }, [isConnected, address, pathname, router]);
 

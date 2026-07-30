@@ -4,10 +4,9 @@ import { use, useState, useMemo, useEffect, Suspense } from "react";
 import { useAccount, useWriteContract, useReadContract } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useRouter } from "next/navigation";
-import { getPlanById } from "@/lib/indexer";
+import { getPlanById, getActiveStream, getActiveStreamWithMerchant } from "@/lib/indexer";
 import { ADDRESSES, STREAM_MANAGER_ABI, USDC_ABI } from "@/lib/contracts";
 import { WalletButton } from "@/components/WalletButton";
-import Link from "next/link";
 import { getErrorMessage } from "@/lib/errors";
 
 function isSafeRedirectUrl(url: string): boolean {
@@ -110,13 +109,28 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
   const planName = searchParams.get("name") ?? "";
 
   const [runway, setRunway] = useState("1w");
-  const [step, setStep] = useState<"idle" | "approving" | "subscribing" | "done">("idle");
+  const [step, setStep] = useState<"idle" | "canceling" | "approving" | "subscribing" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(5);
 
   const { data: plan, isLoading } = useQuery({
     queryKey: ["plan", planId],
     queryFn: () => getPlanById(planId),
+  });
+
+  const { data: existingStream, isLoading: isCheckingExisting } = useQuery({
+    queryKey: ["activeStream", planId, address],
+    queryFn: () => getActiveStream(planId, address as string),
+    enabled: !!address,
+  });
+
+  // Active stream on a DIFFERENT plan from this same merchant — buying this
+  // plan on top of it would double-bill the subscriber, so it's treated as
+  // an upgrade/downgrade: cancel that stream, then create this one.
+  const { data: crossPlanStream, isLoading: isCheckingCrossPlan } = useQuery({
+    queryKey: ["crossPlanStream", plan?.owner, planId, address],
+    queryFn: () => getActiveStreamWithMerchant(plan!.owner, address as string, planId),
+    enabled: !!address && !!plan?.owner,
   });
 
   const { data: usdcBalance } = useReadContract({
@@ -181,9 +195,19 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
   }, [balanceUsdc, canAfford, cheapest]);
 
   async function handleSubscribe() {
-    if (!address || !canAfford) return;
+    if (!address || !canAfford || existingStream) return;
     setError(null);
     try {
+      if (crossPlanStream) {
+        setStep("canceling");
+        await writeContractAsync({
+          address: ADDRESSES.StreamManager,
+          abi: STREAM_MANAGER_ABI,
+          functionName: "cancel",
+          args: [BigInt(crossPlanStream.id)],
+        });
+      }
+
       setStep("approving");
       await writeContractAsync({
         address: ADDRESSES.USDC,
@@ -223,6 +247,32 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
           <p style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, color: "#fff", margin: "0 0 6px" }}>Plan not found</p>
           <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--fg-muted)", margin: 0 }}>
             This plan doesn&apos;t exist or is no longer active.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Already subscribed ──────────────────────────────────────────────────
+  if (existingStream && step !== "done") {
+    return (
+      <div style={pageWrap}>
+        <div style={{ ...card, textAlign: "center" }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: "50%", background: "rgba(56,152,236,0.15)",
+            display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px",
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M5 13l4 4L19 7" stroke="var(--cta)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
+            Already subscribed
+          </h1>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--fg-muted)", margin: 0 }}>
+            This wallet already has an active stream on this plan
+            {" "}(stream #{existingStream.id}). Manage it — top up, cancel, or dispute —
+            {" "}from the site you subscribed through.
           </p>
         </div>
       </div>
@@ -269,14 +319,9 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
               </button>
             </div>
           ) : (
-            <Link href="/account" style={{
-              display: "block", background: "var(--elevated)",
-              border: "1px solid var(--border)", borderRadius: 10,
-              padding: "10px 0", fontFamily: "var(--font-sans)",
-              fontSize: 13, fontWeight: 500, color: "var(--fg2)", textDecoration: "none",
-            }}>
-              Manage subscription →
-            </Link>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: 0 }}>
+              You can manage this subscription from the site you subscribed through.
+            </p>
           )}
         </div>
       </div>
@@ -365,6 +410,22 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
           </p>
         </div>
 
+        {/* Cross-plan switch warning */}
+        {crossPlanStream && (
+          <div style={{
+            background: "rgba(201,137,58,0.08)", border: "1px solid rgba(201,137,58,0.25)",
+            borderRadius: 8, padding: "10px 14px", marginBottom: 14,
+            display: "flex", gap: 10, alignItems: "flex-start",
+          }}>
+            <span style={{ color: "var(--label)", fontSize: 15, lineHeight: 1, flexShrink: 0 }}>⚠</span>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--fg-muted)", margin: 0, lineHeight: 1.55 }}>
+              You have an active subscription (stream #{crossPlanStream.id}) on another plan from
+              this merchant. Subscribing here cancels it — refunding its unused
+              deposit to your wallet — and starts this plan instead.
+            </p>
+          </div>
+        )}
+
         {/* Balance hint / insufficient */}
         {balanceHint && (
           <div style={{
@@ -402,7 +463,7 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
         ) : (
           <button
             onClick={handleSubscribe}
-            disabled={isPending || step !== "idle" || !canAfford}
+            disabled={isPending || step !== "idle" || !canAfford || isCheckingExisting || isCheckingCrossPlan}
             style={{
               width: "100%",
               background: !canAfford ? "var(--elevated)" : step !== "idle" ? "rgba(56,152,236,0.5)" : "var(--cta)",
@@ -413,10 +474,13 @@ function SubscribeInner({ params }: { params: Promise<{ planId: string }> }) {
               transition: "background 0.15s",
             }}
           >
-            {step === "approving"   && "Step 1/2 · Approving USDC…"}
-            {step === "subscribing" && "Step 2/2 · Starting stream…"}
+            {step === "canceling"    && "Step 1/3 · Canceling current plan…"}
+            {step === "approving"    && (crossPlanStream ? "Step 2/3 · Approving USDC…" : "Step 1/2 · Approving USDC…")}
+            {step === "subscribing"  && (crossPlanStream ? "Step 3/3 · Starting stream…" : "Step 2/2 · Starting stream…")}
             {step === "idle" && (canAfford
-              ? `Deposit $${selected.cost.toFixed(2)} · start streaming →`
+              ? crossPlanStream
+                ? `Switch plan · deposit $${selected.cost.toFixed(2)} →`
+                : `Deposit $${selected.cost.toFixed(2)} · start streaming →`
               : "Insufficient USDC balance"
             )}
           </button>

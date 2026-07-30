@@ -150,6 +150,24 @@ export async function getActiveStream(planId: string, payerAddress: string): Pro
   return data.streams.items[0] ?? null;
 }
 
+// Finds an active stream this payer already has on any OTHER plan from the
+// same merchant — used to block buying a second concurrent plan from one
+// merchant and to drive the upgrade/downgrade switch flow instead.
+export async function getActiveStreamWithMerchant(
+  merchantOwner: string,
+  payerAddress: string,
+  excludePlanId: string
+): Promise<Stream | null> {
+  const plans = await getPlansByOwner(merchantOwner);
+  const otherPlanIds = plans.map((p) => p.id).filter((id) => id !== excludePlanId);
+  if (otherPlanIds.length === 0) return null;
+
+  const streams = await Promise.all(
+    otherPlanIds.map((planId) => getActiveStream(planId, payerAddress))
+  );
+  return streams.find((s): s is Stream => s !== null) ?? null;
+}
+
 export async function getDisputesBySubscriber(subscriberAddress: string): Promise<Dispute[]> {
   const data = await gql<{ disputes: { items: Dispute[] } }>(
     `query($subscriber: String!) {

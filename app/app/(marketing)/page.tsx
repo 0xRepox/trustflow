@@ -198,7 +198,7 @@ export default function LandingPage() {
           <div className={`${s.compare} ${s.reveal}`}>
             <div className={s.compareRow}>
               <div className={`${s.compareCell} ${s.compareHead}`}>Criterion</div>
-              <div className={`${s.compareCell} ${s.compareHead}`}>Stripe / Traditional</div>
+              <div className={`${s.compareCell} ${s.compareHead}`}>Traditional processors</div>
               <div className={`${s.compareCell} ${s.compareHead} ${s.winner}`}>TrustFlow on Arc</div>
             </div>
             {COMPARE_ROWS.map(({ criterion, hint, legacy, modern }) => (

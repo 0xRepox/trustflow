@@ -45,6 +45,13 @@ export default function DocsPage() {
         <p className="text-sm text-gray-400">
           The page handles wallet connection, USDC approval, and stream creation automatically.
         </p>
+        <p className="text-sm text-gray-400">
+          If a wallet already has an active stream on this exact plan, checkout is blocked —
+          they can't double-pay themselves. If they have an active stream on a{" "}
+          <strong className="text-white">different</strong> plan of yours, checkout switches
+          mode: subscribing cancels that stream (refunding its unused deposit) and starts
+          this one, so a subscriber is only ever billed for one of your plans at a time.
+        </p>
       </Section>
 
       <Section title="3. Check Subscription on Your Server">
@@ -67,30 +74,15 @@ if (!active) {
 // remaining — USDC micro-units left unconsumed in the deposit`} />
       </Section>
 
-      <Section title="4. Let Subscribers Manage Their Own Billing (Hosted)">
+      <Section title="4. Let Subscribers Manage Billing On Your Own Site">
         <p className="text-sm text-gray-400">
-          TrustFlow ships a hosted subscriber billing page — the same pattern as a
-          Stripe Customer Portal. Point your users at their subscription and they can
-          view consumption, top up, cancel for an instant proportional refund, or
-          open a dispute, without you building any of that UI yourself:
-        </p>
-        <CodeBlock lang="html" code={`<a href="${BASE_URL}/account">
-  Manage subscription
-</a>`} />
-        <p className="text-sm text-gray-400">
-          The page reads whichever wallet is connected, so a subscriber sees only
-          their own streams across every merchant they've subscribed to — not just
-          yours.
-        </p>
-      </Section>
-
-      <Section title="5. Embed Billing Management On Your Own Site">
-        <p className="text-sm text-gray-400">
-          Prefer subscribers to never leave your domain? Cancel, top-up, and dispute
-          are plain onchain writes on the <code className="text-blue-300">StreamManager</code> and{" "}
+          Subscription management — cancel, top-up, dispute — happens on{" "}
+          <strong className="text-white">your</strong> site, not TrustFlow's. These are
+          plain onchain writes on the <code className="text-blue-300">StreamManager</code> and{" "}
           <code className="text-blue-300">DisputeResolver</code> contracts — call them
           directly from your own UI with wagmi/viem. No TrustFlow backend involved for
-          writes; reads come from the same indexer/API you're already using.
+          writes; reads come from the same indexer/API you're already using. Subscribers
+          never leave your domain.
         </p>
         <CodeBlock code={`// Contract addresses (Arc testnet) — same for every merchant
 const ADDRESSES = {
