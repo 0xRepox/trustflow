@@ -52,6 +52,25 @@ export default function DocsPage() {
           mode: subscribing cancels that stream (refunding its unused deposit) and starts
           this one, so a subscriber is only ever billed for one of your plans at a time.
         </p>
+
+        <p className="text-sm text-gray-400 mt-4">
+          <strong className="text-white">Redirect back after payment</strong> — without this,
+          the subscriber is just shown a "Streaming started" confirmation and stays on TrustFlow.
+          Add a <code className="text-blue-300">success</code> query param (must be an{" "}
+          <code className="text-blue-300">https://</code> URL) pointing back at your own site,
+          and TrustFlow auto-redirects there 5 seconds after the stream is created (with a
+          "Go now" button to skip the wait):
+        </p>
+        <CodeBlock lang="html" code={`<a href="${BASE_URL}/subscribe/YOUR_PLAN_ID?success=https%3A%2F%2Fyoursite.com%2Fwelcome">
+  Subscribe
+</a>`} />
+        <p className="text-sm text-gray-400">
+          Set this once from <a href="/plans" className="text-blue-400 hover:underline">/plans</a> —
+          each plan card has a "Redirect after payment" field with a Save button that appends the
+          param to your Copy-link output automatically, so you don't have to hand-build the URL
+          yourself. It's optional per plan and only accepts <code className="text-blue-300">https://</code>{" "}
+          links (plain <code className="text-blue-300">http://</code> or other schemes are ignored).
+        </p>
       </Section>
 
       <Section title="3. Check Subscription on Your Server">
