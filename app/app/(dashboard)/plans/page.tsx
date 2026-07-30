@@ -321,6 +321,7 @@ function PlanCard({
   }, [activeStreams]);
 
   const [copied, setCopied] = useState(false);
+  const [redirectSaved, setRedirectSaved] = useState(false);
   const [redirectInput, setRedirectInput] = useState(successUrl ?? "");
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const token = origin ? getPlanToken(plan.id) : "";
@@ -344,6 +345,8 @@ function PlanCard({
     const trimmed = redirectInput.trim();
     if (trimmed && !trimmed.startsWith("https://")) return;
     onSetSuccessUrl(plan.id, trimmed);
+    setRedirectSaved(true);
+    setTimeout(() => setRedirectSaved(false), 2000);
   };
 
   return (
@@ -551,12 +554,15 @@ function PlanCard({
               <button
                 onClick={handleRedirectSave}
                 style={{
-                  background: "var(--elevated)", border: "1px solid var(--border)", borderRadius: 6,
+                  background: "var(--elevated)",
+                  border: `1px solid ${redirectSaved ? "var(--success, #5AF0B8)" : "var(--border)"}`,
+                  borderRadius: 6,
                   cursor: "pointer", fontFamily: "var(--font-sans)", fontSize: 11,
-                  color: "var(--fg-muted)", padding: "6px 10px", flexShrink: 0,
+                  color: redirectSaved ? "var(--success, #5AF0B8)" : "var(--fg-muted)",
+                  padding: "6px 10px", flexShrink: 0, transition: "all 0.15s",
                 }}
               >
-                Save
+                {redirectSaved ? "Saved ✓" : "Save"}
               </button>
             </div>
             {redirectInput && !redirectInput.startsWith("https://") && (

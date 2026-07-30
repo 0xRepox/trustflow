@@ -67,7 +67,7 @@ if (!active) {
 // remaining — USDC micro-units left unconsumed in the deposit`} />
       </Section>
 
-      <Section title="4. Let Subscribers Manage Their Own Billing">
+      <Section title="4. Let Subscribers Manage Their Own Billing (Hosted)">
         <p className="text-sm text-gray-400">
           TrustFlow ships a hosted subscriber billing page — the same pattern as a
           Stripe Customer Portal. Point your users at their subscription and they can
@@ -81,6 +81,80 @@ if (!active) {
           The page reads whichever wallet is connected, so a subscriber sees only
           their own streams across every merchant they've subscribed to — not just
           yours.
+        </p>
+      </Section>
+
+      <Section title="5. Embed Billing Management On Your Own Site">
+        <p className="text-sm text-gray-400">
+          Prefer subscribers to never leave your domain? Cancel, top-up, and dispute
+          are plain onchain writes on the <code className="text-blue-300">StreamManager</code> and{" "}
+          <code className="text-blue-300">DisputeResolver</code> contracts — call them
+          directly from your own UI with wagmi/viem. No TrustFlow backend involved for
+          writes; reads come from the same indexer/API you're already using.
+        </p>
+        <CodeBlock code={`// Contract addresses (Arc testnet) — same for every merchant
+const ADDRESSES = {
+  StreamManager: "0xf576f7aF812298B95bB440d6718A8b1d96d54395",
+  DisputeResolver: "0xF87B65f0bFe749b0BDd0834D3a808B04c241714F",
+  USDC: "0x3600000000000000000000000000000000000000",
+};`} />
+
+        <p className="text-sm text-gray-400 mt-4">
+          <strong className="text-white">Cancel</strong> — instantly refunds the
+          subscriber's unconsumed deposit, no approval needed:
+        </p>
+        <CodeBlock code={`await writeContractAsync({
+  address: ADDRESSES.StreamManager,
+  abi: streamManagerAbi, // needs just "cancel(uint256)"
+  functionName: "cancel",
+  args: [BigInt(streamId)],
+});`} />
+
+        <p className="text-sm text-gray-400 mt-4">
+          <strong className="text-white">Top up</strong> — approve USDC, then top up
+          (two transactions, standard ERC-20 pattern):
+        </p>
+        <CodeBlock code={`await writeContractAsync({
+  address: ADDRESSES.USDC,
+  abi: usdcAbi, // needs just "approve(address,uint256)"
+  functionName: "approve",
+  args: [ADDRESSES.StreamManager, amountWei],
+});
+await writeContractAsync({
+  address: ADDRESSES.StreamManager,
+  abi: streamManagerAbi, // needs just "topUp(uint256,uint256)"
+  functionName: "topUp",
+  args: [BigInt(streamId), amountWei],
+});
+// amountWei — USDC micro-units (1,000,000 = 1 USDC)`} />
+
+        <p className="text-sm text-gray-400 mt-4">
+          <strong className="text-white">Open a dispute</strong> — freezes the disputed
+          amount plus a 1-day-rate bond, refundable if the subscriber's claim is upheld:
+        </p>
+        <CodeBlock code={`const bondWei = BigInt(Math.floor(
+  (Number(plan.ratePerSecond) / 1_000_000) * 86400 * 1_000_000
+));
+
+await writeContractAsync({
+  address: ADDRESSES.USDC,
+  abi: usdcAbi,
+  functionName: "approve",
+  args: [ADDRESSES.DisputeResolver, amountWei + bondWei],
+});
+await writeContractAsync({
+  address: ADDRESSES.DisputeResolver,
+  abi: disputeResolverAbi, // needs just "openDispute(uint256,uint256)"
+  functionName: "openDispute",
+  args: [BigInt(streamId), amountWei],
+});
+// merchant then has 7 days to respond before it auto-resolves`} />
+
+        <p className="text-sm text-gray-400 mt-4">
+          To find which stream(s) belong to the connected wallet before showing these
+          actions, query the indexer for that address (see{" "}
+          <em>Direct GraphQL</em> below) or call <code className="text-blue-300">/api/check</code>{" "}
+          if you already know the plan ID.
         </p>
       </Section>
 
