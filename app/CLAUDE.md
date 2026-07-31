@@ -3,7 +3,7 @@
 ## Design Context
 
 ### Users
-Crypto-native developers and merchants who want per-second USDC subscription billing. They're technical, skeptical of traditional payment processors, and evaluating TrustFlow as a Stripe replacement for onchain products.
+Crypto-native developers and merchants who want per-second USDC subscription billing. They're technical, skeptical of traditional payment processors, and evaluating TrustFlow as a replacement for legacy subscription billing on onchain products.
 
 ### Brand Personality
 Precise · Trustworthy · Technical
@@ -13,7 +13,7 @@ Precise · Trustworthy · Technical
 - **Accent colors**: `#3898EC` blue (CTAs, active states), `#4CAF7D` green (live/streaming indicators), `#C9893A` amber (mono labels)
 - **Typography**: Syne (display/hero headlines), Inter (all UI + body), JetBrains Mono (code/labels)
 - **No grid backgrounds** on the landing page — use noise texture overlay (SVG feTurbulence, ~3% opacity) for subtle depth
-- **References**: Stripe-level polish, but onchain/terminal aesthetic
+- **References**: Best-in-class fintech polish, but onchain/terminal aesthetic
 - **Anti-references**: No bright/neon crypto colors, no gradients that look "DeFi generic"
 
 ### Design Principles

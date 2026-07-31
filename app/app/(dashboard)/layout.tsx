@@ -16,15 +16,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           .stat-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
 
           /* stream/dispute cards → stack */
-          .stream-card-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
-          .chart-activity-grid { grid-template-columns: 1fr !important; }
           .plan-breakdown-grid { grid-template-columns: 1fr !important; }
 
           /* stream card inner layout → stack */
           .stream-inner-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
-
-          /* plan card actions → wrap */
-          .plan-actions { flex-wrap: wrap !important; }
 
           /* hide less important cols on mobile */
           .hide-mobile { display: none !important; }
