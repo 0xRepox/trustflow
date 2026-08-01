@@ -126,18 +126,6 @@ export async function getStreamsByPlanIds(planIds: string[]): Promise<Stream[]> 
   return results.flatMap((r) => r.streams.items);
 }
 
-export async function getStreamsByPayer(payerAddress: string): Promise<Stream[]> {
-  const data = await gql<{ streams: { items: Stream[] } }>(
-    `query($payer: String!) {
-      streams(where: { payer: $payer }, limit: 100, orderBy: "createdAt", orderDirection: "desc") {
-        items { id planId payer deposited claimed consumed status createdAt cancelledAt }
-      }
-    }`,
-    { payer: payerAddress.toLowerCase() }
-  );
-  return data.streams.items;
-}
-
 export async function getActiveStream(planId: string, payerAddress: string): Promise<Stream | null> {
   const data = await gql<{ streams: { items: Stream[] } }>(
     `query($planId: String!, $payer: String!) {
@@ -166,18 +154,6 @@ export async function getActiveStreamWithMerchant(
     otherPlanIds.map((planId) => getActiveStream(planId, payerAddress))
   );
   return streams.find((s): s is Stream => s !== null) ?? null;
-}
-
-export async function getDisputesBySubscriber(subscriberAddress: string): Promise<Dispute[]> {
-  const data = await gql<{ disputes: { items: Dispute[] } }>(
-    `query($subscriber: String!) {
-      disputes(where: { subscriber: $subscriber }, limit: 100) {
-        items { id streamId subscriber frozenAmount status verdict evidenceHash openedAt settledAt }
-      }
-    }`,
-    { subscriber: subscriberAddress.toLowerCase() }
-  );
-  return data.disputes.items;
 }
 
 export async function getClaimEventsByStreamIds(streamIds: string[]): Promise<ClaimEvent[]> {

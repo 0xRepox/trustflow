@@ -28,19 +28,24 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  // Without this, relative image URLs below resolve against localhost:3000 and
+  // every shared link renders a broken preview.
+  metadataBase: new URL("https://trustflowonarc.vercel.app"),
   title: "TrustFlow",
   description: "Per-second USDC streaming subscriptions built on Arc. Stream, trust, verify.",
   openGraph: {
     title: "TrustFlow",
     description: "Per-second USDC streaming subscriptions built on Arc.",
-    images: [{ url: "/og-image.svg", width: 1200, height: 630 }],
+    // PNG, not SVG — Twitter/LinkedIn/Discord/Slack/iMessage all refuse to
+    // render SVG social cards.
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "TrustFlow",
     description: "Per-second USDC streaming subscriptions built on Arc.",
-    images: ["/og-image.svg"],
+    images: ["/og-image.png"],
   },
 };
 
