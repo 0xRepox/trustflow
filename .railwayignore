@@ -1,0 +1,24 @@
+# Only indexer/ is deployed to Railway (the service's Root Directory is
+# "indexer"), so the upload is trimmed to that. Patterns are leading-slash
+# anchored on purpose: a bare "src" would also match indexer/src and gut the
+# very thing being deployed.
+/node_modules
+/app
+/agent
+/lib
+/out
+/cache
+/broadcast
+/deployments
+/src
+/test
+/script
+/brand
+/.github
+/.vercel
+/TrustFlow_PRD.docx
+
+# Never upload the indexer's own local-only artifacts
+indexer/node_modules
+indexer/.ponder
+indexer/generated

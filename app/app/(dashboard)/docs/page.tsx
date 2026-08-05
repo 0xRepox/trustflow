@@ -1,7 +1,7 @@
 "use client";
 
 const BASE_URL = "https://trustflowonarc.vercel.app";
-const INDEXER_URL = "https://indexer-production-854a.up.railway.app/graphql";
+const INDEXER_URL = "https://trustflow-production.up.railway.app/graphql";
 
 function CodeBlock({ code, lang = "ts" }: { code: string; lang?: string }) {
   return (

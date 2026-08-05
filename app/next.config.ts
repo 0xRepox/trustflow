@@ -9,7 +9,7 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "connect-src 'self' https://rpc.testnet.arc.network https://indexer-production-854a.up.railway.app wss://relay.walletconnect.com",
+      "connect-src 'self' https://rpc.testnet.arc.network https://trustflow-production.up.railway.app wss://relay.walletconnect.com",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
